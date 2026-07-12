@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>发版路线图 · 管理员后台原型</title>
+<style>
+  :root {
+    --primary: #5B6CFF;
+    --primary-soft: #EEF0FF;
+    --primary-hover: #4858E8;
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --sidebar: #1E2235;
+    --sidebar-2: #262B40;
+    --text: #1F2330;
+    --text-2: #5A6172;
+    --text-3: #9098AC;
+    --border: #E6E8EF;
+    --success: #2BB673;
+    --warn: #E89B2A;
+    --danger: #E25555;
+    --info: #3D8EE0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  /* ---------- 顶部条 ---------- */
+  .topbar {
+    height: 56px;
+    background: var(--sidebar);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+  .topbar .logo { font-weight: 600; font-size: 16px; letter-spacing: 0.5px; }
+  .topbar .logo .badge { background: var(--primary); padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-size: 12px; }
+  .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; color: #C7CCE0; }
+  .topbar .right .role { background: rgba(91,108,255,0.25); color: #B8BFFF; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .topbar .right .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #5B6CFF, #8E9BFF); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; }
+
+  /* ---------- 侧边栏 ---------- */
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0;
+    width: 220px;
+    background: var(--sidebar);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .nav-group { padding: 0 12px; margin-bottom: 12px; }
+  .nav-group .title { color: #6E7691; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    color: #C7CCE0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--sidebar-2); color: #fff; }
+  .nav-item.active { background: var(--primary); color: #fff; }
+  .nav-item .ico { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+
+  /* ---------- 主区 ---------- */
+  .main {
+    margin-left: 220px;
+    margin-top: 56px;
+    padding: 24px 28px 60px;
+    min-height: calc(100vh - 56px);
+  }
+  .page-header { display: flex; align-items: flex-end; margin-bottom: 20px; }
+  .page-header h1 { font-size: 22px; margin: 0 0 4px; }
+  .page-header .desc { color: var(--text-2); font-size: 13px; }
+  .page-header .right { margin-left: auto; display: flex; gap: 10px; }
+
+  /* ---------- 通用 ---------- */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .card-sub { color: var(--text-2); font-size: 12.5px; margin-bottom: 14px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; font-size: 13px; transition: all 0.15s; }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn-danger { color: var(--danger); border-color: #F2C7C7; }
+  .btn-danger:hover { background: #FDECEC; color: var(--danger); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--primary-soft); color: var(--primary); }
+  .tag-success { background: #E5F6EE; color: var(--success); }
+  .tag-warn { background: #FDF1DE; color: var(--warn); }
+  .tag-danger { background: #FCE6E6; color: var(--danger); }
+  .tag-info { background: #E4F0FB; color: var(--info); }
+  .tag-gray { background: #EEF0F4; color: var(--text-2); }
+
+  table { width: 100%; border-collapse: collapse; }
+  table th, table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  table th { background: #FAFBFD; color: var(--text-2); font-weight: 500; font-size: 12.5px; }
+  table tr:last-child td { border-bottom: none; }
+  table .actions { display: flex; gap: 8px; }
+  table .actions .link { color: var(--primary); cursor: pointer; font-size: 12.5px; }
+  table .actions .link.danger { color: var(--danger); }
+
+  .form-row { display: flex; gap: 14px; margin-bottom: 14px; }
+  .form-item { flex: 1; display: flex; flex-direction: column; }
+  .form-item label { font-size: 12.5px; color: var(--text-2); margin-bottom: 5px; }
+  .form-item input, .form-item select, .form-item textarea {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit;
+    background: #fff; color: var(--text);
+  }
+  .form-item input:focus, .form-item select:focus, .form-item textarea:focus { outline: none; border-color: var(--primary); }
+  .form-item .hint { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-card .label { color: var(--text-2); font-size: 12.5px; }
+  .stat-card .value { font-size: 26px; font-weight: 600; margin-top: 4px; }
+  .stat-card .delta { font-size: 12px; color: var(--success); margin-top: 2px; }
+  .stat-card .delta.warn { color: var(--warn); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .text-muted { color: var(--text-2); }
+  .text-sm { font-size: 12.5px; }
+  .flex { display: flex; align-items: center; gap: 10px; }
+  .gap-8 { gap: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+
+  .empty { padding: 30px; text-align: center; color: var(--text-3); }
+  .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider { position: absolute; cursor: pointer; inset: 0; background: #C7CCD8; border-radius: 20px; transition: 0.2s; }
+  .switch .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: 0.2s; }
+  .switch input:checked + .slider { background: var(--primary); }
+  .switch input:checked + .slider:before { transform: translateX(16px); }
+
+  .log-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .log-item:last-child { border-bottom: none; }
+  .log-item .time { color: var(--text-3); width: 140px; flex-shrink: 0; }
+  .log-item .who { color: var(--text-2); width: 100px; flex-shrink: 0; }
+  .log-item .what { flex: 1; }
+  .log-item .what .pill { display: inline-block; padding: 1px 6px; border-radius: 3px; background: var(--primary-soft); color: var(--primary); margin-right: 6px; font-size: 11.5px; }
+
+  .preview-strip { display: flex; gap: 10px; align-items: center; padding: 12px; background: #F8F9FC; border-radius: 8px; border: 1px dashed var(--border); }
+  .preview-strip .img-ph { width: 80px; height: 50px; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); border-radius: 4px; }
+
+  /* Modal */
+  .modal { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(31,35,48,0.5); align-items: center; justify-content: center; padding: 20px; }
+  .modal.show { display: flex; }
+  .modal-content { background: #fff; border-radius: 12px; max-width: 720px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(31,35,48,0.2); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .modal-header .title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--text-3); cursor: pointer; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); }
+  .checkbox-group { display: flex; gap: 16px; padding-top: 6px; flex-wrap: wrap; }
+  .checkbox-group label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+</style>
+<script src="app.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">发版路线图管理后台 <span class="badge">ADMIN</span></div>
+  <div class="right">
+    <span class="role">超级管理员</span>
+    <span>管理员 · 付羽淇</span>
+    <span class="avatar">付</span>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="nav-group">
+    <div class="title">核心</div>
+    <div class="nav-item active" data-view="dashboard"><span class="ico">▣</span>总览</div>
+    <div class="nav-item" data-view="data-source"><span class="ico">⊕</span>数据源管理</div>
+    <div class="nav-item" data-view="schedule"><span class="ico">◷</span>发版排期</div>
+  </div>
+  <div class="nav-group">
+    <div class="title">权限</div>
+    <div class="nav-item" data-view="users"><span class="ico">◉</span>用户与权限</div>
+    <div class="nav-item" data-view="product-lines"><span class="ico">▥</span>产品线管理</div>
+  </div>
+  <div class="nav-group">
+    <div class="title">系统</div>
+    <div class="nav-item" data-view="settings"><span class="ico">⚙</span>系统设置</div>
+    <div class="nav-item" data-view="audit"><span class="ico">▤</span>审计日志</div>
+  </div>
+  <div class="nav-group">
+    <div class="title">兜底</div>
+    <div class="nav-item" data-view="releases"><span class="ico">❒</span>全部发版记录</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ============ 总览 ============ -->
+  <div class="view active" id="view-dashboard">
+    <div class="page-header">
+      <div>
+        <h1>总览</h1>
+        <div class="desc">系统运行状态、关键指标与待办</div>
+      </div>
+      <div class="right">
+        <button class="btn">导出报表</button>
+        <button class="btn btn-primary">新建发版</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">运营账号数</div><div class="value">6</div><div class="delta">+1 本月</div></div>
+      <div class="stat-card"><div class="label">已配置数据源</div><div class="value">2</div><div class="delta">底座+资源 均启用</div></div>
+      <div class="stat-card"><div class="label">本月发版数</div><div class="value">28</div><div class="delta">+12% 较上月</div></div>
+      <div class="stat-card"><div class="label">待处理同步失败</div><div class="value">2</div><div class="delta warn">需关注</div></div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-title">各产品线状态</div>
+      <div class="card-sub">运营分布与本季发版密度</div>
+      <table>
+        <thead><tr><th>产品线</th><th>负责人</th><th>运营数</th><th>本月发版</th><th>未通知</th><th>已通知</th><th>下次发版</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag">闻道作业</span></td><td>王蓉</td><td>2</td><td>18</td><td>3</td><td>15</td><td>2026-07-15</td></tr>
+          <tr><td><span class="tag tag-info">直播教学</span></td><td>张颖</td><td>2</td><td>7</td><td>1</td><td>6</td><td>2026-07-12</td></tr>
+          <tr><td><span class="tag tag-warn">开放学校</span></td><td>余婷</td><td>1</td><td>3</td><td>0</td><td>3</td><td>2026-08-01</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">最近同步任务</div>
+      <div class="card-sub">最近 24 小时</div>
+      <table>
+        <thead><tr><th>时间</th><th>数据源</th><th>产品线</th><th>状态</th><th>详情</th></tr></thead>
+        <tbody>
+          <tr><td>2026-07-12 15:24</td><td>底座发布清单</td><td>底座</td><td><span class="tag tag-success">成功</span></td><td>导入 113 条</td></tr>
+          <tr><td>2026-07-12 15:24</td><td>资源应用发布清单</td><td>资源应用</td><td><span class="tag tag-success">成功</span></td><td>导入 280 条</td></tr>
+          <tr><td>2026-07-09 09:10</td><td>底座发布清单</td><td>底座</td><td><span class="tag tag-success">成功</span></td><td>导入 113 条</td></tr>
+          <tr><td>2026-07-09 09:10</td><td>资源应用发布清单</td><td>资源应用</td><td><span class="tag tag-warn">部分成功</span></td><td>导入 272 条（跳过 8 条格式异常）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 数据源管理 ============ -->
+  <div class="view" id="view-data-source">
+    <div class="page-header">
+      <div><h1>数据源管理</h1><div class="desc">钉钉文档发布清单接入与同步任务（底座 / 资源双模块）</div></div>
+      <div class="right">
+        <button class="btn">Excel 导入</button>
+        <button class="btn btn-primary" onclick="openSourceModal()">+ 新增数据源</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">已配置数据源</div>
+      <div class="card-sub">底座清单(113条)与资源清单(280条)从钉钉文档拉取，点击"同步"立即更新</div>
+      <table>
+        <thead><tr><th>名称</th><th>类型</th><th>模块</th><th>钉钉文档地址</th><th>产品线</th><th>数据量</th><th>最后同步</th><th>状态</th><th class="actions">操作</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>底座发布清单</td><td><span class="tag tag-info">钉钉文档</span></td><td><span class="tag">底座</span></td>
+            <td class="text-sm text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="https://alidocs.dingtalk.com/i/nodes/o14dA3GK8g55wx5KU515Ad99V9ekBD76">alidocs.dingtalk.com/i/nodes/o14dA3GK…</td>
+            <td>闻道作业</td><td>113 条</td><td>2026-07-12 15:24</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td><div class="actions"><span class="link" onclick="adminSync('base')">同步</span><span class="link" onclick="viewSyncLog('base')">日志</span><span class="link" onclick="openSourceModal('base')">编辑</span></div></td>
+          </tr>
+          <tr>
+            <td>资源应用发布清单</td><td><span class="tag tag-info">钉钉文档</span></td><td><span class="tag tag-info">资源应用</span></td>
+            <td class="text-sm text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="https://alidocs.dingtalk.com/i/nodes/YMyQA2dXW799zB9lS9NejgBZJzlwrZgb">alidocs.dingtalk.com/i/nodes/YMyQA2dXW799z…</td>
+            <td>闻道作业</td><td>280 条</td><td>2026-07-12 15:24</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td><div class="actions"><span class="link" onclick="adminSync('resource')">同步</span><span class="link" onclick="viewSyncLog('resource')">日志</span><span class="link" onclick="openSourceModal('resource')">编辑</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">图片存储配置</div>
+      <div class="card-sub">MVP 阶段使用本地存储，后续可迁移 OSS</div>
+      <div class="form-row">
+        <div class="form-item" style="flex:2"><label>存储类型</label><select><option>本地存储（uploads/）</option><option>阿里云 OSS（未启用）</option><option>腾讯云 COS（未启用）</option></select></div>
+        <div class="form-item" style="flex:2"><label>本地路径</label><input value="./uploads" /></div>
+        <div class="form-item"><label>访问前缀</label><input value="/static/uploads/" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 发版排期 ============ -->
+  <div class="view" id="view-schedule">
+    <div class="page-header">
+      <div><h1>发版排期</h1><div class="desc">维护统一发版预告与月度发版统计</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">下次发版预告</div>
+      <div class="card-sub">所有产品线共用下次发版日期，对外展示在路线图 Header 卡片</div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-item"><label>下次发版日期</label><input type="date" value="2026-07-15" /></div>
+        <div class="form-item" style="flex:2"><label>预计版本/主题</label><input value="V3.7 暑期升级" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">月度发版统计</div>
+      <div class="card-sub">2026 年 7 月 · 按每次发版日期统计各产品线已通知功能数</div>
+      <table>
+        <thead><tr><th>发版日期</th><th>闻道作业</th><th>直播教学</th><th>开放学校</th><th>合计</th></tr></thead>
+        <tbody>
+          <tr><td>2026-07-08</td><td>5</td><td>0</td><td>0</td><td>5</td></tr>
+          <tr><td>2026-07-05</td><td>0</td><td>3</td><td>0</td><td>3</td></tr>
+          <tr><td>2026-07-03</td><td>2</td><td>0</td><td>1</td><td>3</td></tr>
+          <tr><td>2026-07-01</td><td>8</td><td>0</td><td>0</td><td>8</td></tr>
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:600;background:#FAFBFD"><td>本月合计</td><td>15</td><td>3</td><td>1</td><td>19</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 用户与权限 ============ -->
+  <div class="view" id="view-users">
+    <div class="page-header">
+      <div><h1>用户与权限</h1><div class="desc">手动创建账号、分配角色与产品线</div></div>
+      <div class="right"><button class="btn btn-primary" onclick="openUserModal()">+ 新建运营账号</button></div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead><tr><th>账号</th><th>角色</th><th>负责产品线</th><th>状态</th><th>最近登录</th><th class="actions">操作</th></tr></thead>
+        <tbody>
+          <tr><td>wangrong</td><td><span class="tag tag-info">运营</span></td><td>闻道作业</td><td><span class="tag tag-success">启用</span></td><td>10:42</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
+          <tr><td>zhangying</td><td><span class="tag tag-info">运营</span></td><td>直播教学</td><td><span class="tag tag-success">启用</span></td><td>09:20</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
+          <tr><td>yuting</td><td><span class="tag tag-info">运营</span></td><td>开放学校</td><td><span class="tag tag-success">启用</span></td><td>昨日 16:05</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
+          <tr><td>lichen</td><td><span class="tag tag-info">运营</span></td><td>闻道作业 / 直播教学</td><td><span class="tag tag-warn">待激活</span></td><td>—</td><td><div class="actions"><span class="link">激活</span><span class="link">重置密码</span><span class="link danger">删除</span></div></td></tr>
+          <tr><td>admin</td><td><span class="tag">管理员</span></td><td>（全产品线）</td><td><span class="tag tag-success">启用</span></td><td>12:31</td><td><div class="actions"><span class="link">重置密码</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 产品线管理 ============ -->
+  <div class="view" id="view-product-lines">
+    <div class="page-header">
+      <div><h1>产品线管理</h1><div class="desc">维护产品线字典，作为数据隔离单元</div></div>
+      <div class="right"><button class="btn btn-primary">+ 新增产品线</button></div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead><tr><th>产品线</th><th>代码</th><th>运营数</th><th>本月发版</th><th>状态</th><th class="actions">操作</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag">闻道作业</span></td><td>wd-homework</td><td>2</td><td>18</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
+          <tr><td><span class="tag tag-info">直播教学</span></td><td>live-teach</td><td>2</td><td>7</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
+          <tr><td><span class="tag tag-warn">开放学校</span></td><td>open-school</td><td>1</td><td>3</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 系统设置 ============ -->
+  <div class="view" id="view-settings">
+    <div class="page-header">
+      <div><h1>系统设置</h1><div class="desc">长图模板、导出格式与基础配置</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">长图模板</div>
+      <div class="card-sub">运营预览与导出使用的样式模板</div>
+      <div class="form-row">
+        <div class="form-item"><label>默认模板</label><select><option>经典蓝紫（推荐）</option><option>极简白</option><option>商务深色</option></select></div>
+        <div class="form-item"><label>主色</label><input type="color" value="#5B6CFF" style="height:34px" /></div>
+        <div class="form-item"><label>背景</label><select><option>纯白</option><option>浅灰</option><option>渐变</option></select></div>
+      </div>
+      <div class="preview-strip">
+        <div class="img-ph"></div>
+        <div class="text-sm text-muted">预览效果：发版详情将与最终导出图片保持一致</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">导出格式默认</div>
+      <div class="form-row">
+        <div class="form-item"><label>图片格式</label><select><option>PNG（推荐）</option><option>JPG</option></select></div>
+        <div class="form-item"><label>图片质量</label><select><option>高（2x）</option><option>标准（1x）</option></select></div>
+        <div class="form-item"><label>是否生成 PDF</label><div style="padding-top:6px"><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">游客端访问</div>
+      <div class="card-sub">MVP 阶段为内网双击可见；后续部署升级后转公网公开</div>
+      <div class="form-row">
+        <div class="form-item"><label>当前模式</label><div style="padding-top:6px"><span class="tag tag-gray">内网/双击可见（MVP）</span></div></div>
+        <div class="form-item"><label>对外开关</label><div style="padding-top:6px"><label class="switch"><input type="checkbox" disabled><span class="slider"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 审计日志 ============ -->
+  <div class="view" id="view-audit">
+    <div class="page-header">
+      <div><h1>审计日志</h1><div class="desc">所有写操作的留痕记录</div></div>
+      <div class="right">
+        <button class="btn">导出 CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="form-item"><label>操作人</label><select><option>全部</option><option>admin</option><option>wangrong</option></select></div>
+        <div class="form-item"><label>操作类型</label><select><option>全部</option><option>创建</option><option>编辑</option><option>删除</option><option>登录</option></select></div>
+        <div class="form-item"><label>时间范围</label><input value="2026-07-01 ~ 2026-07-07" /></div>
+      </div>
+      <div class="divider"></div>
+      <div class="log-item"><div class="time">2026-07-07 12:31</div><div class="who">admin</div><div class="what"><span class="pill">编辑</span>更新"下次发版"预告 · 闻道作业 → 2026-07-15</div></div>
+      <div class="log-item"><div class="time">2026-07-07 11:08</div><div class="who">admin</div><div class="what"><span class="pill">创建</span>新建运营账号 lichen（待激活）</div></div>
+      <div class="log-item"><div class="time">2026-07-07 10:42</div><div class="who">system</div><div class="what"><span class="pill">同步</span>数据源"闻道作业-发版记录表"成功 · 12 条</div></div>
+      <div class="log-item"><div class="time">2026-07-07 09:15</div><div class="who">system</div><div class="what"><span class="pill" style="background:#FCE6E6;color:#E25555">失败</span>数据源"直播教学-周发版"同步失败 · token 过期</div></div>
+      <div class="log-item"><div class="time">2026-07-07 08:50</div><div class="who">admin</div><div class="what"><span class="pill">编辑</span>调整用户 wangrong 负责产品线</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 全部发版记录（兜底） ============ -->
+  <div class="view" id="view-releases">
+    <div class="page-header">
+      <div><h1>全部发版记录</h1><div class="desc">跨产品线兜底视图，仅管理员可见</div></div>
+      <div class="right">
+        <button class="btn">导出 JSON</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="form-item"><label>产品线</label><select><option>全部</option><option>闻道作业</option><option>直播教学</option><option>开放学校</option></select></div>
+        <div class="form-item"><label>状态</label><select><option>全部</option><option>已通知</option><option>未通知</option></select></div>
+        <div class="form-item"><label>关键词</label><input placeholder="搜索功能点 / 功能入口" /></div>
+      </div>
+      <div class="divider"></div>
+      <table>
+        <thead><tr><th>日期</th><th>产品线</th><th>类型</th><th>功能点</th><th>功能入口</th><th>录入</th><th>状态</th><th class="actions">操作</th></tr></thead>
+        <tbody>
+          <tr><td>2026-07-08</td><td><span class="tag">闻道作业</span></td><td>新增</td><td>运营后台 MVP 上线</td><td>—</td><td>wangrong</td><td><span class="tag tag-success">已通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
+          <tr><td>2026-07-05</td><td><span class="tag tag-info">直播教学</span></td><td>优化</td><td>直播连麦稳定性优化</td><td>课堂-连麦</td><td>zhangying</td><td><span class="tag tag-success">已通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
+          <tr><td>2026-07-03</td><td><span class="tag">闻道作业</span></td><td>新增</td><td>答题卡新题型支持</td><td>作业-答题卡</td><td>wangrong</td><td><span class="tag tag-gray">未通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- 数据源编辑/新增弹窗 -->
+<div class="modal" id="source-modal" onclick="closeModal(event, 'source-modal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="source-modal-title">新增数据源</div>
+      <button class="modal-close" onclick="closeModal(null, 'source-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-item"><label>名称</label><input id="src-name" placeholder="如：闻道作业-发版记录表" /></div>
+        <div class="form-item"><label>类型</label><select id="src-type"><option>钉钉文档</option><option>Excel 上传</option></select></div>
+        <div class="form-item"><label>所属产品线</label><select id="src-pl"><option>闻道作业</option><option>直播教学</option><option>开放学校</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item" style="flex:2"><label>钉钉文档 URL / 路径</label><input id="src-url" placeholder="https://dingtalk.com/doc/xxxxx" /></div>
+        <div class="form-item"><label>授权 Token</label><input id="src-token" type="password" placeholder="••••••••••" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>同步频率</label><select id="src-freq"><option>手动</option><option>每日</option><option>每周</option></select></div>
+        <div class="form-item"><label>启用</label><div style="padding-top:6px"><label class="switch"><input type="checkbox" id="src-enabled" checked><span class="slider"></span></label></div></div>
+        <div class="form-item" style="flex:2"><label>说明</label><input id="src-desc" placeholder="每周一自动拉取上周内容" /></div>
+      </div>
+      <div class="divider"></div>
+      <div class="card-title" style="font-size:14px">字段映射</div>
+      <div class="card-sub">将源表列名映射到后台字段</div>
+      <table>
+        <thead><tr><th>源字段（钉钉文档列名）</th><th>→</th><th>系统字段</th><th>必填</th><th>只读</th></tr></thead>
+        <tbody id="field-mapping-body">
+          <tr><td>发版时间</td><td>→</td><td>releaseDate</td><td>✓</td><td>✓ 研发控制</td></tr>
+          <tr><td>平台/范围</td><td>→</td><td>platformScope</td><td>✓</td><td>—</td></tr>
+          <tr><td>应用或后台</td><td>→</td><td>appPlatform</td><td>✓</td><td>—</td></tr>
+          <tr><td>端</td><td>→</td><td>scope</td><td>✓</td><td>—</td></tr>
+          <tr><td>新增、优化、修复</td><td>→</td><td>releaseType</td><td>✓</td><td>—</td></tr>
+          <tr><td>需验证功能点</td><td>→</td><td>featurePoint</td><td>✓</td><td>—</td></tr>
+          <tr><td>功能入口</td><td>→</td><td>featureEntry</td><td>✓</td><td>—</td></tr>
+          <tr><td>特殊情况说明</td><td>→</td><td>specialNotes</td><td>—</td><td>—</td></tr>
+          <tr><td>限制条件</td><td>→</td><td>limitNotes</td><td>—</td><td>—</td></tr>
+          <tr><td>运营验证结论</td><td>→</td><td>notes</td><td>—</td><td>—</td></tr>
+          <tr><td>是否亮点</td><td>→</td><td>isHighlight</td><td>—</td><td>—</td></tr>
+          <tr><td>提供材料</td><td>→</td><td>provideMaterial</td><td>—</td><td>—</td></tr>
+          <tr><td>备注</td><td>→</td><td>remarks</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal(null, 'source-modal')">取消</button>
+      <button class="btn btn-primary">保存</button>
+      <button class="btn">立即同步</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建运营账号弹窗 -->
+<div class="modal" id="user-modal" onclick="closeModal(event, 'user-modal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title">新建运营账号</div>
+      <button class="modal-close" onclick="closeModal(null, 'user-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-item"><label>用户名</label><input id="user-name" placeholder="登录账号" /></div>
+        <div class="form-item"><label>初始密码</label><input id="user-pwd" type="password" placeholder="首次登录后需修改" /></div>
+        <div class="form-item"><label>姓名</label><input id="user-realname" /></div>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-item">
+          <label>负责产品线（可多选）</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" id="user-pl-wd" checked /> 闻道作业</label>
+            <label><input type="checkbox" id="user-pl-live" /> 直播教学</label>
+            <label><input type="checkbox" id="user-pl-os" /> 开放学校</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal(null, 'user-modal')">取消</button>
+      <button class="btn btn-primary">创建并下发</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = el.getAttribute('data-view');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const view = document.getElementById('view-' + target);
+      if (view) view.classList.add('active');
+    });
+  });
+
+  function openSourceModal(mod) {
+    var mi = (window.RR && RR.MODULES[mod]) || RR.MODULES.base;
+    document.getElementById('source-modal-title').textContent = '编辑数据源 · ' + mi.name + '发布清单';
+    document.getElementById('src-name').value = mi.docName;
+    document.getElementById('src-type').value = '钉钉文档';
+    document.getElementById('src-pl').value = mi.productLine;
+    document.getElementById('src-url').value = mi.dingtalkUrl;
+    document.getElementById('src-freq').value = '每日';
+    document.getElementById('src-desc').value = mi.desc;
+    document.getElementById('source-modal').classList.add('show');
+  }
+  function adminSync(mod) {
+    var mi = RR.MODULES[mod] || {};
+    if (!confirm('确认立即同步「' + mi.docName + '」？\n将从钉钉文档拉取最新发布清单数据。')) return;
+    alert('同步任务已提交\n模块：' + mi.name + '\n文档：' + mi.dingtalkUrl + '\n\n（原型演示：实际部署后将调用后端同步接口，此处模拟完成）');
+  }
+  function viewSyncLog(mod) {
+    var mi = RR.MODULES[mod] || {};
+    alert('同步日志 · ' + mi.docName + '\n\n2026-07-12 15:24:03  成功  导入 ' + mi.totalRows + ' 条\n2026-07-09 09:10:00  成功  导入 ' + mi.totalRows + ' 条\n2026-07-05 14:20:00  成功  导入 ' + Math.floor(mi.totalRows*0.9) + ' 条');
+  }
+
+  function openUserModal() {
+    document.getElementById('user-modal').classList.add('show');
+  }
+
+  function closeModal(e, id) {
+    if (!e || e.target.id === id) {
+      document.getElementById(id).classList.remove('show');
+    }
+  }
+</script>
+
+</body>
+</html>

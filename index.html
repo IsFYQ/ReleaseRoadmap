@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>发版路线图 · 公开查看</title>
+<style>
+  :root {
+    --primary: #5B6CFF;
+    --primary-soft: #EEF0FF;
+    --primary-hover: #4858E8;
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --text: #1F2330;
+    --text-2: #5A6172;
+    --text-3: #9098AC;
+    --border: #E6E8EF;
+    --success: #2BB673;
+    --warn: #E89B2A;
+    --danger: #E25555;
+    --info: #3D8EE0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .header .title { font-size: 22px; font-weight: 600; }
+  .header .subtitle { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+  .header .filter { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .header .filter select, .header .filter input {
+    padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+    background: #fff; color: var(--text);
+  }
+  .header .filter input { width: 220px; }
+
+  /* Header actions */
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: #fff; color: var(--text); font-size: 13px;
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn-outline { border-color: var(--primary); color: var(--primary); background: #fff; }
+  .btn-outline:hover { background: var(--primary-soft); }
+  .user-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+  .user-badge .avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, var(--primary), #8E9BFF);
+  }
+
+  /* Overview cards */
+  .overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 24px 32px;
+    background: linear-gradient(180deg, #FAFBFF, #FFFFFF);
+  }
+  .ov-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(30,34,53,0.04);
+  }
+  .ov-card .label { color: var(--text-2); font-size: 12.5px; }
+  .ov-card .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
+  .ov-card .desc { color: var(--text-3); font-size: 12px; margin-top: 6px; }
+  .ov-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .ov-card .tags .tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--primary-soft); color: var(--primary); }
+
+  /* Layout */
+  .page-wrapper { max-width: 960px; margin: 0 auto; }
+  .container { display: flex; padding: 8px 32px 60px; gap: 28px; }
+  .content { flex: 1; min-width: 0; }
+  .toc {
+    width: 180px; flex-shrink: 0; position: sticky; top: 160px; align-self: flex-start;
+    border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff;
+  }
+  .toc-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .toc-item { font-size: 12.5px; color: var(--text-2); padding: 6px 0; cursor: pointer; border-left: 2px solid transparent; padding-left: 8px; }
+  .toc-item:hover { color: var(--primary); border-left-color: var(--primary); }
+  .toc-item.active { color: var(--primary); border-left-color: var(--primary); font-weight: 500; }
+
+  /* Date group */
+  .group { margin-bottom: 28px; }
+  .group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .group-head .date { font-size: 18px; font-weight: 600; }
+  .group-head .count { color: var(--text-3); font-size: 13px; margin-right: auto; }
+  .group-head .detail-btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; background: #fff; cursor: pointer; }
+  .group-head .detail-btn:hover { background: var(--primary-soft); }
+
+  /* Type section */
+  .type-section { margin-bottom: 18px; }
+  .type-section:last-child { margin-bottom: 0; }
+  .type-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+  .type-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .type-dot.add { background: var(--success); }
+  .type-dot.opt { background: var(--info); }
+  .type-dot.fix { background: var(--warn); }
+
+  /* Item row */
+  .item-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--border); gap: 16px;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+  .item-text .pl { color: var(--text-2); }
+  .item-entry {
+    flex-shrink: 0; font-size: 12px; color: var(--primary);
+    background: var(--primary-soft); padding: 2px 8px; border-radius: 4px;
+    margin-top: 1px; white-space: nowrap;
+  }
+
+  /* Modal */
+  .modal {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(31, 35, 48, 0.5); align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: #fff; border-radius: 12px; max-width: 760px; width: 100%; max-height: 85vh;
+    display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(31,35,48,0.2);
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .modal-header .title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; color: var(--text-3); cursor: pointer; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .image-grid .img {
+    aspect-ratio: 16/10; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); border-radius: 8px;
+  }
+  .image-grid .img.wide { grid-column: 1 / -1; }
+
+  /* Footer */
+  .footer { text-align: center; color: var(--text-3); font-size: 12px; padding: 40px 32px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .header { padding: 16px 20px; }
+    .header .top { flex-wrap: wrap; }
+    .header .filter { width: 100%; }
+    .header .filter input { flex: 1; width: auto; }
+    .header-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+    .overview { grid-template-columns: repeat(2, 1fr); padding: 16px 20px; }
+    .container { flex-direction: column; padding: 8px 20px 40px; }
+    .toc { width: 100%; position: static; display: flex; gap: 10px; padding: 12px; overflow-x: auto; }
+    .toc-title { display: none; }
+    .toc-item { border-left: none; border-bottom: 2px solid transparent; padding: 4px 6px; white-space: nowrap; }
+    .toc-item:hover, .toc-item.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+    .image-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .overview { grid-template-columns: 1fr; }
+    .header .filter { flex-direction: column; align-items: stretch; }
+    .header .filter select, .header .filter input { width: 100%; }
+    .item-row { flex-direction: column; gap: 6px; }
+    .item-entry { align-self: flex-start; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+<div class="header">
+  <div class="top">
+    <div>
+      <div class="title">发版路线图</div>
+      <div class="subtitle">闻道 / 直播 / 开放学校 · 已发布内容公开查看</div>
+    </div>
+    <div class="header-actions" id="header-actions">
+      <button class="btn btn-primary" onclick="openLogin()">登录</button>
+    </div>
+  </div>
+  <div class="filter">
+    <select>
+      <option>全部产品线</option>
+      <option>闻道作业</option>
+      <option>直播教学</option>
+      <option>开放学校</option>
+    </select>
+    <select>
+      <option>全部类型</option>
+      <option>新增</option>
+      <option>优化</option>
+      <option>修复</option>
+    </select>
+    <select>
+      <option>全部日期</option>
+      <option>最近 7 天</option>
+      <option>最近 30 天</option>
+      <option>2026 年 7 月</option>
+    </select>
+    <input type="text" placeholder="搜索功能点 / 功能入口" />
+  </div>
+</div>
+
+<div class="overview">
+  <div class="ov-card">
+    <div class="label">最新发版</div>
+    <div class="value">2026-07-08</div>
+    <div class="desc">闻道作业 · 月度发版</div>
+  </div>
+  <div class="ov-card">
+    <div class="label">近 30 天发版</div>
+    <div class="value">28</div>
+    <div class="desc">+12% 较上月</div>
+  </div>
+  <div class="ov-card">
+    <div class="label">产品线分布</div>
+    <div class="tags">
+      <span class="tag">闻道作业 18</span>
+      <span class="tag">直播教学 7</span>
+      <span class="tag">开放学校 3</span>
+    </div>
+  </div>
+  <div class="ov-card">
+    <div class="label">下次发版预告</div>
+    <div class="value">07-15</div>
+    <div class="desc">闻道作业 · V3.7 暑期升级</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="content">
+
+    <div class="group" id="g-2026-07-08">
+      <div class="group-head">
+        <div class="date">2026-07-08</div>
+        <div class="count">2 项</div>
+        <button class="detail-btn" onclick="openDetail('2026-07-08')">查看详情</button>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot add"></span>新增</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">闻道作业：</span>运营后台 MVP 上线</div>
+          <div class="item-entry">—</div>
+        </div>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot fix"></span>修复</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">闻道作业：</span>章节树偶发空白问题</div>
+          <div class="item-entry">课程-章节</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" id="g-2026-07-05">
+      <div class="group-head">
+        <div class="date">2026-07-05</div>
+        <div class="count">1 项</div>
+        <button class="detail-btn" onclick="openDetail('2026-07-05')">查看详情</button>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot opt"></span>优化</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">直播教学：</span>直播连麦稳定性优化</div>
+          <div class="item-entry">课堂-连麦</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" id="g-2026-07-01">
+      <div class="group-head">
+        <div class="date">2026-07-01</div>
+        <div class="count">1 项</div>
+        <button class="detail-btn" onclick="openDetail('2026-07-01')">查看详情</button>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot add"></span>新增</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">闻道作业：</span>V3.6 月度迭代</div>
+          <div class="item-entry">作业-批改 / 练习-错题本</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group" id="g-2026-06-25">
+      <div class="group-head">
+        <div class="date">2026-06-25</div>
+        <div class="count">11 项</div>
+        <button class="detail-btn" onclick="openDetail('2026-06-25')">查看详情</button>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot add"></span>新增</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>支持批量处理“识别异常”数据</div>
+          <div class="item-entry">教辅作业-识别异常</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>教辅作业支持进入讲评页面，对单题进行讲解</div>
+          <div class="item-entry">教辅作业-讲解</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>支持点击试题题号板块（小程序）或讲解按钮（web端）查看教师讲解</div>
+          <div class="item-entry">教辅作业-试题详情</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">底座：</span>1. 在试题任务-制作时，支持框选综合题小题 2. 在电子书栏目-支持框选综合题小题</div>
+          <div class="item-entry">电子书制作</div>
+        </div>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot opt"></span>优化</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">直播教学：</span>公告中的附件下载改为浏览器自带的下载</div>
+          <div class="item-entry">信息公告、教学计划等公告栏</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>作业提交通知中隐藏发布者的姓（第一个字）</div>
+          <div class="item-entry">钉钉通知</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>英文作文智能批阅的大模型由国外模型更换为国内模型</div>
+          <div class="item-entry">测验-英语作文智能批阅</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>同步教学栏目中，“课时”包中仅有作业资源时，大标签现状展示为“课时”，优化展示为“作业”</div>
+          <div class="item-entry">同步教学</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">底座：</span>编辑器版本升级 验证：所有编辑器可正常使用</div>
+          <div class="item-entry">试题列表-试题编辑 试题任务-有结构、无结构试题任务-新建编辑 备课包-新建、编辑试题</div>
+        </div>
+      </div>
+      <div class="type-section">
+        <div class="type-title"><span class="type-dot fix"></span>修复</div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">资源应用：</span>教辅提交作答时，钉钉发通知提交了某个章节，但进入教辅作业模块，该章节无提交数据的问题</div>
+          <div class="item-entry">教辅作业</div>
+        </div>
+        <div class="item-row">
+          <div class="item-text"><span class="pl">底座：</span>修复“发知识点任务的时候没有显示出来”信息匹配题”问题</div>
+          <div class="item-entry">试题任务-知识点任务</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">仅展示已发布内容 · 数据更新至 2026-07-08</div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">目录</div>
+    <div class="toc-item active" onclick="jumpTo('g-2026-07-08')">2026-07-08</div>
+    <div class="toc-item" onclick="jumpTo('g-2026-07-05')">2026-07-05</div>
+    <div class="toc-item" onclick="jumpTo('g-2026-07-01')">2026-07-01</div>
+    <div class="toc-item" onclick="jumpTo('g-2026-06-25')">2026-06-25</div>
+  </div>
+</div>
+
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="detail-title">发版详情</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="image-grid" id="detail-images">
+        <div class="img"></div>
+        <div class="img"></div>
+        <div class="img wide"></div>
+      </div>
+      <p class="text-muted" style="color:var(--text-2);font-size:12.5px;margin-top:14px">以上为本次发版的功能截图与长图，可右键保存或滚动查看。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal" id="login-modal" onclick="closeLogin(event)">
+  <div class="modal-content" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title">模拟登录</div>
+      <button class="modal-close" onclick="closeLogin()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-2);font-size:13px;margin:0 0 12px">选择角色以演示登录状态：</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-outline" onclick="login('guest')">普通用户登录</button>
+        <button class="btn btn-outline" onclick="login('ops')">运营登录</button>
+        <button class="btn btn-outline" onclick="login('admin')">管理员登录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentUser = null;
+
+  function jumpTo(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  }
+
+  function openDetail(date) {
+    document.getElementById('detail-title').textContent = date + ' · 发版详情';
+    document.getElementById('detail-modal').classList.add('show');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target.id === 'detail-modal') {
+      document.getElementById('detail-modal').classList.remove('show');
+    }
+  }
+
+  function openLogin() {
+    document.getElementById('login-modal').classList.add('show');
+  }
+
+  function closeLogin(e) {
+    if (!e || e.target.id === 'login-modal') {
+      document.getElementById('login-modal').classList.remove('show');
+    }
+  }
+
+  function login(role) {
+    currentUser = { role: role };
+    closeLogin();
+    renderHeader();
+  }
+
+  function logout() {
+    currentUser = null;
+    renderHeader();
+  }
+
+  function renderHeader() {
+    const box = document.getElementById('header-actions');
+    if (!currentUser) {
+      box.innerHTML = '<button class="btn btn-primary" onclick="openLogin()">登录</button>';
+      return;
+    }
+
+    let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + roleName(currentUser.role) + '</span></div>';
+
+    if (currentUser.role === 'ops' || currentUser.role === 'admin') {
+      html += '<a class="btn btn-primary" href="' + (currentUser.role === 'admin' ? 'admin.html' : 'ops.html') + '">进入后台</a>';
+    }
+
+    html += '<button class="btn" onclick="logout()">退出</button>';
+    box.innerHTML = html;
+  }
+
+  function roleName(role) {
+    return role === 'admin' ? '管理员' : role === 'ops' ? '运营' : '游客';
+  }
+</script>
+
+</body>
+</html>

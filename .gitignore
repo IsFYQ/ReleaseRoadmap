@@ -1,0 +1,11 @@
+# WorkBuddy 项目数据（非交付物）
+.workbuddy/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
