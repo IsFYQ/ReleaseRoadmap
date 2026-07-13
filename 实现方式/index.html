@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>发版路线图 · 公开查看</title>
+<style>
+  :root {
+    --primary: #5B6CFF;
+    --primary-soft: #EEF0FF;
+    --primary-hover: #4858E8;
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --text: #1F2330;
+    --text-2: #5A6172;
+    --text-3: #9098AC;
+    --border: #E6E8EF;
+    --success: #2BB673;
+    --warn: #E89B2A;
+    --danger: #E25555;
+    --info: #3D8EE0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .header .title { font-size: 22px; font-weight: 600; }
+  .header .subtitle { color: var(--text-2); font-size: 13px; margin-top: 4px; }
+  .header .filter { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .header .filter select, .header .filter input {
+    padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+    background: #fff; color: var(--text);
+  }
+  .header .filter input { width: 220px; }
+
+  /* Header actions */
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: #fff; color: var(--text); font-size: 13px;
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn-outline { border-color: var(--primary); color: var(--primary); background: #fff; }
+  .btn-outline:hover { background: var(--primary-soft); }
+  .user-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+  .user-badge .avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, var(--primary), #8E9BFF);
+  }
+
+  /* Overview cards */
+  .overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 24px 32px;
+    background: linear-gradient(180deg, #FAFBFF, #FFFFFF);
+  }
+  .ov-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(30,34,53,0.04);
+  }
+  .ov-card .label { color: var(--text-2); font-size: 12.5px; }
+  .ov-card .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
+  .ov-card .desc { color: var(--text-3); font-size: 12px; margin-top: 6px; }
+  .ov-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .ov-card .tags .tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--primary-soft); color: var(--primary); }
+
+  /* Layout */
+  .page-wrapper { max-width: 960px; margin: 0 auto; }
+  .container { display: flex; padding: 8px 32px 60px; gap: 28px; }
+  .content { flex: 1; min-width: 0; }
+  .toc {
+    width: 180px; flex-shrink: 0; position: sticky; top: 160px; align-self: flex-start;
+    border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff;
+  }
+  .toc-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .toc-item { font-size: 12.5px; color: var(--text-2); padding: 6px 0; cursor: pointer; border-left: 2px solid transparent; padding-left: 8px; }
+  .toc-item:hover { color: var(--primary); border-left-color: var(--primary); }
+  .toc-item.active { color: var(--primary); border-left-color: var(--primary); font-weight: 500; }
+
+  /* Date group */
+  .group { margin-bottom: 28px; }
+  .group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .group-head .date { font-size: 18px; font-weight: 600; }
+  .group-head .count { color: var(--text-3); font-size: 13px; margin-right: auto; }
+  .group-head .detail-btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; background: #fff; cursor: pointer; }
+  .group-head .detail-btn:hover { background: var(--primary-soft); }
+
+  /* Type section */
+  .type-section { margin-bottom: 18px; }
+  .type-section:last-child { margin-bottom: 0; }
+  .type-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+  .type-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .type-dot.add { background: var(--success); }
+  .type-dot.opt { background: var(--info); }
+  .type-dot.fix { background: var(--warn); }
+
+  /* Item row */
+  .item-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+  .item-tags .tag { font-size: 11px; padding: 1px 7px; border-radius: 4px; }
+  .item-tags .tag-soft { background: #F1F3F8; color: var(--text-2); }
+  .item-tags .tag-info { background: #E4F0FB; color: var(--info); }
+  .item-tags .tag-warn { background: #FDF1DE; color: var(--warn); }
+  .item-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+  .item-text .pl { color: var(--text-2); }
+  .item-extras { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .item-extra { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+  .extra-label { display: inline-block; color: var(--text-3); font-size: 11px; margin-right: 6px; }
+  .item-entry {
+    flex-shrink: 0; font-size: 12px; color: var(--primary);
+    background: var(--primary-soft); padding: 3px 8px; border-radius: 4px;
+    margin-top: 1px; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .type-count { color: var(--text-3); font-size: 12px; font-weight: normal; margin-left: 4px; }
+
+  /* Detail card (13 列完整字段) */
+  .detail-card {
+    border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+    background: #FAFBFD; margin-bottom: 12px;
+  }
+  .detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .detail-head .type-pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; color: #fff; }
+  .type-pill.add { background: var(--success); }
+  .type-pill.opt { background: var(--info); }
+  .type-pill.fix { background: var(--warn); }
+  .detail-product { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .detail-feature { font-size: 13.5px; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+  .detail-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .detail-table th, .detail-table td { padding: 5px 8px; font-size: 12px; text-align: left; border-bottom: 1px dashed #E6E8EF; vertical-align: top; }
+  .detail-table th { width: 80px; color: var(--text-3); font-weight: normal; background: transparent; }
+
+  /* Modal */
+  .modal {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(31, 35, 48, 0.5); align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: #fff; border-radius: 12px; max-width: 760px; width: 100%; max-height: 85vh;
+    display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(31,35,48,0.2);
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .modal-header .title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; color: var(--text-3); cursor: pointer; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .image-grid .img {
+    aspect-ratio: 16/10; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); border-radius: 8px;
+  }
+  .image-grid .img.wide { grid-column: 1 / -1; }
+
+  /* Footer */
+  .footer { text-align: center; color: var(--text-3); font-size: 12px; padding: 40px 32px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .header { padding: 16px 20px; }
+    .header .top { flex-wrap: wrap; }
+    .header .filter { width: 100%; }
+    .header .filter input { flex: 1; width: auto; }
+    .header-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+    .overview { grid-template-columns: repeat(2, 1fr); padding: 16px 20px; }
+    .container { flex-direction: column; padding: 8px 20px 40px; }
+    .toc { width: 100%; position: static; display: flex; gap: 10px; padding: 12px; overflow-x: auto; }
+    .toc-title { display: none; }
+    .toc-item { border-left: none; border-bottom: 2px solid transparent; padding: 4px 6px; white-space: nowrap; }
+    .toc-item:hover, .toc-item.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+    .image-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .overview { grid-template-columns: 1fr; }
+    .header .filter { flex-direction: column; align-items: stretch; }
+    .header .filter select, .header .filter input { width: 100%; }
+    .item-row { flex-direction: column; gap: 6px; }
+    .item-entry { align-self: flex-start; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+<div class="header">
+  <div class="top">
+    <div>
+      <div class="title">发版路线图</div>
+      <div class="subtitle">闻道 / 直播 / 开放学校 · 已发布内容公开查看</div>
+    </div>
+    <div class="header-actions" id="header-actions">
+      <button class="btn btn-primary" onclick="openLogin()">登录</button>
+    </div>
+  </div>
+  <div class="filter">
+    <select>
+      <option>全部产品线</option>
+      <option>闻道作业</option>
+      <option>直播教学</option>
+      <option>开放学校</option>
+    </select>
+    <select>
+      <option>全部类型</option>
+      <option>新增</option>
+      <option>优化</option>
+      <option>修复</option>
+    </select>
+    <select>
+      <option>全部日期</option>
+      <option>最近 7 天</option>
+      <option>最近 30 天</option>
+      <option>2026 年 7 月</option>
+    </select>
+    <input type="text" placeholder="搜索功能点 / 功能入口" />
+  </div>
+</div>
+
+<div class="overview">
+  <div class="ov-card">
+    <div class="label">最新发版</div>
+    <div class="value" id="ov-latest">—</div>
+    <div class="desc">已发布内容最新日期</div>
+  </div>
+  <div class="ov-card">
+    <div class="label">近 30 天发版</div>
+    <div class="value" id="ov-30count">0</div>
+    <div class="desc">已通知用户的发版项数</div>
+  </div>
+  <div class="ov-card">
+    <div class="label">产品线分布</div>
+    <div class="tags" id="ov-pl-tags"></div>
+  </div>
+  <div class="ov-card">
+    <div class="label">下次发版预告</div>
+    <div class="value" id="ov-next">—</div>
+    <div class="desc" id="ov-next-desc"></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="content">
+    <!-- 发版分组由 loadPublic() 动态渲染 -->
+    <div class="footer">仅展示已发布内容 · 数据由后端接口实时返回</div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">目录</div>
+    <!-- 目录项由 loadPublic() 动态生成 -->
+  </div>
+</div>
+
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="detail-title">发版详情</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="image-grid" id="detail-images">
+        <div class="img"></div>
+        <div class="img"></div>
+        <div class="img wide"></div>
+      </div>
+      <p class="text-muted" style="color:var(--text-2);font-size:12.5px;margin-top:14px">以上为本次发版的功能截图与长图，可右键保存或滚动查看。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal" id="login-modal" onclick="closeLogin(event)">
+  <div class="modal-content" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title">模拟登录</div>
+      <button class="modal-close" onclick="closeLogin()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-2);font-size:13px;margin:0 0 12px">选择角色以演示登录状态：</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-outline" onclick="login('guest')">普通用户登录</button>
+        <button class="btn btn-outline" onclick="login('ops')">运营登录</button>
+        <button class="btn btn-outline" onclick="login('admin')">管理员登录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 通用 API 调用
+  const API = '';
+  async function apiGet(path) {
+    const r = await fetch(API + path);
+    const j = await r.json();
+    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
+    return j.data;
+  }
+  async function apiPost(path, body) {
+    const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    const j = await r.json();
+    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
+    return j.data;
+  }
+
+  let currentUser = null;
+  let releasesByDate = {};
+
+  function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function weekday(date) { return ['周日','周一','周二','周三','周四','周五','周六'][new Date(date).getDay()]; }
+  function typeClass(type) { return type === '新增' ? 'add' : type === '优化' ? 'opt' : 'fix'; }
+
+  function jumpTo(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  }
+
+  async function openDetail(date) {
+    try {
+      const data = await apiGet('/api/public/releases/' + date);
+      releasesByDate[date] = data.items;
+      document.getElementById('detail-title').textContent = date + ' · 发版详情';
+      const grid = document.getElementById('detail-images');
+      if (data.items.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;color:var(--text-3);padding:20px;text-align:center">该日期无已发布内容</div>';
+      } else {
+        // 按发布清单 13 列结构完整展示
+        grid.style.display = 'block';
+        grid.style.gridTemplateColumns = '1fr';
+        grid.innerHTML = data.items.map(it => {
+          const extraRows = [];
+          const fields = [
+            ['平台/范围', it.platformScope],
+            ['涉及端', it.scope],
+            ['是否重点', it.isHighlight === '是' ? '✓ 是' : '—'],
+            ['面向用户', it.targetUser],
+            ['功能入口', it.featureEntry],
+            ['特殊说明', it.specialNotes],
+            ['限制条件', it.limitNotes],
+            ['运营验证结论', it.notes],
+            ['提供材料', it.provideMaterial],
+            ['备注补充', it.remarks],
+          ];
+          fields.forEach(([k, v]) => { if (v && v !== '—') extraRows.push('<tr><th>' + k + '</th><td>' + escapeHtml(v) + '</td></tr>'); });
+          return '<div class="detail-card">' +
+            '<div class="detail-head">' +
+              '<span class="type-pill ' + typeClass(it.releaseType) + '">' + escapeHtml(it.releaseType) + '</span>' +
+              '<span class="detail-product">' + escapeHtml(it.productLine || '—') + ' · ' + escapeHtml(it.appPlatform) + '</span>' +
+            '</div>' +
+            '<div class="detail-feature">' + escapeHtml(it.featurePoint) + '</div>' +
+            (extraRows.length ? '<table class="detail-table">' + extraRows.join('') + '</table>' : '') +
+          '</div>';
+        }).join('');
+      }
+    } catch (e) {
+      alert('加载详情失败：' + e.message);
+      return;
+    }
+    document.getElementById('detail-modal').classList.add('show');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target.id === 'detail-modal') {
+      document.getElementById('detail-modal').classList.remove('show');
+    }
+  }
+
+  function openLogin() {
+    document.getElementById('login-modal').classList.add('show');
+  }
+
+  function closeLogin(e) {
+    if (!e || e.target.id === 'login-modal') {
+      document.getElementById('login-modal').classList.remove('show');
+    }
+  }
+
+  async function login(role) {
+    if (role === 'guest') {
+      currentUser = { role: 'guest', realname: '游客' };
+    } else {
+      try {
+        const data = await apiPost('/api/auth/login', { role, username: role === 'admin' ? 'admin' : 'wangrong' });
+        currentUser = { role, realname: data.realname, username: data.username };
+      } catch (e) {
+        alert('登录失败：' + e.message);
+        return;
+      }
+    }
+    closeLogin();
+    renderHeader();
+  }
+
+  function logout() {
+    currentUser = null;
+    renderHeader();
+  }
+
+  function renderHeader() {
+    const box = document.getElementById('header-actions');
+    if (!currentUser) {
+      box.innerHTML = '<button class="btn btn-primary" onclick="openLogin()">登录</button>';
+      return;
+    }
+
+    let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + (currentUser.realname || roleName(currentUser.role)) + '</span></div>';
+
+    if (currentUser.role === 'ops' || currentUser.role === 'admin') {
+      html += '<a class="btn btn-primary" href="' + (currentUser.role === 'admin' ? 'admin.html' : 'ops.html') + '">进入后台</a>';
+    }
+
+    html += '<button class="btn" onclick="logout()">退出</button>';
+    box.innerHTML = html;
+  }
+
+  function roleName(role) {
+    return role === 'admin' ? '管理员' : role === 'ops' ? '运营' : '游客';
+  }
+
+  // ---- 加载公开发版数据 ----
+  function renderOverview(ov) {
+    document.getElementById('ov-latest').textContent = ov.latestRelease || '—';
+    document.getElementById('ov-30count').textContent = ov.last30Count;
+    const tagsEl = document.getElementById('ov-pl-tags');
+    tagsEl.innerHTML = Object.entries(ov.productLineCount).map(([k, v]) => '<span class="tag">' + k + ' ' + v + '</span>').join('') || '<span class="tag">暂无</span>';
+    document.getElementById('ov-next').textContent = ov.nextReleaseDate || '—';
+    document.getElementById('ov-next-desc').textContent = ov.nextReleaseTheme || '';
+  }
+
+  function renderGroups(groups) {
+    const content = document.querySelector('.content');
+    const toc = document.querySelector('.toc');
+    // 移除旧 group + 目录
+    content.querySelectorAll('.group').forEach(g => g.remove());
+    toc.querySelectorAll('.toc-item').forEach(t => t.remove());
+    if (groups.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'group';
+      empty.innerHTML = '<div class="empty" style="padding:40px;text-align:center;color:var(--text-3)">暂无已发布内容</div>';
+      content.appendChild(empty);
+      return;
+    }
+    groups.forEach((g, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'group';
+      wrap.id = 'g-' + g.date;
+      // 按发版类型分组（按 PRD：新增 → 优化 → 修复）
+      const TYPE_ORDER = ['新增', '优化', '修复'];
+      const byType = {};
+      g.items.forEach(it => {
+        const t = TYPE_ORDER.includes(it.releaseType) ? it.releaseType : '修复';
+        (byType[t] = byType[t] || []).push(it);
+      });
+      const sections = TYPE_ORDER.map(t => {
+        const list = byType[t] || [];
+        if (!list.length) return '';
+        return '<div class="type-section"><div class="type-title"><span class="type-dot ' + typeClass(t) + '"></span>' + t + ' <span class="type-count">· ' + list.length + ' 项</span></div>' +
+          list.map(it => {
+            // 字段：发版类型(已有) + 产品线 + 涉及应用/平台 + 涉及端 + 功能点描述 + 功能入口 + 重点 + 备注/限制/特殊
+            const tags = [];
+            if (it.productLine) tags.push('<span class="tag tag-soft">' + escapeHtml(it.productLine) + '</span>');
+            if (it.appPlatform) tags.push('<span class="tag tag-soft">' + escapeHtml(it.appPlatform) + '</span>');
+            if (it.scope) tags.push('<span class="tag tag-soft">' + escapeHtml(it.scope) + '</span>');
+            if (it.platformScope) tags.push('<span class="tag tag-soft">' + escapeHtml(it.platformScope) + '</span>');
+            if (it.targetUser && it.targetUser !== '全部') tags.push('<span class="tag tag-info">面向 ' + escapeHtml(it.targetUser) + '</span>');
+            if (it.isHighlight === '是') tags.push('<span class="tag tag-warn">重点</span>');
+            const extra = [];
+            if (it.specialNotes) extra.push('<div class="item-extra"><span class="extra-label">特殊说明</span>' + escapeHtml(it.specialNotes) + '</div>');
+            if (it.limitNotes) extra.push('<div class="item-extra"><span class="extra-label">限制条件</span>' + escapeHtml(it.limitNotes) + '</div>');
+            if (it.notes) extra.push('<div class="item-extra"><span class="extra-label">备注</span>' + escapeHtml(it.notes) + '</div>');
+            return '<div class="item-row">' +
+              '<div class="item-main">' +
+                '<div class="item-tags">' + tags.join('') + '</div>' +
+                '<div class="item-text">' + escapeHtml(it.featurePoint) + '</div>' +
+                (extra.length ? '<div class="item-extras">' + extra.join('') + '</div>' : '') +
+              '</div>' +
+              '<div class="item-entry">' + escapeHtml(it.featureEntry || '—') + '</div>' +
+            '</div>';
+          }).join('') + '</div>';
+      }).join('');
+      wrap.innerHTML = '<div class="group-head"><div class="date">' + g.date + ' · ' + weekday(g.date) + '</div><div class="count">共 ' + g.items.length + ' 项</div><button class="detail-btn" onclick="openDetail(\'' + g.date + '\')">查看详情</button></div>' + sections;
+      content.appendChild(wrap);
+      // TOC
+      const ti = document.createElement('div');
+      ti.className = 'toc-item' + (idx === 0 ? ' active' : '');
+      ti.textContent = g.date;
+      ti.onclick = function() { jumpTo('g-' + g.date); };
+      toc.appendChild(ti);
+    });
+  }
+
+  async function loadPublic() {
+    try {
+      const data = await apiGet('/api/public/releases');
+      renderOverview(data.overview);
+      renderGroups(data.groups);
+    } catch (e) {
+      console.error('加载发版列表失败', e);
+    }
+  }
+  loadPublic();
+</script>
+
+</body>
+</html>

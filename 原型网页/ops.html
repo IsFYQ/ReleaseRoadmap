@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>发版路线图 · 运营后台原型（V2）</title>
+<style>
+  :root {
+    --primary: #5B6CFF;
+    --primary-soft: #EEF0FF;
+    --primary-hover: #4858E8;
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --sidebar: #1E2235;
+    --sidebar-2: #262B40;
+    --text: #1F2330;
+    --text-2: #5A6172;
+    --text-3: #9098AC;
+    --border: #E6E8EF;
+    --success: #2BB673;
+    --warn: #E89B2A;
+    --danger: #E25555;
+    --info: #3D8EE0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+  }
+  .topbar {
+    height: 56px; background: var(--sidebar); color: #fff; display: flex; align-items: center;
+    padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .topbar .logo { font-weight: 600; font-size: 16px; }
+  .topbar .logo .badge { background: #2BB673; padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-size: 12px; }
+  .topbar .pl-tag { background: var(--primary-soft); color: var(--primary); padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+  .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; color: #C7CCE0; }
+  .topbar .right .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #2BB673, #58D699); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; }
+  .topbar .right .nav-link { color: #C7CCE0; text-decoration: none; padding: 4px 8px; border-radius: 4px; transition: all 0.15s; }
+  .topbar .right .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0; width: 220px; background: var(--sidebar); padding: 16px 0;
+  }
+  .nav-group { padding: 0 12px; margin-bottom: 12px; }
+  .nav-group .title { color: #6E7691; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #C7CCE0;
+    border-radius: 8px; cursor: pointer; font-size: 13.5px; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--sidebar-2); color: #fff; }
+  .nav-item.active { background: #2BB673; color: #fff; }
+  .nav-item .ico { width: 18px; text-align: center; }
+
+  .main { margin-left: 220px; margin-top: 56px; padding: 24px 28px 60px; min-height: calc(100vh - 56px); }
+  .page-header { display: flex; align-items: flex-end; margin-bottom: 20px; }
+  .page-header h1 { font-size: 22px; margin: 0 0 4px; }
+  .page-header .desc { color: var(--text-2); font-size: 13px; }
+  .page-header .right { margin-left: auto; display: flex; gap: 10px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .card-sub { color: var(--text-2); font-size: 12.5px; margin-bottom: 14px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; font-size: 13px; text-decoration: none; }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn-success { background: #2BB673; border-color: #2BB673; color: #fff; }
+  .btn-success:hover { background: #239e60; color: #fff; }
+  .btn-warn { background: #E89B2A; border-color: #E89B2A; color: #fff; }
+  .btn-warn:hover { background: #d18923; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--primary-soft); color: var(--primary); }
+  .tag-success { background: #E5F6EE; color: var(--success); }
+  .tag-warn { background: #FDF1DE; color: var(--warn); }
+  .tag-danger { background: #FCE6E6; color: var(--danger); }
+  .tag-info { background: #E4F0FB; color: var(--info); }
+  .tag-gray { background: #EEF0F4; color: var(--text-2); }
+  .type-pill { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+  .type-pill.add { background: #E5F6EE; color: var(--success); }
+  .type-pill.opt { background: #E4F0FB; color: var(--info); }
+  .type-pill.fix { background: #FDF1DE; color: var(--warn); }
+
+  table { width: 100%; border-collapse: collapse; }
+  table th, table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  table th { background: #FAFBFD; color: var(--text-2); font-weight: 500; font-size: 12.5px; }
+  table tr:last-child td { border-bottom: none; }
+  table .actions { display: flex; gap: 8px; }
+  table .actions .link { color: var(--primary); cursor: pointer; font-size: 12.5px; }
+
+  .form-row { display: flex; gap: 14px; margin-bottom: 14px; }
+  .form-item { flex: 1; display: flex; flex-direction: column; }
+  .form-item label { font-size: 12.5px; color: var(--text-2); margin-bottom: 5px; }
+  .form-item input, .form-item select, .form-item textarea {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit;
+    background: #fff; color: var(--text);
+  }
+  .form-item input:focus, .form-item select:focus, .form-item textarea:focus { outline: none; border-color: var(--primary); }
+  .form-item input:disabled, .form-item select:disabled, .form-item textarea:disabled { background: #F8F9FC; color: var(--text-3); cursor: not-allowed; }
+  .form-item .readonly-note { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .form-item select[multiple] { height: 80px; padding: 6px; }
+  .form-item select[multiple] option { padding: 4px 6px; border-radius: 3px; margin-bottom: 2px; }
+  .form-item select[multiple] option:checked { background: var(--primary-soft); color: var(--primary); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-card .label { color: var(--text-2); font-size: 12.5px; }
+  .stat-card .value { font-size: 26px; font-weight: 600; margin-top: 4px; }
+  .stat-card .delta { font-size: 12px; color: var(--success); margin-top: 2px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .text-muted { color: var(--text-2); }
+  .text-sm { font-size: 12.5px; }
+  .flex { display: flex; align-items: center; gap: 10px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-12 { margin-bottom: 12px; }
+  .hidden { display: none !important; }
+
+  .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .calendar .dow { font-size: 11.5px; color: var(--text-3); text-align: center; padding: 6px 0; }
+  .calendar .day { aspect-ratio: 1; background: #FAFBFD; border-radius: 6px; padding: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; position: relative; }
+  .calendar .day:hover { background: var(--primary-soft); color: var(--primary); }
+  .calendar .day .mark { display: block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; margin-top: 2px; }
+  .calendar .day.muted { color: var(--text-3); opacity: 0.5; }
+  .calendar .day.today { background: var(--primary); color: #fff; }
+
+  .module-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .module-tab { padding: 8px 16px; font-size: 14px; color: var(--text-2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .module-tab:hover { color: var(--primary); }
+  .module-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+  .module-count { background: var(--primary-soft); color: var(--primary); font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+  .module { display: none; }
+  .module.active { display: block; }
+
+  .sync-placeholder { padding: 40px 20px; text-align: center; background: #FAFBFD; border: 1px dashed var(--border); border-radius: 10px; }
+  .sync-placeholder .title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .sync-placeholder .desc { color: var(--text-2); font-size: 13px; margin-bottom: 16px; }
+
+  .thumb-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .thumb { width: 80px; height: 54px; border-radius: 4px; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); position: relative; }
+  .thumb .rm { position: absolute; top: 2px; right: 4px; background: rgba(0,0,0,0.5); color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; cursor: pointer; }
+  .paste-zone { border: 1.5px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; color: var(--text-2); background: #FAFBFD; margin-top: 8px; }
+  .paste-zone.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+
+  .modal { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(31,35,48,0.5); align-items: center; justify-content: center; padding: 20px; }
+  .modal.show { display: flex; }
+  .modal-content { background: #fff; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(31,35,48,0.2); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .modal-header .title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--text-3); cursor: pointer; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .generate-panel { background: #FAFBFD; border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+  .generate-panel .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .generate-panel .title { font-weight: 600; font-size: 15px; }
+  .version-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .version-tab { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text-2); cursor: pointer; font-size: 13px; }
+  .version-tab:hover { border-color: var(--primary); color: var(--primary); }
+  .version-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .long-image-preview { background: #fff; border: 1px solid var(--border); border-radius: 8px; min-height: 220px; display: flex; align-items: center; justify-content: center; color: var(--text-3); position: relative; overflow: hidden; }
+  .long-image-preview .placeholder { text-align: center; padding: 40px; }
+  .long-image-preview .placeholder .big { font-size: 48px; margin-bottom: 10px; }
+  .long-image-preview .img { max-width: 100%; max-height: 460px; object-fit: contain; }
+  .long-image-preview .empty-tip { font-size: 13px; color: var(--warn); }
+
+  .group-card { margin-bottom: 16px; }
+  .group-card .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .group-card .group-title { font-weight: 600; font-size: 15px; }
+  .group-card .group-count { color: var(--text-3); font-size: 12.5px; }
+
+  .import-log { background: #FAFBFD; border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 160px; overflow-y: auto; font-size: 12px; color: var(--text-2); }
+  .import-log .ok { color: var(--success); }
+  .import-log .err { color: var(--danger); }
+
+  @media (max-width: 900px) {
+    .main { padding: 20px; }
+    .form-row { flex-wrap: wrap; }
+    .form-item { flex: 1 1 45%; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .form-item { flex: 1 1 100%; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .page-header .right { margin-left: 0; }
+  }
+  /* 模块切换 Tab */
+  .module-switch { display: flex; gap: 0; margin-left: 18px; background: rgba(255,255,255,0.08); border-radius: 8px; padding: 3px; }
+  .module-switch .ms-tab { padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #C7CCE0; transition: all 0.15s; white-space: nowrap; }
+  .module-switch .ms-tab:hover { color: #fff; }
+  .module-switch .ms-tab.active { background: var(--primary); color: #fff; font-weight: 500; }
+  .module-switch .ms-tab .cnt { font-size: 11px; opacity: 0.8; margin-left: 3px; }
+  /* 导入进度日志 */
+  .import-log .log-line { padding: 3px 0; }
+  .import-log .log-warn { color: var(--warn); }
+  .import-log .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 多选下拉框 */
+  .multi-select { position: relative; }
+  .multi-select .ms-control {
+    min-height: 36px; padding: 4px 8px 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; cursor: pointer; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    font-size: 13px; color: var(--text);
+  }
+  .multi-select .ms-control:hover { border-color: var(--primary); }
+  .multi-select.open .ms-control { border-color: var(--primary); }
+  .multi-select .ms-control .ms-placeholder { color: var(--text-3); }
+  .multi-select .ms-control .ms-caret { margin-left: auto; color: var(--text-3); font-size: 11px; }
+  .multi-select .ms-tag {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 8px; border-radius: 4px;
+    background: #EEF0F4; color: var(--text); font-size: 12px; line-height: 1.4;
+  }
+  .multi-select .ms-tag .ms-tag-x { cursor: pointer; color: var(--text-3); font-size: 12px; }
+  .multi-select .ms-tag .ms-tag-x:hover { color: var(--danger); }
+  .multi-select .ms-panel {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
+    background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(31,35,48,0.12);
+    max-height: 240px; overflow-y: auto; padding: 4px 0;
+  }
+  .multi-select.open .ms-panel { display: block; }
+  .multi-select .ms-option {
+    display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; font-size: 13px;
+    color: var(--text);
+  }
+  .multi-select .ms-option:hover { background: #FAFBFD; }
+  .multi-select .ms-option.selected { color: var(--primary); font-weight: 500; }
+  .multi-select .ms-option .ms-check { color: var(--primary); font-size: 14px; }
+  .multi-select .ms-toolbar {
+    display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--primary); cursor: pointer; background: #FAFBFD; border-radius: 8px 8px 0 0;
+  }
+  .multi-select .ms-toolbar span:hover { text-decoration: underline; }
+
+  /* 筛选工具条 */
+  .filter-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .filter-toolbar .filter-actions { display: flex; gap: 10px; }
+</style>
+<script src="app.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">发版运营工作台 <span class="badge">OPS</span></div>
+  <div class="module-switch" id="module-switch">
+    <div class="ms-tab active" data-module="base" onclick="switchModule('base')">底座<span class="cnt" id="ms-cnt-base">0</span></div>
+    <div class="ms-tab" data-module="resource" onclick="switchModule('resource')">资源应用<span class="cnt" id="ms-cnt-resource">0</span></div>
+  </div>
+  <div class="right">
+    <a href="index.html" class="nav-link">公开页</a>
+    <a href="admin.html" class="nav-link">管理后台</a>
+    <span>运营 · 王蓉</span>
+    <span class="avatar">王</span>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="nav-group">
+    <div class="title">内容</div>
+    <div class="nav-item active" data-view="dashboard"><span class="ico">▣</span>我的工作台</div>
+    <div class="nav-item" data-view="list"><span class="ico">▤</span>发版列表</div>
+    <div class="nav-item" data-view="edit"><span class="ico">✎</span>录入 / 编辑</div>
+  </div>
+  <div class="nav-group">
+    <div class="title">工具</div>
+    <div class="nav-item" data-view="stats"><span class="ico">◫</span>统计</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ============ 我的工作台 ============ -->
+  <div class="view active" id="view-dashboard">
+    <div class="page-header">
+      <div><h1>我的工作台</h1><div class="desc" id="dashboard-desc">底座 · 待办与近期发版</div></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">本月发版</div><div class="value" id="stat-month">0</div><div class="delta" id="stat-month-delta">本月</div></div>
+      <div class="stat-card"><div class="label">草稿待发布</div><div class="value" id="stat-draft">0</div><div class="delta" style="color:var(--warn)">待发布</div></div>
+      <div class="stat-card"><div class="label">已发布</div><div class="value" id="stat-published">0</div><div class="delta">已通知用户</div></div>
+      <div class="stat-card"><div class="label">累计功能点</div><div class="value" id="stat-total">0</div><div class="delta">全部</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">待办 · 草稿待发布</div>
+      <div class="card-sub">未填写通知时间的功能，补充通知时间后自动进入发版通知</div>
+      <table>
+        <thead><tr><th>发版日期</th><th>导入时间</th><th>发版类型</th><th>功能点描述</th><th>截图</th><th class="actions">操作</th></tr></thead>
+        <tbody id="dashboard-draft-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">本月发版日历</div>
+      <div class="card-sub">点选日期查看当日记录</div>
+      <div class="calendar">
+        <div class="dow">一</div><div class="dow">二</div><div class="dow">三</div><div class="dow">四</div><div class="dow">五</div><div class="dow">六</div><div class="dow">日</div>
+        <div class="day muted">29</div><div class="day muted">30</div>
+        <div class="day">1<span class="mark"></span></div>
+        <div class="day">2</div>
+        <div class="day">3</div>
+        <div class="day">4</div>
+        <div class="day">5<span class="mark"></span></div>
+        <div class="day">6</div>
+        <div class="day">7</div>
+        <div class="day today">8<span class="mark" style="background:#fff"></span></div>
+        <div class="day">9</div>
+        <div class="day">10</div>
+        <div class="day">11</div>
+        <div class="day">12<span class="mark"></span></div>
+        <div class="day">13</div>
+        <div class="day">14</div>
+        <div class="day">15<span class="mark"></span></div>
+        <div class="day">16</div>
+        <div class="day">17</div>
+        <div class="day">18</div>
+        <div class="day">19<span class="mark"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 发版列表 ============ -->
+  <div class="view" id="view-list">
+    <div class="page-header">
+      <div><h1>发版列表</h1><div class="desc">按日期分组 · 仅显示'闻道作业'已通知用户发版的功能</div></div>
+      <div class="right">
+        <button class="btn btn-primary" onclick="goToEdit()">+ 新建发版</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row" style="margin-bottom:14px">
+        <div class="form-item">
+          <label>发版日期</label>
+          <input type="date" id="list-release-date" />
+        </div>
+        <div class="form-item">
+          <label>通知日期</label>
+          <input type="date" id="list-notify-date" />
+        </div>
+        <div class="form-item">
+          <label>所属平台</label>
+          <div class="multi-select" data-multi="list-platform">
+            <div class="ms-control" onclick="toggleMultiSelect(this)"></div>
+            <div class="ms-panel" onclick="event.stopPropagation()">
+              <div class="ms-toolbar">
+                <span onclick="selectAllMulti('list-platform', event)">全选</span>
+                <span onclick="clearMulti('list-platform', event)">清空</span>
+              </div>
+              <div class="ms-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>发版类型</label>
+          <div class="multi-select" data-multi="list-type">
+            <div class="ms-control" onclick="toggleMultiSelect(this)"></div>
+            <div class="ms-panel" onclick="event.stopPropagation()">
+              <div class="ms-toolbar">
+                <span onclick="selectAllMulti('list-type', event)">全选</span>
+                <span onclick="clearMulti('list-type', event)">清空</span>
+              </div>
+              <div class="ms-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>面向用户</label>
+          <div class="multi-select" data-multi="list-target">
+            <div class="ms-control" onclick="toggleMultiSelect(this)"></div>
+            <div class="ms-panel" onclick="event.stopPropagation()">
+              <div class="ms-toolbar">
+                <span onclick="selectAllMulti('list-target', event)">全选</span>
+                <span onclick="clearMulti('list-target', event)">清空</span>
+              </div>
+              <div class="ms-options"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>关键词</label>
+          <input id="list-keyword" placeholder="搜索功能点描述 / 功能入口" />
+        </div>
+      </div>
+      <div class="filter-toolbar">
+        <div class="text-sm text-muted" id="filter-summary">点击「确定」查看筛选结果</div>
+        <div class="filter-actions">
+          <button class="btn" onclick="resetFilters()">重置</button>
+          <button class="btn btn-primary" onclick="renderList()">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="list-groups"></div>
+  </div>
+
+  <!-- ============ 录入 / 编辑 ============ -->
+  <div class="view" id="view-edit">
+    <div class="page-header">
+      <div><h1>录入 / 编辑</h1><div class="desc">导入发布清单 → 编辑发版详情 → 一键生图 → 发布</div></div>
+    </div>
+
+    <div class="module-tabs">
+      <div class="module-tab active" onclick="switchEditTab('published')">发版通知<span class="module-count" id="count-published">0</span></div>
+      <div class="module-tab" onclick="switchEditTab('draft')">未通知（草稿）<span class="module-count" id="count-draft">0</span></div>
+    </div>
+
+    <!-- 生图操作面板 -->
+    <div class="generate-panel" id="generate-panel">
+      <div class="head">
+        <div>
+          <div class="title">分版本长图</div>
+          <div class="text-sm text-muted">一键按「面向用户」生成总图 / 仅作业 / 仅教辅 3 张长图</div>
+        </div>
+        <div class="flex" style="gap:8px">
+          <button class="btn btn-warn" id="btn-generate" onclick="generateLongImages()">🎨 一键生成长图</button>
+          <button class="btn btn-primary" onclick="openImagePreviewModal()">👁 预览 / 下载</button>
+        </div>
+      </div>
+      <div class="text-sm text-muted" id="generate-status">尚未生成，点击「一键生成长图」开始。</div>
+    </div>
+
+    <div class="module active" id="module-published">
+      <div class="flex" style="justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin:0">发版通知</div>
+        <div class="flex" style="gap:8px">
+          <button class="btn btn-sm" id="btn-import" onclick="openImportModal()">↻ 导入发布清单</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ 新增</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr>
+            <th>发版日期</th><th>通知时间</th><th>涉及应用/平台</th><th>涉及端</th><th>发版类型</th>
+            <th>功能点描述</th><th>功能入口</th><th>面向用户</th><th>重点</th><th>截图</th><th>操作</th>
+          </tr></thead>
+          <tbody id="published-table-body"></tbody>
+        </table>
+      </div>
+      <div id="published-empty" class="sync-placeholder" style="margin-top:16px">
+        <div class="title">暂无发版通知数据</div>
+        <div class="desc">通过「导入发布清单」从钉钉文档拉取，或点击「新增」手动录入</div>
+      </div>
+    </div>
+
+    <div class="module" id="module-draft">
+      <div class="flex" style="justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin:0">未通知（草稿）</div>
+        <div class="flex" style="gap:8px">
+          <button class="btn btn-sm" onclick="openImportModal()">↻ 导入发布清单</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ 新增</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr>
+            <th>发版日期</th><th>涉及应用/平台</th><th>涉及端</th><th>发版类型</th>
+            <th>功能点描述</th><th>功能入口</th><th>面向用户</th><th>重点</th><th>截图</th><th>操作</th>
+          </tr></thead>
+          <tbody id="draft-table-body"></tbody>
+        </table>
+      </div>
+      <div id="draft-empty" class="sync-placeholder" style="margin-top:16px">
+        <div class="title">暂无草稿</div>
+        <div class="desc">所有未填写通知时间的功能将显示在这里</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 统计 ============ -->
+  <div class="view" id="view-stats">
+    <div class="page-header">
+      <div><h1>统计</h1><div class="desc">仅展示你负责产品线（闻道作业）数据</div></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">累计发版</div><div class="value" id="stats-total">0</div><div class="delta">全部记录</div></div>
+      <div class="stat-card"><div class="label">新增 / 优化 / 修复</div><div class="value" id="stats-breakdown">0 / 0 / 0</div><div class="delta">按类型</div></div>
+      <div class="stat-card"><div class="label">亮点功能数</div><div class="value" id="stats-highlight">0</div><div class="delta">重点功能</div></div>
+      <div class="stat-card"><div class="label">已通知 / 未通知</div><div class="value" id="stats-pub-draft">0 / 0</div><div class="delta">状态分布</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">近 6 周发版趋势</div>
+      <div class="card-sub">条形图占位</div>
+      <div style="display:flex;align-items:flex-end;gap:14px;height:160px;padding:10px 4px">
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:55%;border-radius:4px 4px 0 0"></div>
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:70%;border-radius:4px 4px 0 0"></div>
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:48%;border-radius:4px 4px 0 0"></div>
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:88%;border-radius:4px 4px 0 0"></div>
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:62%;border-radius:4px 4px 0 0"></div>
+        <div style="flex:1;background:linear-gradient(180deg,var(--primary),#8E9BFF);height:78%;border-radius:4px 4px 0 0"></div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:11.5px;color:var(--text-3);padding:0 4px">
+        <div style="flex:1;text-align:center">W1</div><div style="flex:1;text-align:center">W2</div><div style="flex:1;text-align:center">W3</div>
+        <div style="flex:1;text-align:center">W4</div><div style="flex:1;text-align:center">W5</div><div style="flex:1;text-align:center">W6</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">面向用户分布</div>
+      <table>
+        <thead><tr><th>面向用户</th><th>数量</th><th>占比</th></tr></thead>
+        <tbody>
+          <tr><td>全部</td><td id="dist-all">0</td><td id="dist-all-pct">0%</td></tr>
+          <tr><td>作业</td><td id="dist-homework">0</td><td id="dist-homework-pct">0%</td></tr>
+          <tr><td>教辅</td><td id="dist-teaching">0</td><td id="dist-teaching-pct">0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- 导入发布清单 Modal -->
+<div class="modal" id="import-modal" onclick="closeImportModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title">导入发布清单</div>
+      <button class="modal-close" onclick="closeImportModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="text-sm text-muted mb-12">系统将从管理员配置的钉钉文档发布清单拉取功能点，并自动填充到发版详情草稿。</div>
+      <div class="form-row">
+        <div class="form-item" style="flex:2">
+          <label>发布清单地址（钉钉文档）</label>
+          <input id="import-source" value="" disabled />
+          <div class="readonly-note">数据源地址由管理员配置，运营无需修改</div>
+        </div>
+        <div class="form-item">
+          <label>产品线</label>
+          <input value="闻道作业" disabled />
+        </div>
+      </div>
+      <div class="import-log" id="import-log" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeImportModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑/新增 Modal -->
+<div class="modal" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="edit-modal-title">编辑发版详情</div>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-item">
+          <label>发版日期</label>
+          <input type="date" id="edit-release-date" disabled />
+          <div class="readonly-note">发版时间由发布清单确定，运营不可修改</div>
+        </div>
+        <div class="form-item">
+          <label>通知时间</label>
+          <input type="datetime-local" id="edit-notify-time" />
+          <div class="readonly-note">运营唯一可控时间字段，默认与发版日期相同</div>
+        </div>
+        <div class="form-item">
+          <label>产品线</label>
+          <input id="edit-product-line" value="闻道作业" disabled />
+          <div class="readonly-note">你仅可见自己负责的产品线</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>涉及应用/平台</label><input id="edit-app-platform" placeholder="如：学生端App、教师端后台" /></div>
+        <div class="form-item"><label>涉及端</label><select id="edit-scope"><option>PC</option><option>App</option><option>小程序</option><option>PC + App</option></select></div>
+        <div class="form-item"><label>发版类型</label><select id="edit-release-type"><option>新增</option><option>优化</option><option>修复</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item" style="flex:2"><label>功能点描述</label><input id="edit-feature-point" placeholder="简要描述该功能点" /></div>
+        <div class="form-item"><label>功能入口</label><input id="edit-feature-entry" placeholder="功能入口路径" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item">
+          <label>面向用户</label>
+          <select id="edit-target-user"><option>全部</option><option>作业</option><option>教辅</option></select>
+        </div>
+        <div class="form-item">
+          <label>是否重点</label>
+          <select id="edit-is-highlight"><option value="否">否</option><option value="是">是</option></select>
+        </div>
+        <div class="form-item" style="flex:2"><label>限制条件</label><input id="edit-limit-notes" placeholder="如：仅 V3.7+ 可用" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item" style="flex:1"><label>特殊说明</label><textarea rows="2" id="edit-special-notes" placeholder="已知BUG或特殊规则"></textarea></div>
+        <div class="form-item" style="flex:1"><label>备注</label><textarea rows="2" id="edit-notes" placeholder="运营验证结论或其他补充"></textarea></div>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-item" style="flex:1">
+          <label>截图 / 提供材料</label>
+          <div class="thumb-grid" id="edit-thumbs"></div>
+          <div class="paste-zone" id="paste-zone" contenteditable="true">点击此处后按 Ctrl+V 粘贴图片 · 或拖拽上传</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeEditModal()">取消</button>
+      <button class="btn" onclick="saveItem(false)">保存草稿</button>
+      <button class="btn btn-primary" onclick="saveItem(true)">保存并发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 长图预览 / 下载 Modal -->
+<div class="modal" id="image-preview-modal" onclick="closeImagePreviewModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title">分版本长图预览</div>
+      <button class="modal-close" onclick="closeImagePreviewModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="version-tabs" id="preview-version-tabs">
+        <div class="version-tab active" onclick="switchPreviewVersion('all')">总图</div>
+        <div class="version-tab" onclick="switchPreviewVersion('homework')">仅作业</div>
+        <div class="version-tab" onclick="switchPreviewVersion('teaching')">仅教辅</div>
+      </div>
+      <div class="long-image-preview" id="long-image-preview">
+        <div class="placeholder">
+          <div class="big">🖼</div>
+          <div>尚未生成长图</div>
+          <div class="empty-tip">请先在「录入 / 编辑」页点击「一键生成长图」</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeImagePreviewModal()">关闭</button>
+      <button class="btn btn-primary" onclick="downloadCurrentImage()">下载当前长图</button>
+      <button class="btn btn-success" onclick="downloadAllImages()">打包下载全部 3 张</button>
+    </div>
+  </div>
+</div>
+
+<!-- 详情预览 Modal -->
+<div class="modal" id="preview-modal" onclick="closePreviewModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="preview-title">发版详情</div>
+      <button class="modal-close" onclick="closePreviewModal()">×</button>
+    </div>
+    <div class="modal-body" id="preview-body">
+      <!-- 动态填充 -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'ops_release_items_v3';
+  const IMAGES_KEY = 'ops_generated_images_v3';
+
+  // 当前模块：base(底座) | resource(资源应用)，由顶部 Tab 切换
+  let currentModule = 'base';
+
+  // 从 app.js (RR) 真实数据初始化：底座 + 资源两个模块
+  function seedItems() {
+    var seed = [];
+    var mid = 1;
+    ['base', 'resource'].forEach(function(mod) {
+      var src = (window.RR && RR.SOURCE_DATA[mod]) || [];
+      src.forEach(function(r, i) {
+        var it = Object.assign({
+          id: mid++, module: mod, status: RR.STATUS.IMPORTED,
+          importTime: '2026-07-09 09:' + String(10 + i % 50).padStart(2, '0'),
+          notifyTime: '', targetUser: '全部', images: 0,
+          hasCorrection: false, correctionContent: '',
+          productLine: (RR.MODULES[mod] || {}).productLine || '闻道作业'
+        }, r);
+        if (i < Math.ceil(src.length * 0.3)) {
+          it.notifyTime = it.releaseDate + 'T10:00';
+          it.status = RR.STATUS.PUBLISHED;
+          it.targetUser = i % 3 === 0 ? '作业' : (i % 3 === 1 ? '教辅' : '全部');
+          it.images = (i % 3) + 1;
+        } else if (i < Math.ceil(src.length * 0.5)) {
+          it.status = RR.STATUS.EDITED;
+          it.targetUser = i % 2 === 0 ? '作业' : '全部';
+        }
+        seed.push(it);
+      });
+    });
+    return seed;
+  }
+
+  let items = [];
+  let generatedImages = { all: null, homework: null, teaching: null };
+  let editingId = null;
+  let currentPreviewVersion = 'all';
+
+  // 当前模块的数据
+  function moduleItems() { return items.filter(function(i) { return i.module === currentModule; }); }
+
+  // 模块切换
+  function switchModule(mod) {
+    currentModule = mod;
+    var desc = document.getElementById('dashboard-desc'); if (desc) desc.textContent = (RR.MODULES[mod]||{}).name + ' · 待办与近期发版';
+    document.querySelectorAll('.ms-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-module') === mod); });
+    updateModuleCounts();
+    renderAll();
+  }
+  function updateModuleCounts() {
+    document.getElementById('ms-cnt-base').textContent = items.filter(function(i){return i.module==='base';}).length;
+    document.getElementById('ms-cnt-resource').textContent = items.filter(function(i){return i.module==='resource';}).length;
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) { items = JSON.parse(raw); return; }
+    } catch (e) {}
+    items = seedItems();
+    saveState();
+  }
+  function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {} }
+  function loadImages() { try { const raw = localStorage.getItem(IMAGES_KEY); if (raw) generatedImages = JSON.parse(raw); } catch (e) {} }
+  function saveImages() { try { localStorage.setItem(IMAGES_KEY, JSON.stringify(generatedImages)); } catch (e) {} }
+
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+  function nowStr() { const d = new Date(); return d.toISOString().slice(0, 10) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  function currentMonth() { return new Date().toISOString().slice(0, 7); }
+  function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+  function typeClass(type) { return type === '新增' ? 'add' : type === '优化' ? 'opt' : 'fix'; }
+  function typeOrder(type) { return type === '新增' ? 1 : type === '优化' ? 2 : 3; }
+  function renderAll() { renderEditModules(); renderDashboard(); renderStats(); renderList(); }
+
+  // ---- 导航 ----
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = el.getAttribute('data-view');
+      setNav(target);
+      if (target === 'edit') renderEditModules();
+      if (target === 'dashboard') renderDashboard();
+      if (target === 'stats') renderStats();
+      if (target === 'list') renderList();
+    });
+  });
+  function setNav(target) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.querySelector('.nav-item[data-view="' + target + '"]');
+    if (el) el.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const view = document.getElementById('view-' + target);
+    if (view) view.classList.add('active');
+  }
+  function goToEdit() { setNav('edit'); switchEditTab('published'); renderEditModules(); }
+
+  function switchEditTab(tab) {
+    document.querySelectorAll('.module-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    document.querySelector('.module-tab[onclick="switchEditTab(\'' + tab + '\')"]').classList.add('active');
+    document.getElementById('module-' + tab).classList.add('active');
+  }
+
+  // ---- 编辑模块渲染 ----
+  function renderEditModules() {
+    const published = moduleItems().filter(i => i.notifyTime).sort((a, b) => typeOrder(a.releaseType) - typeOrder(b.releaseType));
+    const drafts = moduleItems().filter(i => !i.notifyTime).sort((a, b) => typeOrder(a.releaseType) - typeOrder(b.releaseType));
+    set('count-published', published.length);
+    set('count-draft', drafts.length);
+    document.getElementById('published-table-body').innerHTML = published.map(renderPublishedRow).join('') || emptyRow(11);
+    document.getElementById('published-empty').style.display = published.length ? 'none' : 'block';
+    document.getElementById('draft-table-body').innerHTML = drafts.map(renderDraftRow).join('') || emptyRow(10);
+    document.getElementById('draft-empty').style.display = drafts.length ? 'none' : 'block';
+  }
+
+  function emptyRow(colspan) { return '<tr><td colspan="' + colspan + '" style="text-align:center;color:var(--text-3)">暂无数据</td></tr>'; }
+
+  function renderPublishedRow(item) {
+    return '<tr>' +
+      '<td>' + item.releaseDate + '</td>' +
+      '<td>' + (item.notifyTime ? formatNotifyTime(item.notifyTime) : '—') + '</td>' +
+      '<td>' + item.appPlatform + '</td>' +
+      '<td>' + item.scope + '</td>' +
+      '<td><span class="type-pill ' + typeClass(item.releaseType) + '">' + item.releaseType + '</span></td>' +
+      '<td>' + item.featurePoint + '</td>' +
+      '<td>' + item.featureEntry + '</td>' +
+      '<td>' + item.targetUser + '</td>' +
+      '<td>' + (item.isHighlight === '是' ? '✓' : '—') + '</td>' +
+      '<td>' + item.images + ' 张</td>' +
+      '<td class="actions"><span class="link" onclick="openEditModal(' + item.id + ')">编辑</span></td>' +
+    '</tr>';
+  }
+  function renderDraftRow(item) {
+    return '<tr>' +
+      '<td>' + item.releaseDate + '</td>' +
+      '<td>' + item.appPlatform + '</td>' +
+      '<td>' + item.scope + '</td>' +
+      '<td><span class="type-pill ' + typeClass(item.releaseType) + '">' + item.releaseType + '</span></td>' +
+      '<td>' + item.featurePoint + '</td>' +
+      '<td>' + item.featureEntry + '</td>' +
+      '<td>' + item.targetUser + '</td>' +
+      '<td>' + (item.isHighlight === '是' ? '✓' : '—') + '</td>' +
+      '<td>' + item.images + ' 张</td>' +
+      '<td class="actions"><span class="link" onclick="openEditModal(' + item.id + ')">编辑</span></td>' +
+    '</tr>';
+  }
+  function formatNotifyTime(t) { return t.replace('T', ' '); }
+
+  // ---- 工作台 ----
+  function renderDashboard() {
+    const months = moduleItems().map(i => i.releaseDate ? i.releaseDate.slice(0, 7) : '').filter(Boolean);
+    const refMonth = months.length ? months.sort().pop() : currentMonth();
+    const thisMonth = moduleItems().filter(i => i.releaseDate && i.releaseDate.indexOf(refMonth) === 0);
+    const drafts = moduleItems().filter(i => !i.notifyTime);
+    const published = moduleItems().filter(i => i.notifyTime);
+    set('stat-month', thisMonth.length);
+    set('stat-draft', drafts.length);
+    set('stat-published', published.length);
+    set('stat-total', moduleItems().length);
+    const tbody = document.getElementById('dashboard-draft-body');
+    if (tbody) tbody.innerHTML = drafts.map(r =>
+      '<tr>' +
+      '<td>' + r.releaseDate + '</td>' +
+      '<td>' + (r.importTime || '手动录入') + '</td>' +
+      '<td><span class="type-pill ' + typeClass(r.releaseType) + '">' + r.releaseType + '</span></td>' +
+      '<td>' + r.featurePoint + '</td>' +
+      '<td>' + r.images + ' 张</td>' +
+      '<td class="actions"><span class="link" onclick="openEditModal(' + r.id + ')">编辑</span></td>' +
+      '</tr>'
+    ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-3)">暂无草稿</td></tr>';
+  }
+
+  // ---- 发版列表 ----
+  // 多选下拉框：全局状态
+  const MULTI_OPTIONS = {
+    'list-platform': ['PC', 'App', '小程序', 'PC + App', 'PC + 小程序', 'App + 小程序', '全端'],
+    'list-type':     ['新增', '优化', '修复'],
+    'list-target':   ['全部', '作业', '教辅']
+  };
+  const multiState = {
+    'list-platform': new Set(MULTI_OPTIONS['list-platform']),
+    'list-type':     new Set(MULTI_OPTIONS['list-type']),
+    'list-target':   new Set(MULTI_OPTIONS['list-target'])
+  };
+
+  function buildMultiSelect(key) {
+    const wrap = document.querySelector('.multi-select[data-multi="' + key + '"]');
+    if (!wrap) return;
+    const optBox = wrap.querySelector('.ms-options');
+    optBox.innerHTML = MULTI_OPTIONS[key].map(function(opt) {
+      return '<div class="ms-option" data-value="' + opt + '">' +
+        '<span>' + opt + '</span><span class="ms-check">✓</span></div>';
+    }).join('');
+    optBox.querySelectorAll('.ms-option').forEach(function(node) {
+      node.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const val = node.getAttribute('data-value');
+        const set = multiState[key];
+        if (set.has(val)) set.delete(val); else set.add(val);
+        renderMultiControl(key);
+        optBox.querySelectorAll('.ms-option').forEach(function(n) {
+          n.classList.toggle('selected', set.has(n.getAttribute('data-value')));
+        });
+      });
+    });
+    renderMultiControl(key);
+  }
+
+  function renderMultiControl(key) {
+    const wrap = document.querySelector('.multi-select[data-multi="' + key + '"]');
+    if (!wrap) return;
+    const ctrl = wrap.querySelector('.ms-control');
+    const set = multiState[key];
+    const opts = MULTI_OPTIONS[key];
+    if (set.size === 0) {
+      ctrl.innerHTML = '<span class="ms-placeholder">未选择</span><span class="ms-caret">▾</span>';
+    } else if (set.size === opts.length) {
+      ctrl.innerHTML = '<span class="ms-placeholder" style="color:var(--primary)">全部</span><span class="ms-caret">▾</span>';
+    } else {
+      ctrl.innerHTML = opts.filter(function(o){ return set.has(o); }).map(function(o) {
+        return '<span class="ms-tag">' + o + '<span class="ms-tag-x" data-rm="' + o + '">×</span></span>';
+      }).join('') + '<span class="ms-caret">▾</span>';
+      ctrl.querySelectorAll('.ms-tag-x').forEach(function(x) {
+        x.addEventListener('click', function(e) {
+          e.stopPropagation();
+          multiState[key].delete(x.getAttribute('data-rm'));
+          buildMultiSelect(key);
+        });
+      });
+    }
+    const optBox = wrap.querySelector('.ms-options');
+    optBox.querySelectorAll('.ms-option').forEach(function(n) {
+      n.classList.toggle('selected', set.has(n.getAttribute('data-value')));
+    });
+  }
+
+  function toggleMultiSelect(ctrl) {
+    const wrap = ctrl.closest('.multi-select');
+    const willOpen = !wrap.classList.contains('open');
+    document.querySelectorAll('.multi-select.open').forEach(function(w){ w.classList.remove('open'); });
+    if (willOpen) wrap.classList.add('open');
+  }
+  function selectAllMulti(key, e) {
+    e.stopPropagation();
+    multiState[key] = new Set(MULTI_OPTIONS[key]);
+    buildMultiSelect(key);
+  }
+  function clearMulti(key, e) {
+    e.stopPropagation();
+    multiState[key] = new Set();
+    buildMultiSelect(key);
+  }
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.multi-select.open').forEach(function(w){ w.classList.remove('open'); });
+  });
+
+  function resetFilters() {
+    document.getElementById('list-release-date').value = '';
+    document.getElementById('list-notify-date').value = '';
+    document.getElementById('list-keyword').value = '';
+    multiState['list-platform'] = new Set(MULTI_OPTIONS['list-platform']);
+    multiState['list-type']     = new Set(MULTI_OPTIONS['list-type']);
+    multiState['list-target']   = new Set(MULTI_OPTIONS['list-target']);
+    ['list-platform', 'list-type', 'list-target'].forEach(buildMultiSelect);
+    document.getElementById('list-groups').innerHTML = '<div class="card" style="text-align:center;color:var(--text-3)">点击「确定」查看筛选结果</div>';
+  }
+
+  function renderList() {
+    const releaseDate = document.getElementById('list-release-date').value;
+    const notifyDate  = document.getElementById('list-notify-date').value;
+    const platforms   = multiState['list-platform'];
+    const types       = multiState['list-type'];
+    const targets     = multiState['list-target'];
+    const keyword     = (document.getElementById('list-keyword').value || '').trim();
+
+    let list = moduleItems().filter(i => i.notifyTime);
+    if (releaseDate) list = list.filter(i => i.releaseDate === releaseDate);
+    if (notifyDate)  list = list.filter(i => i.notifyTime && i.notifyTime.slice(0, 10) === notifyDate);
+    if (platforms.size && platforms.size !== MULTI_OPTIONS['list-platform'].length) {
+      list = list.filter(i => {
+        const scope = (i.scope || '').split(/[ ,，、/]+/).map(s => s.trim()).filter(Boolean);
+        if (!scope.length) scope.push(i.scope);
+        return scope.some(s => platforms.has(s));
+      });
+    }
+    if (types.size && types.size !== MULTI_OPTIONS['list-type'].length) {
+      list = list.filter(i => types.has(i.releaseType));
+    }
+    if (targets.size && targets.size !== MULTI_OPTIONS['list-target'].length) {
+      list = list.filter(i => targets.has(i.targetUser));
+    }
+    if (keyword) list = list.filter(i => (i.featurePoint + i.featureEntry + i.appPlatform).indexOf(keyword) !== -1);
+
+    list = list.sort((a, b) => new Date(b.notifyTime) - new Date(a.notifyTime) || typeOrder(a.releaseType) - typeOrder(b.releaseType));
+
+    const groups = {};
+    list.forEach(i => { const d = i.notifyTime.slice(0, 10); (groups[d] = groups[d] || []).push(i); });
+    const dates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+    const container = document.getElementById('list-groups');
+    document.getElementById('filter-summary').textContent = '命中 ' + list.length + ' 条记录，共 ' + dates.length + ' 个发版日';
+
+    if (!dates.length) {
+      container.innerHTML = '<div class="card" style="text-align:center;color:var(--text-3)">未找到满足所有筛选条件的发版记录</div>';
+      return;
+    }
+
+    container.innerHTML = dates.map(date => {
+      const rows = groups[date].map(item =>
+        '<tr>' +
+        '<td><span class="type-pill ' + typeClass(item.releaseType) + '">' + item.releaseType + '</span></td>' +
+        '<td>' + item.featurePoint + '</td>' +
+        '<td>' + item.featureEntry + '</td>' +
+        '<td>' + item.targetUser + '</td>' +
+        '<td>' + (item.isHighlight === '是' ? '✓' : '—') + '</td>' +
+        '</tr>'
+      ).join('');
+      return '<div class="card group-card">' +
+        '<div class="group-header">' +
+          '<div class="group-title">' + date + ' · ' + weekday(date) + ' · 共 ' + groups[date].length + ' 项</div>' +
+          '<button class="btn btn-sm" onclick="openPreviewModal(\'' + date + '\')">查看详情</button>' +
+        '</div>' +
+        '<table>' +
+        '<thead><tr><th>发版类型</th><th>功能点描述</th><th>功能入口</th><th>面向用户</th><th>是否重点</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+    }).join('');
+  }
+  function weekday(date) { const days = ['周日','周一','周二','周三','周四','周五','周六']; return days[new Date(date).getDay()]; }
+
+  // ---- 统计 ----
+  function renderStats() {
+    const total = moduleItems().length;
+    const add = items.filter(i => i.releaseType === '新增').length;
+    const opt = items.filter(i => i.releaseType === '优化').length;
+    const fix = items.filter(i => i.releaseType === '修复').length;
+    const published = items.filter(i => i.notifyTime).length;
+    const highlight = items.filter(i => i.isHighlight === '是').length;
+    const all = items.filter(i => i.targetUser === '全部').length;
+    const homework = items.filter(i => i.targetUser === '作业').length;
+    const teaching = items.filter(i => i.targetUser === '教辅').length;
+    set('stats-total', total);
+    set('stats-breakdown', add + ' / ' + opt + ' / ' + fix);
+    set('stats-highlight', highlight);
+    set('stats-pub-draft', published + ' / ' + (total - published));
+    set('dist-all', all); set('dist-homework', homework); set('dist-teaching', teaching);
+    const pct = n => total ? Math.round(n / total * 100) + '%' : '0%';
+    set('dist-all-pct', pct(all)); set('dist-homework-pct', pct(homework)); set('dist-teaching-pct', pct(teaching));
+  }
+
+  // ---- 导入发布清单 ----
+  function openImportModal() {
+    document.getElementById('import-log').style.display = 'none';
+    document.getElementById('import-log').innerHTML = '';
+    var mi = RR.MODULES[currentModule] || {};
+    document.getElementById('import-source').value = mi.dingtalkUrl || '';
+    document.getElementById('import-modal').querySelector('.title').textContent = '导入发布清单 · ' + mi.name;
+    document.getElementById('import-modal').classList.add('show');
+  }
+  function closeImportModal(e) { if (!e || e.target.id === 'import-modal') document.getElementById('import-modal').classList.remove('show'); }
+  function confirmImport() {
+    var log = document.getElementById('import-log');
+    var btn = event.target;
+    log.style.display = 'block';
+    btn.disabled = true;
+    btn.textContent = '导入中...';
+    var mod = currentModule;
+    var modInfo = RR.MODULES[mod] || {};
+
+    function appendLog(msg, cls) {
+      var div = document.createElement('div');
+      div.className = 'log-line ' + (cls || '');
+      div.innerHTML = msg;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+    log.innerHTML = '';
+    appendLog('<span class="spinner"></span>正在连接「' + modInfo.docName + '」...');
+
+    RR.fetchReleaseList(mod, {
+      onProgress: function(p) {
+        appendLog('<span class="spinner"></span>' + p.msg);
+      }
+    }).then(function(data) {
+      var added = 0, skipped = 0;
+      data.forEach(function(b) {
+        var dup = items.find(function(i) { return i.module === mod && i.featurePoint === b.featurePoint && i.releaseDate === b.releaseDate; });
+        if (dup) { skipped++; return; }
+        items.push(b);
+        added++;
+      });
+      saveState();
+      updateModuleCounts();
+      renderAll();
+      log.innerHTML = '';
+      appendLog('✓ 成功导入 ' + added + ' 条功能点' + (skipped ? '（跳过 ' + skipped + ' 条重复）' : ''), 'ok');
+      appendLog('<span class="text-muted">来源：钉钉文档 · ' + modInfo.docName + ' · ' + nowStr() + '</span>');
+      btn.disabled = false;
+      btn.textContent = '开始导入';
+      if (added > 0) setTimeout(function() { closeImportModal(); }, 1200);
+    }).catch(function(err) {
+      log.innerHTML = '';
+      appendLog('✗ ' + (err.msg || '导入失败'), 'err');
+      appendLog('<span class="text-muted">已重试 ' + (err.attempts || 3) + ' 次，请检查网络或稍后重试</span>', '');
+      appendLog('<span class="text-muted">可点击「开始导入」手动重试</span>', '');
+      btn.disabled = false;
+      btn.textContent = '重新导入';
+    });
+  }
+
+  // ---- 弹窗表单 ----
+  function collectForm() {
+    return {
+      releaseDate: document.getElementById('edit-release-date').value,
+      notifyTime: document.getElementById('edit-notify-time').value,
+      appPlatform: document.getElementById('edit-app-platform').value.trim(),
+      scope: document.getElementById('edit-scope').value,
+      releaseType: document.getElementById('edit-release-type').value,
+      featurePoint: document.getElementById('edit-feature-point').value.trim(),
+      featureEntry: document.getElementById('edit-feature-entry').value.trim(),
+      targetUser: document.getElementById('edit-target-user').value,
+      isHighlight: document.getElementById('edit-is-highlight').value,
+      limitNotes: document.getElementById('edit-limit-notes').value.trim(),
+      specialNotes: document.getElementById('edit-special-notes').value.trim(),
+      notes: document.getElementById('edit-notes').value.trim(),
+      images: document.getElementById('edit-thumbs').children.length,
+      platformScope: (RR.MODULES[currentModule]||{}).name || '',
+      productLine: '闻道作业',
+      module: currentModule
+    };
+  }
+
+  function fillModal(item) {
+    document.getElementById('edit-release-date').value = item ? item.releaseDate : todayStr();
+    document.getElementById('edit-notify-time').value = item ? (item.notifyTime || '') : '';
+    document.getElementById('edit-app-platform').value = item ? item.appPlatform : '';
+    document.getElementById('edit-scope').value = item ? item.scope : 'App';
+    document.getElementById('edit-release-type').value = item ? item.releaseType : '新增';
+    document.getElementById('edit-feature-point').value = item ? item.featurePoint : '';
+    document.getElementById('edit-feature-entry').value = item ? item.featureEntry : '';
+    document.getElementById('edit-target-user').value = item ? item.targetUser : '全部';
+    document.getElementById('edit-is-highlight').value = item ? item.isHighlight : '否';
+    document.getElementById('edit-limit-notes').value = item ? (item.limitNotes || '') : '';
+    document.getElementById('edit-special-notes').value = item ? (item.specialNotes || '') : '';
+    document.getElementById('edit-notes').value = item ? (item.notes || '') : '';
+    document.getElementById('edit-thumbs').innerHTML = item ? Array(item.images || 0).fill(0).map(() => '<div class="thumb"><span class="rm" onclick="removeThumb(this)">×</span></div>').join('') : '';
+  }
+
+  function openAddModal() { editingId = null; fillModal(null); document.getElementById('edit-modal-title').textContent = '新增发版详情'; document.getElementById('edit-modal').classList.add('show'); }
+  function openEditModal(id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    editingId = id;
+    fillModal(item);
+    document.getElementById('edit-modal-title').textContent = item.notifyTime ? '编辑发版详情' : '编辑草稿';
+    document.getElementById('edit-modal').classList.add('show');
+  }
+  function closeEditModal(e) { if (!e || e.target.id === 'edit-modal') document.getElementById('edit-modal').classList.remove('show'); }
+
+  function saveItem(publish) {
+    const data = collectForm();
+    if (!data.featurePoint || !data.appPlatform) { alert('请完整填写：涉及应用/平台、功能点描述'); return; }
+    if (publish && !data.notifyTime) { data.notifyTime = data.releaseDate + 'T09:00'; }
+    if (!publish) data.notifyTime = '';
+    if (editingId) {
+      const idx = items.findIndex(i => i.id === editingId);
+      if (idx >= 0) { const old = items[idx]; items[idx] = Object.assign({}, old, data, { id: old.id, importTime: old.importTime || '' }); }
+    } else {
+      items.push(Object.assign({ id: Date.now(), importTime: '' }, data));
+    }
+    saveState();
+    closeEditModal();
+    renderAll();
+    if (data.notifyTime) switchEditTab('published'); else switchEditTab('draft');
+  }
+  function removeThumb(el) { el.parentElement.remove(); }
+
+  const pasteZone = document.getElementById('paste-zone');
+  pasteZone.addEventListener('paste', e => {
+    e.preventDefault();
+    const files = e.clipboardData.files;
+    if (files.length) {
+      const grid = document.getElementById('edit-thumbs');
+      for (let i = 0; i < files.length; i++) {
+        const div = document.createElement('div'); div.className = 'thumb'; div.innerHTML = '<span class="rm" onclick="removeThumb(this)">×</span>';
+        grid.appendChild(div);
+      }
+      pasteZone.classList.add('active'); setTimeout(() => pasteZone.classList.remove('active'), 500);
+    }
+  });
+
+  // ---- 分版本生图 ----
+  function generateLongImages() {
+    const status = document.getElementById('generate-status');
+    status.textContent = '正在生成 3 张分版本长图，请稍候...';
+    setTimeout(() => {
+      generatedImages = {
+        all: 'data:image/svg+xml;utf8,' + encodeURIComponent(longImageSvg('总图', '全部')),
+        homework: 'data:image/svg+xml;utf8,' + encodeURIComponent(longImageSvg('仅作业', '作业')),
+        teaching: 'data:image/svg+xml;utf8,' + encodeURIComponent(longImageSvg('仅教辅', '教辅'))
+      };
+      saveImages();
+      status.textContent = '✓ 已生成 3 张分版本长图，点击「预览 / 下载」查看。';
+      renderImagePreview();
+      openImagePreviewModal();
+    }, 1200);
+  }
+  function longImageSvg(title, filter) {
+    const filtered = items.filter(i => filter === '全部' || i.targetUser === filter || i.targetUser === '全部');
+    const rows = filtered.map(i => '<text x="40" y="' + (0) + '" font-size="14" fill="#1F2330">' + i.releaseType + ' · ' + i.featurePoint + '</text>').join('');
+    let y = 100;
+    let content = '';
+    filtered.forEach(i => {
+      content += '<rect x="20" y="' + y + '" width="560" height="80" rx="8" fill="#FAFBFD" stroke="#E6E8EF"/>';
+      content += '<text x="40" y="' + (y + 28) + '" font-size="14" fill="#1F2330" font-weight="600">' + i.releaseType + ' · ' + escapeXml(i.featurePoint) + '</text>';
+      content += '<text x="40" y="' + (y + 52) + '" font-size="12" fill="#5A6172">入口：' + escapeXml(i.featureEntry) + ' · 面向用户：' + i.targetUser + '</text>';
+      y += 96;
+    });
+    if (!filtered.length) y = 140;
+    const height = Math.max(260, y + 60);
+    return '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="600" height="' + height + '">' +
+      '<rect width="600" height="' + height + '" fill="#F5F6FA"/>' +
+      '<rect x="0" y="0" width="600" height="80" fill="#5B6CFF"/>' +
+      '<text x="40" y="45" font-size="20" fill="#fff" font-weight="600">闻道作业 · ' + title + '</text>' +
+      '<text x="40" y="80" font-size="12" fill="#5A6172">' + todayStr() + ' · 共 ' + filtered.length + ' 项功能</text>' +
+      content +
+      '<text x="40" y="' + (height - 30) + '" font-size="12" fill="#9098AC">发版路线图系统自动生成</text>' +
+      '</svg>';
+  }
+  function escapeXml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  function openImagePreviewModal() {
+    renderImagePreview();
+    document.getElementById('image-preview-modal').classList.add('show');
+  }
+  function closeImagePreviewModal(e) { if (!e || e.target.id === 'image-preview-modal') document.getElementById('image-preview-modal').classList.remove('show'); }
+  function switchPreviewVersion(v) {
+    currentPreviewVersion = v;
+    document.querySelectorAll('#preview-version-tabs .version-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('#preview-version-tabs .version-tab[onclick="switchPreviewVersion(\'' + v + '\')"]').classList.add('active');
+    renderImagePreview();
+  }
+  function renderImagePreview() {
+    const img = generatedImages[currentPreviewVersion];
+    const el = document.getElementById('long-image-preview');
+    if (img) el.innerHTML = '<img class="img" src="' + img + '" alt="长图预览" />';
+    else el.innerHTML = '<div class="placeholder"><div class="big">🖼</div><div>尚未生成长图</div><div class="empty-tip">请先在「录入 / 编辑」页点击「一键生成长图」</div></div>';
+  }
+  function downloadCurrentImage() {
+    const img = generatedImages[currentPreviewVersion];
+    if (!img) return alert('尚未生成长图');
+    const a = document.createElement('a'); a.href = img; a.download = '闻道作业-' + currentPreviewVersion + '-' + todayStr() + '.png'; a.click();
+  }
+  function downloadAllImages() {
+    if (!generatedImages.all) return alert('尚未生成长图');
+    ['all', 'homework', 'teaching'].forEach(v => { const a = document.createElement('a'); a.href = generatedImages[v]; a.download = '闻道作业-' + v + '-' + todayStr() + '.png'; a.click(); });
+  }
+
+  // ---- 详情预览 ----
+  function openPreviewModal(date) {
+    const list = items.filter(i => i.notifyTime && i.notifyTime.slice(0, 10) === date).sort((a, b) => typeOrder(a.releaseType) - typeOrder(b.releaseType));
+    document.getElementById('preview-title').textContent = date + ' · 发版详情';
+    document.getElementById('preview-body').innerHTML = list.map(i =>
+      '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">' +
+      '<div style="font-weight:600;margin-bottom:8px"><span class="type-pill ' + typeClass(i.releaseType) + '">' + i.releaseType + '</span> ' + i.featurePoint + '</div>' +
+      '<div class="text-sm text-muted">应用/平台：' + i.appPlatform + ' · 端：' + i.scope + '</div>' +
+      '<div class="text-sm text-muted">入口：' + i.featureEntry + ' · 面向用户：' + i.targetUser + '</div>' +
+      '<div class="text-sm text-muted">特殊说明：' + (i.specialNotes || '—') + '</div>' +
+      '<div class="text-sm text-muted">限制条件：' + (i.limitNotes || '—') + '</div>' +
+      '<div class="text-sm text-muted">备注：' + (i.notes || '—') + '</div>' +
+      '</div>'
+    ).join('');
+    document.getElementById('preview-modal').classList.add('show');
+  }
+  function closePreviewModal(e) { if (!e || e.target.id === 'preview-modal') document.getElementById('preview-modal').classList.remove('show'); }
+
+  // ---- 初始化 ----
+  ['list-platform', 'list-type', 'list-target'].forEach(buildMultiSelect);
+  document.getElementById('list-groups').innerHTML = '<div class="card" style="text-align:center;color:var(--text-3)">点击「确定」查看筛选结果</div>';
+  loadState();
+  loadImages();
+  updateModuleCounts();
+  renderAll();
+</script>
+
+</body>
+</html>

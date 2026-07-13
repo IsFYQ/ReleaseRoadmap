@@ -9,3 +9,12 @@ desktop.ini
 # IDE
 .vscode/
 .idea/
+
+# Python 字节码
+__pycache__/
+*.pyc
+*.pyo
+
+# 运行时数据（后端 SQLite + 上传文件）
+实现方式/data.db
+实现方式/uploads/

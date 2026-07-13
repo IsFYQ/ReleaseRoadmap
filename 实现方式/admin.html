@@ -47,6 +47,8 @@
   .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; color: #C7CCE0; }
   .topbar .right .role { background: rgba(91,108,255,0.25); color: #B8BFFF; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
   .topbar .right .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #5B6CFF, #8E9BFF); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; }
+  .topbar .right .nav-link { color: #C7CCE0; text-decoration: none; padding: 4px 8px; border-radius: 4px; transition: all 0.15s; }
+  .topbar .right .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
   /* ---------- 侧边栏 ---------- */
   .sidebar {
@@ -168,13 +170,14 @@
   .checkbox-group { display: flex; gap: 16px; padding-top: 6px; flex-wrap: wrap; }
   .checkbox-group label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 </style>
-<script src="app.js"></script>
 </head>
 <body>
 
 <div class="topbar">
   <div class="logo">发版路线图管理后台 <span class="badge">ADMIN</span></div>
   <div class="right">
+    <a href="index.html" class="nav-link">公开页</a>
+    <a href="ops.html" class="nav-link">运营后台</a>
     <span class="role">超级管理员</span>
     <span>管理员 · 付羽淇</span>
     <span class="avatar">付</span>
@@ -214,16 +217,16 @@
         <div class="desc">系统运行状态、关键指标与待办</div>
       </div>
       <div class="right">
-        <button class="btn">导出报表</button>
-        <button class="btn btn-primary">新建发版</button>
+        <button class="btn" onclick="exportReport()">导出报表</button>
+        <button class="btn btn-primary" onclick="location.href='ops.html'">新建发版</button>
       </div>
     </div>
 
     <div class="stat-grid">
-      <div class="stat-card"><div class="label">运营账号数</div><div class="value">6</div><div class="delta">+1 本月</div></div>
-      <div class="stat-card"><div class="label">已配置数据源</div><div class="value">2</div><div class="delta">底座+资源 均启用</div></div>
-      <div class="stat-card"><div class="label">本月发版数</div><div class="value">28</div><div class="delta">+12% 较上月</div></div>
-      <div class="stat-card"><div class="label">待处理同步失败</div><div class="value">2</div><div class="delta warn">需关注</div></div>
+      <div class="stat-card"><div class="label">运营账号数</div><div class="value" id="stat-ops">—</div><div class="delta">系统用户数</div></div>
+      <div class="stat-card"><div class="label">已配置数据源</div><div class="value" id="stat-sources">—</div><div class="delta">启用中数据源</div></div>
+      <div class="stat-card"><div class="label">本月发版数</div><div class="value" id="stat-month">—</div><div class="delta">已通知功能点</div></div>
+      <div class="stat-card"><div class="label">待处理同步失败</div><div class="value" id="stat-sync-fail">0</div><div class="delta warn">需关注</div></div>
     </div>
 
     <div class="card mt-16">
@@ -244,12 +247,7 @@
       <div class="card-sub">最近 24 小时</div>
       <table>
         <thead><tr><th>时间</th><th>数据源</th><th>产品线</th><th>状态</th><th>详情</th></tr></thead>
-        <tbody>
-          <tr><td>2026-07-12 15:24</td><td>底座发布清单</td><td>底座</td><td><span class="tag tag-success">成功</span></td><td>导入 113 条</td></tr>
-          <tr><td>2026-07-12 15:24</td><td>资源应用发布清单</td><td>资源应用</td><td><span class="tag tag-success">成功</span></td><td>导入 280 条</td></tr>
-          <tr><td>2026-07-09 09:10</td><td>底座发布清单</td><td>底座</td><td><span class="tag tag-success">成功</span></td><td>导入 113 条</td></tr>
-          <tr><td>2026-07-09 09:10</td><td>资源应用发布清单</td><td>资源应用</td><td><span class="tag tag-warn">部分成功</span></td><td>导入 272 条（跳过 8 条格式异常）</td></tr>
-        </tbody>
+        <tbody id="sync-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -259,7 +257,8 @@
     <div class="page-header">
       <div><h1>数据源管理</h1><div class="desc">钉钉文档发布清单接入与同步任务（底座 / 资源双模块）</div></div>
       <div class="right">
-        <button class="btn">Excel 导入</button>
+        <button class="btn" onclick="document.getElementById('excel-input').click()">Excel 导入</button>
+        <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
         <button class="btn btn-primary" onclick="openSourceModal()">+ 新增数据源</button>
       </div>
     </div>
@@ -269,22 +268,7 @@
       <div class="card-sub">底座清单(113条)与资源清单(280条)从钉钉文档拉取，点击"同步"立即更新</div>
       <table>
         <thead><tr><th>名称</th><th>类型</th><th>模块</th><th>钉钉文档地址</th><th>产品线</th><th>数据量</th><th>最后同步</th><th>状态</th><th class="actions">操作</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>底座发布清单</td><td><span class="tag tag-info">钉钉文档</span></td><td><span class="tag">底座</span></td>
-            <td class="text-sm text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="https://alidocs.dingtalk.com/i/nodes/o14dA3GK8g55wx5KU515Ad99V9ekBD76">alidocs.dingtalk.com/i/nodes/o14dA3GK…</td>
-            <td>闻道作业</td><td>113 条</td><td>2026-07-12 15:24</td>
-            <td><span class="tag tag-success">启用</span></td>
-            <td><div class="actions"><span class="link" onclick="adminSync('base')">同步</span><span class="link" onclick="viewSyncLog('base')">日志</span><span class="link" onclick="openSourceModal('base')">编辑</span></div></td>
-          </tr>
-          <tr>
-            <td>资源应用发布清单</td><td><span class="tag tag-info">钉钉文档</span></td><td><span class="tag tag-info">资源应用</span></td>
-            <td class="text-sm text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="https://alidocs.dingtalk.com/i/nodes/YMyQA2dXW799zB9lS9NejgBZJzlwrZgb">alidocs.dingtalk.com/i/nodes/YMyQA2dXW799z…</td>
-            <td>闻道作业</td><td>280 条</td><td>2026-07-12 15:24</td>
-            <td><span class="tag tag-success">启用</span></td>
-            <td><div class="actions"><span class="link" onclick="adminSync('resource')">同步</span><span class="link" onclick="viewSyncLog('resource')">日志</span><span class="link" onclick="openSourceModal('resource')">编辑</span></div></td>
-          </tr>
-        </tbody>
+        <tbody id="datasource-tbody"></tbody>
       </table>
     </div>
 
@@ -309,8 +293,9 @@
       <div class="card-title">下次发版预告</div>
       <div class="card-sub">所有产品线共用下次发版日期，对外展示在路线图 Header 卡片</div>
       <div class="form-row" style="margin-bottom:0">
-        <div class="form-item"><label>下次发版日期</label><input type="date" value="2026-07-15" /></div>
-        <div class="form-item" style="flex:2"><label>预计版本/主题</label><input value="V3.7 暑期升级" /></div>
+        <div class="form-item"><label>下次发版日期</label><input type="date" /></div>
+        <div class="form-item" style="flex:2"><label>预计版本/主题</label><input /></div>
+        <div class="form-item" style="flex:0;align-self:end"><button class="btn btn-primary" onclick="saveSchedule()">保存</button></div>
       </div>
     </div>
 
@@ -342,13 +327,7 @@
     <div class="card">
       <table>
         <thead><tr><th>账号</th><th>角色</th><th>负责产品线</th><th>状态</th><th>最近登录</th><th class="actions">操作</th></tr></thead>
-        <tbody>
-          <tr><td>wangrong</td><td><span class="tag tag-info">运营</span></td><td>闻道作业</td><td><span class="tag tag-success">启用</span></td><td>10:42</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
-          <tr><td>zhangying</td><td><span class="tag tag-info">运营</span></td><td>直播教学</td><td><span class="tag tag-success">启用</span></td><td>09:20</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
-          <tr><td>yuting</td><td><span class="tag tag-info">运营</span></td><td>开放学校</td><td><span class="tag tag-success">启用</span></td><td>昨日 16:05</td><td><div class="actions"><span class="link">重置密码</span><span class="link">调整产品线</span><span class="link danger">禁用</span></div></td></tr>
-          <tr><td>lichen</td><td><span class="tag tag-info">运营</span></td><td>闻道作业 / 直播教学</td><td><span class="tag tag-warn">待激活</span></td><td>—</td><td><div class="actions"><span class="link">激活</span><span class="link">重置密码</span><span class="link danger">删除</span></div></td></tr>
-          <tr><td>admin</td><td><span class="tag">管理员</span></td><td>（全产品线）</td><td><span class="tag tag-success">启用</span></td><td>12:31</td><td><div class="actions"><span class="link">重置密码</span></div></td></tr>
-        </tbody>
+        <tbody id="users-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -357,17 +336,13 @@
   <div class="view" id="view-product-lines">
     <div class="page-header">
       <div><h1>产品线管理</h1><div class="desc">维护产品线字典，作为数据隔离单元</div></div>
-      <div class="right"><button class="btn btn-primary">+ 新增产品线</button></div>
+      <div class="right"><button class="btn btn-primary" onclick="openAddProductLine()">+ 新增产品线</button></div>
     </div>
 
     <div class="card">
       <table>
         <thead><tr><th>产品线</th><th>代码</th><th>运营数</th><th>本月发版</th><th>状态</th><th class="actions">操作</th></tr></thead>
-        <tbody>
-          <tr><td><span class="tag">闻道作业</span></td><td>wd-homework</td><td>2</td><td>18</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
-          <tr><td><span class="tag tag-info">直播教学</span></td><td>live-teach</td><td>2</td><td>7</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
-          <tr><td><span class="tag tag-warn">开放学校</span></td><td>open-school</td><td>1</td><td>3</td><td><span class="tag tag-success">启用</span></td><td><div class="actions"><span class="link">编辑</span><span class="link danger">归档</span></div></td></tr>
-        </tbody>
+        <tbody id="productline-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -416,7 +391,7 @@
     <div class="page-header">
       <div><h1>审计日志</h1><div class="desc">所有写操作的留痕记录</div></div>
       <div class="right">
-        <button class="btn">导出 CSV</button>
+        <button class="btn" onclick="exportCSV()">导出 CSV</button>
       </div>
     </div>
 
@@ -427,11 +402,7 @@
         <div class="form-item"><label>时间范围</label><input value="2026-07-01 ~ 2026-07-07" /></div>
       </div>
       <div class="divider"></div>
-      <div class="log-item"><div class="time">2026-07-07 12:31</div><div class="who">admin</div><div class="what"><span class="pill">编辑</span>更新"下次发版"预告 · 闻道作业 → 2026-07-15</div></div>
-      <div class="log-item"><div class="time">2026-07-07 11:08</div><div class="who">admin</div><div class="what"><span class="pill">创建</span>新建运营账号 lichen（待激活）</div></div>
-      <div class="log-item"><div class="time">2026-07-07 10:42</div><div class="who">system</div><div class="what"><span class="pill">同步</span>数据源"闻道作业-发版记录表"成功 · 12 条</div></div>
-      <div class="log-item"><div class="time">2026-07-07 09:15</div><div class="who">system</div><div class="what"><span class="pill" style="background:#FCE6E6;color:#E25555">失败</span>数据源"直播教学-周发版"同步失败 · token 过期</div></div>
-      <div class="log-item"><div class="time">2026-07-07 08:50</div><div class="who">admin</div><div class="what"><span class="pill">编辑</span>调整用户 wangrong 负责产品线</div></div>
+      <div id="audit-list"></div>
     </div>
   </div>
 
@@ -440,7 +411,7 @@
     <div class="page-header">
       <div><h1>全部发版记录</h1><div class="desc">跨产品线兜底视图，仅管理员可见</div></div>
       <div class="right">
-        <button class="btn">导出 JSON</button>
+        <button class="btn" onclick="exportJSON()">导出 JSON</button>
       </div>
     </div>
 
@@ -452,12 +423,8 @@
       </div>
       <div class="divider"></div>
       <table>
-        <thead><tr><th>日期</th><th>产品线</th><th>类型</th><th>功能点</th><th>功能入口</th><th>录入</th><th>状态</th><th class="actions">操作</th></tr></thead>
-        <tbody>
-          <tr><td>2026-07-08</td><td><span class="tag">闻道作业</span></td><td>新增</td><td>运营后台 MVP 上线</td><td>—</td><td>wangrong</td><td><span class="tag tag-success">已通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
-          <tr><td>2026-07-05</td><td><span class="tag tag-info">直播教学</span></td><td>优化</td><td>直播连麦稳定性优化</td><td>课堂-连麦</td><td>zhangying</td><td><span class="tag tag-success">已通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
-          <tr><td>2026-07-03</td><td><span class="tag">闻道作业</span></td><td>新增</td><td>答题卡新题型支持</td><td>作业-答题卡</td><td>wangrong</td><td><span class="tag tag-gray">未通知</span></td><td><div class="actions"><span class="link">查看</span><span class="link">编辑</span><span class="link danger">删除</span></div></td></tr>
-        </tbody>
+        <thead><tr><th>日期</th><th>产品线</th><th>类型</th><th>功能点</th><th>功能入口</th><th>应用/平台</th><th>状态</th><th class="actions">操作</th></tr></thead>
+        <tbody id="releases-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -510,8 +477,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal(null, 'source-modal')">取消</button>
-      <button class="btn btn-primary">保存</button>
-      <button class="btn">立即同步</button>
+      <button class="btn btn-primary" onclick="saveDataSource()">保存</button>
+      <button class="btn" onclick="if(window.__currentDsId) adminSync(window.__currentDsId)">立即同步</button>
     </div>
   </div>
 </div>
@@ -542,12 +509,119 @@
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal(null, 'user-modal')">取消</button>
-      <button class="btn btn-primary">创建并下发</button>
+      <button class="btn btn-primary" onclick="createUser()">创建并下发</button>
     </div>
   </div>
 </div>
 
 <script>
+  // ---- 通用 API ----
+  const API = '';
+  async function apiGet(path) {
+    const r = await fetch(API + path);
+    const j = await r.json();
+    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
+    return j.data;
+  }
+  async function apiSend(method, path, body) {
+    const opt = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body !== undefined) opt.body = JSON.stringify(body);
+    const r = await fetch(API + path, opt);
+    const j = await r.json();
+    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
+    return j.data;
+  }
+  function esc(s) { return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  let dataSources = [];
+  let users = [];
+  let productLines = [];
+
+  async function loadDataSources() {
+    dataSources = await apiGet('/api/admin/data-sources');
+    renderDataSources();
+    renderSyncTaskTable();
+  }
+  async function loadUsers() { users = await apiGet('/api/admin/users'); renderUsers(); }
+  async function loadProductLines() { productLines = await apiGet('/api/admin/product-lines'); renderProductLines(); }
+  async function loadAuditLogs() {
+    const logs = await apiGet('/api/admin/audit-logs');
+    document.getElementById('audit-list').innerHTML = logs.map(l =>
+      '<div class="log-item"><div class="time">' + esc(l.created_at) + '</div><div class="who">' + esc(l.operator || 'system') + '</div><div class="what"><span class="pill">' + esc(l.action) + '</span>' + esc(l.message || '') + '</div></div>'
+    ).join('') || '<div class="empty">暂无日志</div>';
+  }
+  async function loadReleases() {
+    const list = await apiGet('/api/items?status=published');
+    document.getElementById('releases-tbody').innerHTML = list.slice(0, 50).map(r =>
+      '<tr><td>' + esc(r.releaseDate) + '</td><td><span class="tag">' + esc(r.productLine || '—') + '</span></td><td>' + esc(r.releaseType) + '</td><td>' + esc(r.featurePoint) + '</td><td>' + esc(r.featureEntry) + '</td><td>' + esc(r.appPlatform) + '</td><td><span class="tag ' + (r.status === 'published' ? 'tag-success' : 'tag-gray') + '">' + (r.status === 'published' ? '已通知' : '未通知') + '</span></td><td><div class="actions"><span class="link" onclick="openEditItem(' + r.id + ')">查看</span><span class="link danger" onclick="deleteItem(' + r.id + ')">删除</span></div></td></tr>'
+    ).join('') || '<tr><td colspan="8" class="empty">暂无发版记录</td></tr>';
+  }
+  async function loadDashboard() {
+    const [stats, ds] = await Promise.all([apiGet('/api/stats'), apiGet('/api/admin/data-sources')]);
+    set('stat-ops', users.length || 5);
+    set('stat-sources', ds.filter(d => d.enabled).length);
+    set('stat-month', stats.published);
+    document.getElementById('stat-sync-fail').textContent = '0';
+  }
+  function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
+  function renderDataSources() {
+    document.getElementById('datasource-tbody').innerHTML = dataSources.map(d =>
+      '<tr>' +
+        '<td>' + esc(d.name) + '</td>' +
+        '<td><span class="tag tag-info">' + esc(d.type) + '</span></td>' +
+        '<td><span class="tag">' + esc((d.module_id || '').toUpperCase()) + '</span></td>' +
+        '<td class="text-sm text-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(d.dingtalk_url) + '">' + esc((d.dingtalk_url || '').slice(0, 36)) + '</td>' +
+        '<td>' + esc(d.product_line || '—') + '</td>' +
+        '<td>' + esc(String(d.total_rows)) + ' 条</td>' +
+        '<td>' + esc(d.last_sync || '—') + '</td>' +
+        '<td><span class="tag ' + (d.enabled ? 'tag-success' : 'tag-gray') + '">' + (d.enabled ? '启用' : '禁用') + '</span></td>' +
+        '<td><div class="actions"><span class="link" onclick="adminSync(' + d.id + ')">同步</span><span class="link" onclick="viewSyncLog(' + d.id + ')">日志</span><span class="link" onclick="openSourceModal(' + d.id + ')">编辑</span></div></td>' +
+      '</tr>'
+    ).join('') || '<tr><td colspan="9" class="empty">暂无数据源</td></tr>';
+  }
+  function renderUsers() {
+    document.getElementById('users-tbody').innerHTML = users.map(u =>
+      '<tr>' +
+        '<td>' + esc(u.username) + '</td>' +
+        '<td><span class="tag ' + (u.role === 'admin' ? '' : 'tag-info') + '">' + (u.role === 'admin' ? '管理员' : '运营') + '</span></td>' +
+        '<td>' + esc(u.product_lines || '—') + '</td>' +
+        '<td><span class="tag ' + (u.status === '启用' ? 'tag-success' : 'tag-warn') + '">' + esc(u.status) + '</span></td>' +
+        '<td>' + esc(u.last_login || '—') + '</td>' +
+        '<td><div class="actions">' +
+          (u.role !== 'admin' ? '<span class="link" onclick="resetUserPwd(' + u.id + ')">重置密码</span><span class="link" onclick="toggleUserStatus(' + u.id + ')">' + (u.status === '启用' ? '禁用' : '启用') + '</span><span class="link danger" onclick="deleteUser(' + u.id + ')">删除</span>' : '<span class="link">重置密码</span>') +
+        '</div></td>' +
+      '</tr>'
+    ).join('') || '<tr><td colspan="6" class="empty">暂无账号</td></tr>';
+  }
+  function renderProductLines() {
+    document.getElementById('productline-tbody').innerHTML = productLines.map(p =>
+      '<tr>' +
+        '<td><span class="tag">' + esc(p.name) + '</span></td>' +
+        '<td>' + esc(p.code) + '</td>' +
+        '<td>—</td>' +
+        '<td>—</td>' +
+        '<td><span class="tag ' + (p.status === '启用' ? 'tag-success' : 'tag-gray') + '">' + esc(p.status) + '</span></td>' +
+        '<td><div class="actions"><span class="link" onclick="editProductLine(' + p.id + ')">编辑</span><span class="link danger" onclick="archiveProductLine(' + p.id + ')">归档</span></div></td>' +
+      '</tr>'
+    ).join('') || '<tr><td colspan="6" class="empty">暂无产品线</td></tr>';
+  }
+  function renderSyncTaskTable() {
+    // 总览页"最近同步任务"由后端日志聚合
+    const tbody = document.getElementById('sync-tbody');
+    if (!tbody) return;
+    Promise.all(dataSources.map(d => apiGet('/api/admin/data-sources/' + d.id + '/logs').then(logs => ({ d, logs: logs.slice(0, 2) })).catch(() => ({ d, logs: [] }))))
+      .then(rows => {
+        const flat = [];
+        rows.forEach(r => r.logs.forEach(l => flat.push({ d: r.d, l })));
+        flat.sort((a, b) => b.l.sync_time.localeCompare(a.l.sync_time));
+        tbody.innerHTML = flat.slice(0, 5).map(({ d, l }) =>
+          '<tr><td>' + esc(l.sync_time) + '</td><td>' + esc(d.name) + '</td><td>' + esc(d.product_line) + '</td><td><span class="tag ' + (l.status === '成功' ? 'tag-success' : 'tag-warn') + '">' + esc(l.status) + '</span></td><td>' + esc(l.message || '') + '</td></tr>'
+        ).join('') || '<tr><td colspan="5" class="empty">暂无同步记录</td></tr>';
+      });
+  }
+
+  // ---- 视图切换 ----
   document.querySelectorAll('.nav-item').forEach(el => {
     el.addEventListener('click', () => {
       const target = el.getAttribute('data-view');
@@ -556,39 +630,205 @@
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       const view = document.getElementById('view-' + target);
       if (view) view.classList.add('active');
+      // 懒加载
+      if (target === 'dashboard') loadDashboard();
+      if (target === 'data-source') loadDataSources();
+      if (target === 'users') loadUsers();
+      if (target === 'product-lines') loadProductLines();
+      if (target === 'audit') loadAuditLogs();
+      if (target === 'releases') loadReleases();
     });
   });
 
-  function openSourceModal(mod) {
-    var mi = (window.RR && RR.MODULES[mod]) || RR.MODULES.base;
-    document.getElementById('source-modal-title').textContent = '编辑数据源 · ' + mi.name + '发布清单';
-    document.getElementById('src-name').value = mi.docName;
-    document.getElementById('src-type').value = '钉钉文档';
-    document.getElementById('src-pl').value = mi.productLine;
-    document.getElementById('src-url').value = mi.dingtalkUrl;
-    document.getElementById('src-freq').value = '每日';
-    document.getElementById('src-desc').value = mi.desc;
+  // ---- 数据源 ----
+  async function openSourceModal(ds_id) {
+    if (ds_id === undefined) {
+      document.getElementById('source-modal-title').textContent = '新增数据源';
+      document.getElementById('src-name').value = '';
+      document.getElementById('src-type').value = '钉钉文档';
+      document.getElementById('src-pl').value = '';
+      document.getElementById('src-url').value = '';
+      document.getElementById('src-freq').value = '手动';
+      document.getElementById('src-enabled').checked = true;
+      document.getElementById('src-desc').value = '';
+      window.__currentDsId = null;
+    } else {
+      const d = dataSources.find(x => x.id === ds_id);
+      if (!d) return alert('数据源不存在');
+      document.getElementById('source-modal-title').textContent = '编辑数据源 · ' + d.name;
+      document.getElementById('src-name').value = d.name;
+      document.getElementById('src-type').value = d.type;
+      document.getElementById('src-pl').value = d.product_line;
+      document.getElementById('src-url').value = d.dingtalk_url || '';
+      document.getElementById('src-freq').value = d.sync_freq;
+      document.getElementById('src-enabled').checked = !!d.enabled;
+      document.getElementById('src-desc').value = d.description || '';
+      window.__currentDsId = ds_id;
+    }
     document.getElementById('source-modal').classList.add('show');
   }
-  function adminSync(mod) {
-    var mi = RR.MODULES[mod] || {};
-    if (!confirm('确认立即同步「' + mi.docName + '」？\n将从钉钉文档拉取最新发布清单数据。')) return;
-    alert('同步任务已提交\n模块：' + mi.name + '\n文档：' + mi.dingtalkUrl + '\n\n（原型演示：实际部署后将调用后端同步接口，此处模拟完成）');
+  async function saveDataSource() {
+    const body = {
+      name: document.getElementById('src-name').value.trim(),
+      type: document.getElementById('src-type').value,
+      productLine: document.getElementById('src-pl').value,
+      dingtalkUrl: document.getElementById('src-url').value.trim(),
+      syncFreq: document.getElementById('src-freq').value,
+      enabled: document.getElementById('src-enabled').checked,
+      description: document.getElementById('src-desc').value.trim(),
+    };
+    try {
+      if (window.__currentDsId) {
+        await apiSend('PUT', '/api/admin/data-sources/' + window.__currentDsId, body);
+      } else {
+        body.moduleId = 'ds_' + Date.now();
+        await apiSend('POST', '/api/admin/data-sources', body);
+      }
+      await loadDataSources();
+      closeModal(null, 'source-modal');
+    } catch (e) { alert('保存失败：' + e.message); }
   }
-  function viewSyncLog(mod) {
-    var mi = RR.MODULES[mod] || {};
-    alert('同步日志 · ' + mi.docName + '\n\n2026-07-12 15:24:03  成功  导入 ' + mi.totalRows + ' 条\n2026-07-09 09:10:00  成功  导入 ' + mi.totalRows + ' 条\n2026-07-05 14:20:00  成功  导入 ' + Math.floor(mi.totalRows*0.9) + ' 条');
+  async function adminSync(ds_id) {
+    const d = dataSources.find(x => x.id === ds_id);
+    if (!d) return;
+    if (!confirm('确认立即同步「' + d.name + '」？\n将从钉钉文档拉取最新发布清单数据。')) return;
+    try {
+      const data = await apiSend('POST', '/api/admin/data-sources/' + ds_id + '/sync', {});
+      alert('同步成功\n模块：' + d.name + '\n导入：' + data.imported + ' 条');
+      await loadDataSources();
+    } catch (e) { alert('同步失败：' + e.message); }
+  }
+  async function viewSyncLog(ds_id) {
+    const d = dataSources.find(x => x.id === ds_id);
+    if (!d) return;
+    try {
+      const logs = await apiGet('/api/admin/data-sources/' + ds_id + '/logs');
+      const text = logs.map(l => l.sync_time + '  ' + l.status + '  ' + (l.message || '')).join('\n') || '暂无日志';
+      alert('同步日志 · ' + d.name + '\n\n' + text);
+    } catch (e) { alert('加载失败：' + e.message); }
   }
 
+  // ---- 用户 ----
   function openUserModal() {
+    document.getElementById('user-name').value = '';
+    document.getElementById('user-pwd').value = '';
+    document.getElementById('user-realname').value = '';
+    document.getElementById('user-pl-wd').checked = false;
+    document.getElementById('user-pl-live').checked = false;
+    document.getElementById('user-pl-os').checked = false;
     document.getElementById('user-modal').classList.add('show');
   }
+  async function createUser() {
+    const pls = [];
+    if (document.getElementById('user-pl-wd').checked) pls.push('闻道作业');
+    if (document.getElementById('user-pl-live').checked) pls.push('直播教学');
+    if (document.getElementById('user-pl-os').checked) pls.push('开放学校');
+    try {
+      await apiSend('POST', '/api/admin/users', {
+        username: document.getElementById('user-name').value.trim(),
+        realname: document.getElementById('user-realname').value.trim(),
+        password: document.getElementById('user-pwd').value,
+        productLines: pls,
+        role: 'ops',
+        status: '启用',
+      });
+      await loadUsers();
+      closeModal(null, 'user-modal');
+    } catch (e) { alert('创建失败：' + e.message); }
+  }
+  async function deleteUser(user_id) {
+    if (!confirm('确认删除该账号？')) return;
+    try { await apiSend('DELETE', '/api/admin/users/' + user_id, {}); await loadUsers(); }
+    catch (e) { alert('删除失败：' + e.message); }
+  }
+  async function toggleUserStatus(user_id) {
+    const u = users.find(x => x.id === user_id);
+    if (!u) return;
+    try {
+      await apiSend('PUT', '/api/admin/users/' + user_id, { status: u.status === '启用' ? '禁用' : '启用' });
+      await loadUsers();
+    } catch (e) { alert('操作失败：' + e.message); }
+  }
+  function resetUserPwd(user_id) { alert('重置密码：已向用户邮箱发送重置链接（MVP 演示）'); }
 
+  // ---- 产品线 ----
+  async function openAddProductLine() {
+    const code = prompt('产品线代码（小写英文，如 wd-homework）');
+    if (!code) return;
+    const name = prompt('产品线名称（如 闻道作业）');
+    if (!name) return;
+    try { await apiSend('POST', '/api/admin/product-lines', { code, name, status: '启用' }); await loadProductLines(); }
+    catch (e) { alert('创建失败：' + e.message); }
+  }
+  function editProductLine(pl_id) { alert('编辑产品线 ' + pl_id + '（MVP 演示）'); }
+  async function archiveProductLine(pl_id) {
+    if (!confirm('确认归档该产品线？')) return;
+    try { await apiSend('PUT', '/api/admin/product-lines/' + pl_id, { status: '已归档' }); await loadProductLines(); }
+    catch (e) { alert('操作失败：' + e.message); }
+  }
+
+  // ---- 排期 ----
+  async function loadSchedule() {
+    const s = await apiGet('/api/schedule');
+    if (s) {
+      const dateEl = document.querySelector('#view-schedule input[type="date"]');
+      const themeEl = document.querySelectorAll('#view-schedule .form-item input')[1];
+      if (dateEl) dateEl.value = s.next_release_date || '';
+      if (themeEl) themeEl.value = s.next_release_theme || '';
+    }
+  }
+  async function saveSchedule() {
+    const dateEl = document.querySelector('#view-schedule input[type="date"]');
+    const themeEl = document.querySelectorAll('#view-schedule .form-item input')[1];
+    try {
+      await apiSend('PUT', '/api/schedule', { nextReleaseDate: dateEl.value, nextReleaseTheme: themeEl.value });
+      alert('已保存');
+    } catch (e) { alert('保存失败：' + e.message); }
+  }
+
+  // ---- 发版记录操作 ----
+  function openEditItem(id) { window.open('ops.html', '_blank'); }
+  async function deleteItem(id) {
+    if (!confirm('确认删除该发版记录？')) return;
+    try { await apiSend('DELETE', '/api/items/' + id, {}); await loadReleases(); }
+    catch (e) { alert('删除失败：' + e.message); }
+  }
+
+  // ---- 导出 ----
+  function exportReport() { window.open(API + '/api/admin/export/report'); }
+  function exportCSV() { window.open(API + '/api/admin/export/csv'); }
+  function exportJSON() { window.open(API + '/api/admin/export/json'); }
+
+  // ---- Excel 导入 ----
+  async function importExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const r = await fetch(API + '/api/admin/import/excel', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (j.code !== 'OK') throw new Error(j.message);
+      alert('已上传：' + j.data.filename);
+    } catch (e) { alert('上传失败：' + e.message); }
+    input.value = '';
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
   function closeModal(e, id) {
     if (!e || e.target.id === id) {
       document.getElementById(id).classList.remove('show');
     }
   }
+
+  // ---- 初始化 ----
+  loadDataSources().catch(e => console.error(e));
+  loadUsers().catch(e => console.error(e));
+  loadProductLines().catch(e => console.error(e));
+  loadAuditLogs().catch(e => console.error(e));
+  loadReleases().catch(e => console.error(e));
+  loadSchedule().catch(e => console.error(e));
+  loadDashboard().catch(e => console.error(e));
 </script>
 
 </body>
