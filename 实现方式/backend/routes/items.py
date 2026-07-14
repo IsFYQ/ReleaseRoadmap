@@ -43,6 +43,10 @@ bp = Blueprint("items", __name__)
 def _row_to_dict(r):
     module = r["module"]
     data_source_map = {"base": "底座", "resource": "资源应用"}
+    img_rows = query(
+        "SELECT id, file_path, url, sort_order FROM item_images WHERE item_id=? ORDER BY sort_order, id",
+        (r["id"],),
+    )
     return {
         "id": r["id"],
         "module": module,
@@ -65,7 +69,27 @@ def _row_to_dict(r):
         "notifyTime": r["notify_time"],
         "importTime": r["import_time"],
         "productLine": r["product_line"],
+        "images": len(img_rows),
+        "imageList": [
+            {"id": ir["id"], "url": ir["url"], "path": ir["file_path"], "sortOrder": ir["sort_order"]}
+            for ir in img_rows
+        ],
     }
+
+
+def _save_item_images(item_id, image_list):
+    """全删全插 item_images 关联。image_list 形如 [{path,url,sort_order}, ...]"""
+    execute("DELETE FROM item_images WHERE item_id=?", (item_id,))
+    for idx, im in enumerate(image_list or []):
+        path = (im.get("path") or im.get("file_path") or "").strip()
+        url = (im.get("url") or "").strip() or (f"/uploads/{os.path.basename(path)}" if path else "")
+        if not path:
+            continue
+        sort_order = int(im.get("sort_order", im.get("sortOrder", idx)) or idx)
+        execute(
+            "INSERT INTO item_images(item_id, file_path, url, sort_order) VALUES (?,?,?,?)",
+            (item_id, path, url, sort_order),
+        )
 
 
 # ============ 列表与详情 ============
@@ -83,6 +107,10 @@ def list_items():
     release_date = request.args.get("releaseDate")
     notify_date = request.args.get("notifyDate")
     data_source = request.args.get("dataSource")
+    # 兜底视图用：按产品线精确匹配
+    product_line = request.args.get("productLine")
+    # 兜底视图用：通知状态（notified=已通知 / unnotified=未通知），映射 notify_time 是否为空
+    notify_status = (request.args.get("notifyStatus") or "").strip()
     # 兼容旧 List 后缀（getlist 方式）；新规范直接用逗号分隔
     release_types = request.args.getlist("releaseTypeList") or (request.args.get("releaseType", "").split(",") if "," in (request.args.get("releaseType") or "") else ([request.args["releaseType"]] if request.args.get("releaseType") else []))
     target_users = request.args.getlist("targetUserList") or (request.args.get("targetUser", "").split(",") if "," in (request.args.get("targetUser") or "") else ([request.args["targetUser"]] if request.args.get("targetUser") else []))
@@ -114,6 +142,13 @@ def list_items():
             placeholders = ",".join("?" * len(sources))
             sql += f" AND module IN ({placeholders})"
             params.extend(sources)
+    if product_line:
+        sql += " AND product_line = ?"
+        params.append(product_line)
+    if notify_status == "notified":
+        sql += " AND notify_time IS NOT NULL AND notify_time != ''"
+    elif notify_status == "unnotified":
+        sql += " AND (notify_time IS NULL OR notify_time = '')"
     if release_types:
         # 去空 + 保留顺序
         seen = set(); cleaned = []
@@ -177,9 +212,9 @@ def create_item():
     if err:
         return fail("INVALID_INPUT", err)
 
-    is_publish = bool(data.get("publish"))
-    notify_time = data.get("notifyTime") or (data["releaseDate"] + "T09:00" if is_publish else "")
-    status = "published" if is_publish else "edited"
+    # 通知日期由 publish 流程自动写入,创建/编辑时不再处理
+    notify_time = ""  # 始终为空,需走 /publish 单独接口
+    status = "edited"  # 默认草稿状态
 
     new_id = execute(
         """INSERT INTO items(module,release_date,platform_scope,app_platform,scope,release_type,
@@ -209,6 +244,7 @@ def create_item():
     )
     execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
             (data.get("operator") or "ops", "create", f"item:{new_id}", f"新建发版 {data['featurePoint'][:30]}"))
+    _save_item_images(new_id, data.get("imageList") or [])
     row = query("SELECT * FROM items WHERE id=?", (new_id,), one=True)
     return ok(_row_to_dict(row), message="创建成功", status=201)
 
@@ -245,21 +281,10 @@ def update_item(item_id):
     else:
         scope = row["scope"]
 
-    publish = bool(data.get("publish"))
-    notify_time = data.get("notifyTime", row["notify_time"] or "")
-    if publish and not notify_time:
-        notify_time = data.get("releaseDate", row["release_date"]) + "T09:00"
-    if not publish and "publish" in data:
-        notify_time = ""
+    # 通知日期由 publish 流程自动写入,update 不再覆盖
+    notify_time = row["notify_time"] or ""  # 始终保留原 notify_time
 
-    new_status = data.get("status")
-    if not new_status:
-        if publish:
-            new_status = "published"
-        elif "publish" in data:
-            new_status = "edited"
-        else:
-            new_status = row["status"]
+    new_status = data.get("status") or row["status"]  # 默认保持原状态
 
     execute(
         """UPDATE items SET module=?,release_date=?,platform_scope=?,app_platform=?,scope=?,release_type=?,
@@ -290,21 +315,65 @@ def update_item(item_id):
     )
     execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
             (data.get("operator") or "ops", "update", f"item:{item_id}", f"更新发版 {row['feature_point'][:30]}"))
+    if "imageList" in data:
+        _save_item_images(item_id, data.get("imageList") or [])
     new_row = query("SELECT * FROM items WHERE id=?", (item_id,), one=True)
     return ok(_row_to_dict(new_row), message="更新成功")
 
 
 @bp.route("/items/<int:item_id>/publish", methods=["POST"])
 def publish_item(item_id):
-    """单独发布接口（编辑页"保存并发布"使用）"""
+    """发布单条：若已通知（notify_time 非空）则跳过；否则用今天日期记录（首次通知）。"""
     row = query("SELECT * FROM items WHERE id=?", (item_id,), one=True)
     if not row:
         return fail("NOT_FOUND", f"发版记录 {item_id} 不存在", 404)
+    if row["notify_time"]:
+        # 已通知过,跳过,直接返回当前数据
+        return ok(_row_to_dict(row), message="已通知过,无需重复发布")
+    # 用今天日期 (yyyy/MM/dd)
+    from datetime import datetime
+    today = datetime.now().strftime("%Y/%m/%d")
+    execute("UPDATE items SET status='published', notify_time=?, updated_at=datetime('now','localtime') WHERE id=?",
+            (today, item_id))
+    execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
+            ("ops", "publish", f"item:{item_id}", f"发布发版 {row['feature_point'][:30]}"))
+    new_row = query("SELECT * FROM items WHERE id=?", (item_id,), one=True)
+    return ok(_row_to_dict(new_row), message="发布成功")
+
+
+@bp.route("/items/batch-publish", methods=["POST"])
+def batch_publish_items():
+    """批量发布：接 { ids: [int, ...] }，对每条若已通知则跳过，否则用今天日期发布。返回 { published: [...], skipped: [...], today }"""
+    from datetime import datetime
+    today = datetime.now().strftime("%Y/%m/%d")
     data = request.get_json(silent=True) or {}
-    notify_time = data.get("notifyTime") or row["release_date"] + "T09:00"
-    err = validate_datetime(notify_time, "notifyTime")
-    if err:
-        return fail("INVALID_INPUT", err)
+    ids = data.get("ids") or []
+    if not isinstance(ids, list) or not ids:
+        return fail("INVALID_INPUT", "ids 必须是非空数组")
+    ids = [int(i) for i in ids if str(i).isdigit()]
+    if not ids:
+        return fail("INVALID_INPUT", "ids 数组内没有有效 id")
+
+    published, skipped, not_found = [], [], []
+    for item_id in ids:
+        row = query("SELECT * FROM items WHERE id=?", (item_id,), one=True)
+        if not row:
+            not_found.append(item_id)
+            continue
+        if row["notify_time"]:
+            skipped.append({"id": item_id, "notifyTime": row["notify_time"]})
+            continue
+        execute("UPDATE items SET status='published', notify_time=?, updated_at=datetime('now','localtime') WHERE id=?",
+                (today, item_id))
+        execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
+                ("ops", "batch-publish", f"item:{item_id}", f"批量发布发版 {row['feature_point'][:30]}"))
+        published.append({"id": item_id, "notifyTime": today})
+    return ok({
+        "today": today,
+        "published": published,
+        "skipped": skipped,
+        "notFound": not_found,
+    }, message=f"已发布 {len(published)} 条,跳过 {len(skipped)} 条已通知")
     execute("UPDATE items SET status='published', notify_time=?, updated_at=datetime('now','localtime') WHERE id=?",
             (notify_time, item_id))
     execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",

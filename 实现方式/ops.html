@@ -125,6 +125,8 @@
   .modal .form-item.form-item-stack > textarea, .modal .form-item.form-item-stack > .paste-zone, .modal .form-item.form-item-stack > .thumb-grid { width: 100%; min-width: 0; }
   /* 横向布局下 readonly-note 强制换行独占第二行 */
   .modal .form-item .readonly-note { flex: 1 1 100%; margin-top: 2px; white-space: normal; text-align: left; }
+  .modal .form-item > .readonly-field { flex: 1 1 auto; min-width: 180px; padding: 9px 12px; font-size: 13.5px; color: var(--text-2); background: #FAFBFD; border: 1px dashed var(--border); border-radius: 6px; }
+  .modal .form-item > .readonly-field.notified { color: var(--success); border-color: rgba(43,182,115,0.3); background: rgba(43,182,115,0.05); }
   /* checkbox/radio 组内允许换行（除非空间够） */
   .modal .checkbox-group, .modal .radio-group { flex-wrap: wrap; row-gap: 8px; column-gap: 18px; }
   /* 涉及端独占一行时不让组内换行 */
@@ -255,11 +257,62 @@
   .sync-placeholder .title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
   .sync-placeholder .desc { color: var(--text-2); font-size: 13px; margin-bottom: 16px; }
 
-  .thumb-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-  .thumb { width: 80px; height: 54px; border-radius: 4px; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); position: relative; }
-  .thumb .rm { position: absolute; top: 2px; right: 4px; background: rgba(0,0,0,0.5); color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; cursor: pointer; }
-  .paste-zone { border: 1.5px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; color: var(--text-2); background: #FAFBFD; margin-top: 8px; }
+  .thumb-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; max-height: 240px; overflow-y: auto; }
+  .thumb { position: relative; width: 120px; height: 80px; border-radius: 4px; overflow: hidden; background: #F0F2F8; border: 1px solid var(--border); flex: 0 0 auto; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+  .thumb .rm { position: absolute; top: 2px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; line-height: 1; padding: 2px 5px; border-radius: 3px; cursor: pointer; }
+  .thumb .idx { position: absolute; left: 2px; bottom: 2px; background: rgba(0,0,0,0.5); color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; }
+  .paste-zone { border: 1.5px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; color: var(--text-2); background: #FAFBFD; margin-top: 8px; cursor: text; user-select: none; }
   .paste-zone.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .paste-zone a { color: var(--primary); text-decoration: none; cursor: pointer; }
+  .paste-zone a:hover { text-decoration: underline; }
+
+  /* 列表固定列宽 + 横向滚动 */
+  .list-card { padding: 0; overflow: hidden; }
+  .list-scroll { overflow-x: auto; max-width: 100%; }
+  .list-table { table-layout: fixed; border-collapse: collapse; min-width: 1380px; width: max-content; }
+  .list-table th, .list-table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 10px 8px; }
+  .list-table td.feat-point { white-space: normal; word-break: break-word; line-height: 1.5; }
+  .list-table th.actions, .list-table td.actions { position: sticky; right: 0; background: #fff; z-index: 2; box-shadow: -2px 0 4px rgba(0,0,0,0.06); }
+  .list-table thead th.actions { background: #FAFBFD; z-index: 3; }
+  .list-table col.c-check   { width: 36px;  }
+  .list-table col.c-date    { width: 100px; }
+  .list-table col.c-notify  { width: 100px; }
+  .list-table col.c-source  { width: 80px;  }
+  .list-table col.c-type    { width: 80px;  }
+  .list-table col.c-feat    { width: 240px; }
+  .list-table col.c-app     { width: 140px; }
+  .list-table col.c-scope   { width: 80px;  }
+  .list-table col.c-entry   { width: 140px; }
+  .list-table col.c-target  { width: 80px;  }
+  .list-table col.c-hot     { width: 80px;  }
+  .list-table col.c-images  { width: 80px;  }
+  .list-table col.c-status  { width: 80px;  }
+  .list-table col.c-actions { width: 100px; }
+
+  .list-table td.c-check, .list-table th.c-check { text-align: center; padding: 10px 4px; }
+  .list-table td.c-check input { cursor: pointer; }
+  .list-table .c-check { text-align: center; }
+  .list-table th.c-check { background: inherit; }
+
+  /* 状态标签 */
+  .status-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; line-height: 1.4; }
+  .status-tag.notified   { color: #2BB673; background: rgba(43,182,115,0.1); }
+  .status-tag.unnotified { color: #9098AC; background: #F0F2F8; }
+
+  /* 列表通知日期单元格：未通知时灰色 */
+  .list-table td.c-notify.unnotified { color: var(--text-3); font-style: italic; }
+
+  /* 缩略图查看浮层 */
+  .thumb-modal { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; flex-direction: column; }
+  .thumb-modal.show { display: flex; }
+  .thumb-modal img { max-width: 92vw; max-height: 84vh; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.4); background: #fff; }
+  .thumb-modal .nav { position: absolute; top: 50%; transform: translateY(-50%); color: #fff; font-size: 36px; cursor: pointer; padding: 16px; user-select: none; line-height: 1; }
+  .thumb-modal .nav.prev { left: 16px; }
+  .thumb-modal .nav.next { right: 16px; }
+  .thumb-modal .nav.disabled { opacity: 0.3; cursor: not-allowed; }
+  .thumb-modal .counter { color: #fff; margin-top: 12px; font-size: 13px; opacity: 0.85; }
+  .thumb-modal .close-x { position: absolute; top: 16px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; z-index: 1; }
 
   .modal { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(31,35,48,0.5); align-items: center; justify-content: center; padding: 20px; }
   .modal.show { display: flex; }
@@ -317,7 +370,133 @@
   .import-log .log-warn { color: var(--warn); }
   .import-log .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 长图模板样式（作用域限定在 .canvas 内） ===== */
+  #long-image-stage {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 750px;
+    z-index: -1;
+  }
+
+  .long-image-preview {
+    display: block;
+    overflow: auto;
+    max-height: 60vh;
+    min-height: 220px;
+    background: #f7fafc;
+    text-align: left;
+  }
+
+  .long-image-preview .canvas {
+    width: 750px;
+    margin: 0 auto;
+    text-align: left;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .long-image-preview .placeholder {
+    padding: 40px;
+    color: var(--text-3);
+    text-align: center;
+  }
+
+  .canvas .header {
+    padding: 36px 40px 28px;
+    background: #2b5797;
+    color: #ffffff;
+    text-align: left;
+  }
+  .canvas .header h1 { font-size: 26px; font-weight: 600; color: #ffffff; margin-bottom: 12px; text-align: left; }
+  .canvas .header .subtitle { font-size: 14px; color: rgba(255, 255, 255, 0.85); line-height: 1.8; text-align: left; }
+
+  .canvas .stats { display: flex; gap: 14px; }
+  .canvas .stat-card {
+    flex: 1; padding: 22px 12px; border-radius: 8px;
+    color: #ffffff; text-align: center;
+  }
+  .canvas .stat-card .num { font-size: 30px; font-weight: 700; line-height: 1.2; }
+  .canvas .stat-card .label { font-size: 13px; margin-top: 4px; opacity: 0.95; }
+  .canvas .stat-card.total { background: #5b6cff; }
+  .canvas .stat-card.add   { background: #38a169; }
+  .canvas .stat-card.opt   { background: #3484cf; }
+  .canvas .stat-card.fix   { background: #dd6b20; }
+
+  .canvas .keylist { margin-top: 22px; }
+  .canvas .keylist-title { font-size: 14px; font-weight: 600; color: #1f2330; margin-bottom: 8px; text-align: left; }
+  .canvas .keylist ul { list-style: none; padding-left: 0; }
+  .canvas .keylist li {
+    font-size: 13px; color: #5a6172;
+    line-height: 1.9; padding-left: 18px; position: relative;
+    text-align: left;
+  }
+  .canvas .keylist li::before { content: "•"; position: absolute; left: 4px; color: #2b6cb0; }
+  .canvas .keylist li .ref-tag {
+    color: #3484cf; background: #ebf8ff;
+    padding: 0 4px; border-radius: 3px; font-size: 12px; margin-left: 4px;
+  }
+
+  .canvas .section {
+    margin: 0 40px 22px; border-radius: 8px;
+    overflow: hidden; border: 1px solid #eef0f5;
+  }
+  .canvas .section-overview { margin-top: 22px; }
+  .canvas .section-header {
+    padding: 16px 22px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .canvas .section-header-title { display: flex; align-items: center; gap: 12px; }
+  .canvas .section-bar {
+    display: inline-block; width: 4px; height: 18px;
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .canvas .section-header .title { font-size: 18px; font-weight: 600; color: #1f2330; text-align: left; }
+  .canvas .section-header .count { font-size: 13px; color: #5a6172; text-align: left; }
+
+  .canvas .section-add { background: #f0fff4; }
+  .canvas .section-add .section-bar { background: #38a169; }
+  .canvas .section-opt { background: #ebf8ff; }
+  .canvas .section-opt .section-bar { background: #3484cf; }
+  .canvas .section-fix { background: #fffaf0; }
+  .canvas .section-fix .section-bar { background: #dd6b20; }
+  .canvas .section-overview { background: #ebf8ff; }
+  .canvas .section-overview .section-bar { background: #2b6cb0; }
+
+  .canvas .section-body { background: #ffffff; padding: 6px 22px; }
+  .canvas .section-overview .section-body { padding: 18px 28px 24px; }
+  .canvas .item { padding: 16px 0; border-bottom: 1px dashed #eef0f5; }
+  .canvas .item:last-child { border-bottom: none; }
+  .canvas .item-title { font-size: 15px; font-weight: 600; color: #1f2330; line-height: 1.7; text-align: left; }
+
+  .canvas .tag {
+    display: inline-block; padding: 1px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 500;
+    margin-right: 6px; vertical-align: 2px;
+  }
+  .canvas .tag-all    { background: #eef0ff; color: #5b6cff; }
+  .canvas .tag-job    { background: #e6f4ea; color: #2bb673; }
+  .canvas .tag-teach  { background: #fff4e0; color: #e89b2a; }
+  .canvas .entry { color: #9098ac; font-size: 13px; font-weight: 500; margin-right: 4px; }
+
+  .canvas .item-image {
+    display: block; margin: 12px auto 0; width: 90%; max-width: 560px;
+    background: #f0f1f5; border: 1px dashed #c8ccd9; border-radius: 6px;
+    height: 200px; line-height: 200px;
+    text-align: center; color: #9098ac; font-size: 13px;
+  }
+  .canvas .item-image + .item-image { margin-top: 12px; }
+  .canvas .item-image img { max-width: 100%; max-height: 100%; display: block; margin: 0 auto; }
+
+  .canvas .footer {
+    padding: 26px 40px 30px;
+    text-align: center;
+    border-top: 1px solid #eef0f5;
+  }
+  .canvas .footer .line { font-size: 13px; color: #5a6172; line-height: 1.9; text-align: center; }
+  .canvas .footer .line.product { color: #1f2330; font-weight: 600; font-size: 14px; text-align: center; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -457,7 +636,9 @@
       <div class="flex" style="gap:8px;margin-top:12px">
         <button class="btn btn-primary" onclick="applyFilter()">确定</button>
         <button class="btn" onclick="clearFilter()">清空筛选条件</button>
-        <button class="btn btn-warn" onclick="generateLongImages()">🎨 生成长图</button>
+        <button class="btn" onclick="generateLongImages()">🎨 生成长图</button>
+        <span id="generate-status" class="text-sm" style="margin-left:8px;color:var(--text-2)"></span>
+        <button class="btn btn-warn" id="btn-batch-publish" onclick="batchPublishSelected()" disabled>📢 发布通知 (<span id="batch-publish-count">0</span>)</button>
       </div>
     </div>
 
@@ -471,16 +652,36 @@
     </div>
 
     <!-- 列表 -->
-    <div class="card" style="padding:0;overflow:hidden">
-      <table>
-        <thead><tr>
-          <th>发版日期</th><th>通知日期</th><th>所属平台</th>
-          <th>涉及应用/平台</th><th>涉及端</th><th>发版类型</th>
-          <th>功能点描述</th><th>功能入口</th><th>面向用户</th>
-          <th>是否重点</th><th>截图</th><th>操作</th>
-        </tr></thead>
-        <tbody id="list-table-body"></tbody>
-      </table>
+    <div class="card list-card">
+      <div class="list-scroll">
+        <table class="list-table">
+          <colgroup>
+            <col class="c-check"/>
+            <col class="c-date"/><col class="c-notify"/><col class="c-source"/>
+            <col class="c-type"/><col class="c-feat"/><col class="c-app"/>
+            <col class="c-scope"/><col class="c-entry"/><col class="c-target"/>
+            <col class="c-hot"/><col class="c-images"/><col class="c-status"/>
+            <col class="c-actions"/>
+          </colgroup>
+          <thead><tr>
+            <th class="c-check"><input type="checkbox" id="list-check-all" onchange="toggleCheckAll(this.checked)" /></th>
+            <th class="c-date">发版日期</th>
+            <th class="c-notify">通知日期</th>
+            <th class="c-source">所属平台</th>
+            <th class="c-type">发版类型</th>
+            <th class="c-feat">功能点描述</th>
+            <th class="c-app">涉及应用/平台</th>
+            <th class="c-scope">涉及端</th>
+            <th class="c-entry">功能入口</th>
+            <th class="c-target">面向用户</th>
+            <th class="c-hot">是否重点</th>
+            <th class="c-images">截图</th>
+            <th class="c-status">状态</th>
+            <th class="actions">操作</th>
+          </tr></thead>
+          <tbody id="list-table-body"></tbody>
+        </table>
+      </div>
     </div>
     <div id="list-empty" class="sync-placeholder" style="margin-top:16px">
       <div class="title">暂无发版数据</div>
@@ -578,7 +779,9 @@
         </div>
         <div class="form-item">
           <label>通知日期</label>
-          <input type="date" id="edit-notify-date" />
+          <span class="readonly-field" id="edit-notify-date-display">未通知</span>
+          <!-- 隐藏 input, 仅用于 fillModal 兼容; 实际不再由用户编辑 -->
+          <input type="hidden" id="edit-notify-date" />
         </div>
       </div>
       <div class="form-row">
@@ -646,15 +849,15 @@
       <div class="form-row" style="margin-bottom:0">
         <div class="form-item form-item-stack" style="flex:1 0 100%">
           <label>截图</label>
-          <div class="paste-zone" id="paste-zone" contenteditable="true">点击此处后按 Ctrl+V 粘贴图片 · 或拖拽上传</div>
+          <div class="paste-zone" id="paste-zone">点击此处后按 Ctrl+V 粘贴图片 · 或拖拽图片到此处 · 或 <a id="file-trigger">点击选择文件</a> · 也可 <a id="url-trigger">粘贴图片URL</a></div>
+          <input type="file" id="file-input" accept="image/*" multiple style="display:none">
           <div class="thumb-grid" id="edit-thumbs"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeEditModal()">取消</button>
-      <button class="btn" onclick="saveItem(false)">保存</button>
-      <button class="btn btn-save-extra btn-primary" onclick="saveItem(true)">保存并发布</button>
+      <button class="btn btn-primary" onclick="saveItem()">保存</button>
     </div>
   </div>
 </div>
@@ -686,6 +889,13 @@
       <button class="btn btn-success" onclick="downloadAllImages()">打包下载全部 3 张</button>
     </div>
   </div>
+</div>
+
+<!-- 长图渲染舞台（离屏，用于 html2canvas 导出） -->
+<div id="long-image-stage" aria-hidden="true">
+  <div id="stage-all" class="canvas" data-version="all"></div>
+  <div id="stage-homework" class="canvas" data-version="homework"></div>
+  <div id="stage-teaching" class="canvas" data-version="teaching"></div>
 </div>
 
 <!-- 详情预览 Modal -->
@@ -722,10 +932,10 @@
 
   let currentModule = 'base';
   let items = [];
-  let generatedImages = { all: null, homework: null, teaching: null };
+  const longImageVersions = { all: '全部', homework: '作业', teaching: '教辅' };
+  let renderedLongImages = { all: null, homework: null, teaching: null };
   let currentPreviewVersion = 'all';
   let editingId = null;
-  let lastGeneratedDate = '';
   let moduleInfoCache = { base: null, resource: null };
   function getModuleInfo(mod) {
     if (moduleInfoCache[mod]) return Promise.resolve(moduleInfoCache[mod]);
@@ -1165,20 +1375,64 @@
   }
 
   function renderListRow(item) {
+    const notified = !!item.notifyTime;
+    const statusHtml = notified
+      ? '<span class="status-tag notified">已通知</span>'
+      : '<span class="status-tag unnotified">未通知</span>';
+    const notifyCell = notified
+      ? esc(item.notifyTime)
+      : '<span class="text-muted">未通知</span>';
     return '<tr>' +
-      '<td>' + esc(item.releaseDate || '—') + '</td>' +
-      '<td>' + (item.notifyTime ? item.notifyTime.slice(0, 10) : '<span class="text-muted">未通知</span>') + '</td>' +
-      '<td><span class="tag ' + (item.dataSource === '底座' ? 'ds-base' : (item.dataSource === '资源应用' ? 'ds-resource' : 'tag-info')) + '">' + esc(item.dataSource || '—') + '</span></td>' +
-      '<td>' + esc(item.appPlatform) + '</td>' +
-      '<td>' + esc(item.scope) + '</td>' +
-      '<td><span class="type-pill ' + typeClass(item.releaseType) + '">' + esc(item.releaseType) + '</span></td>' +
-      '<td title="' + esc(item.featurePoint) + '">' + esc(item.featurePoint.length > 30 ? item.featurePoint.slice(0, 30) + '…' : item.featurePoint) + '</td>' +
-      '<td>' + esc(item.featureEntry || '—') + '</td>' +
-      '<td>' + esc(item.targetUser) + '</td>' +
-      '<td>' + (item.isHighlight === '是' ? '<span class="text-warn">✓ 重点</span>' : '—') + '</td>' +
-      '<td>' + (item.images || 0) + ' 张</td>' +
+      '<td class="c-check"><input type="checkbox" class="row-check" data-id="' + item.id + '" onchange="updateBatchCount()" /></td>' +
+      '<td class="c-date">' + esc(item.releaseDate || '—') + '</td>' +
+      '<td class="c-notify' + (notified ? '' : ' unnotified') + '">' + notifyCell + '</td>' +
+      '<td class="c-source"><span class="tag ' + (item.dataSource === '底座' ? 'ds-base' : (item.dataSource === '资源应用' ? 'ds-resource' : 'tag-info')) + '">' + esc(item.dataSource || '—') + '</span></td>' +
+      '<td class="c-type"><span class="type-pill ' + typeClass(item.releaseType) + '">' + esc(item.releaseType) + '</span></td>' +
+      '<td class="c-feat feat-point" title="' + esc(item.featurePoint) + '">' + esc(item.featurePoint) + '</td>' +
+      '<td class="c-app">' + esc(item.appPlatform) + '</td>' +
+      '<td class="c-scope">' + esc(item.scope) + '</td>' +
+      '<td class="c-entry">' + esc(item.featureEntry || '—') + '</td>' +
+      '<td class="c-target">' + esc(item.targetUser) + '</td>' +
+      '<td class="c-hot">' + (item.isHighlight === '是' ? '<span class="text-warn">✓ 重点</span>' : '—') + '</td>' +
+      '<td class="c-images">' + (item.images || 0) + ' 张</td>' +
+      '<td class="c-status">' + statusHtml + '</td>' +
       '<td class="actions"><span class="link" onclick="openEditModal(' + item.id + ')">编辑</span><span class="link danger" onclick="deleteItem(' + item.id + ')">删除</span></td>' +
     '</tr>';
+  }
+
+  // 全选/反选 + 计数
+  function toggleCheckAll(checked) {
+    document.querySelectorAll('.list-table .row-check').forEach(cb => { cb.checked = checked; });
+    updateBatchCount();
+  }
+  function updateBatchCount() {
+    const cnt = document.querySelectorAll('.list-table .row-check:checked').length;
+    document.getElementById('batch-publish-count').textContent = cnt;
+    document.getElementById('btn-batch-publish').disabled = (cnt === 0);
+    // 同步表头全选框状态
+    const all = document.querySelectorAll('.list-table .row-check').length;
+    const allBox = document.getElementById('list-check-all');
+    if (allBox) allBox.checked = (all > 0 && cnt === all);
+  }
+  // 批量发布通知
+  async function batchPublishSelected() {
+    const ids = Array.from(document.querySelectorAll('.list-table .row-check:checked')).map(cb => Number(cb.dataset.id));
+    if (!ids.length) return;
+    if (!confirm(`确定将选中的 ${ids.length} 条发版记录发布至公开页吗？\n(已通知的会跳过)`)) return;
+    try {
+      const data = await apiSend('POST', '/api/items/batch-publish', { ids });
+      const pubN = (data.published || []).length;
+      const skipN = (data.skipped || []).length;
+      alert(`已发布 ${pubN} 条，跳过 ${skipN} 条已通知。`);
+      // 清空选择 + 刷新
+      const allBox = document.getElementById('list-check-all');
+      if (allBox) allBox.checked = false;
+      document.querySelectorAll('.list-table .row-check').forEach(cb => { cb.checked = false; });
+      updateBatchCount();
+      await loadItems();
+    } catch (e) {
+      alert('发布失败：' + e.message);
+    }
   }
 
   // ---- 统计 ----
@@ -1261,12 +1515,39 @@
   }
 
   // ---- 弹窗表单 ----
+  // 通知日期格式: type=date 控件取值为 yyyy-MM-dd，前端转换为 yyyy/MM/dd（纯日期，不含时分秒）传给后端与 DB
+  function parseNotifyDateInput(value) {
+    if (!value) return '';
+    const v = String(value).trim();
+    // 兼容 yyyy-MM-dd / yyyy.MM.dd / yyyy/MM/dd（type=date 默认 yyyy-MM-dd）
+    let m = v.match(/^(\d{4})[-./](\d{2})[-./](\d{2})$/);
+    if (m) {
+      const [, y, mo, d] = m;
+      const dt = new Date(Number(y), Number(mo) - 1, Number(d));
+      if (dt.getFullYear() === Number(y) && dt.getMonth() === Number(mo) - 1 && dt.getDate() === Number(d)) {
+        return `${y}/${mo}/${d}`;  // 保存为纯日期 yyyy/MM/dd
+      }
+    }
+    // 兼容 yyyy-MM / yyyy.MM（按当月 1 日兜底）
+    m = v.match(/^(\d{4})[-./](\d{2})$/);
+    if (m) {
+      const [, y, mo] = m;
+      return `${y}/${mo}/01`;
+    }
+    return '';  // 解析失败返空，由后端报错
+  }
+  // 后端 notifyTime 是 yyyy/MM/dd 纯日期（兼容历史 yyyy-MM-ddTHH:MM），统一转成 yyyy-MM-dd 给 type=date 控件
+  function formatNotifyDateForInput(notifyTime) {
+    if (!notifyTime) return '';
+    const s = String(notifyTime).slice(0, 10);
+    const m = s.match(/^(\d{4})[-./](\d{2})[-./](\d{2})$/);
+    if (!m) return '';
+    return `${m[1]}-${m[2]}-${m[3]}`;  // type=date 控件要求 yyyy-MM-dd
+  }
+
   function collectForm() {
-    // 通知日期是 date 类型（YYYY-MM-DD），后端期望 ISO datetime；空值原样传
-    const notifyDateVal = document.getElementById('edit-notify-date').value;
     return {
       releaseDate: document.getElementById('edit-release-date').value,
-      notifyTime: notifyDateVal,  // 后端字段名沿用 notifyTime，值是 YYYY-MM-DD
       appPlatform: document.getElementById('edit-app-platform').value.trim(),
       module: document.querySelector('input[name="edit-data-source"]:checked').value,
       scope: Array.from(document.querySelectorAll('input[name="edit-scope"]:checked')).map(el => el.value).join('、'),
@@ -1302,8 +1583,15 @@
 
   function fillModal(item) {
     document.getElementById('edit-release-date').value = item ? item.releaseDate : todayStr();
-    // notifyTime 可能是 "YYYY-MM-DD" 或 "YYYY-MM-DDTHH:MM"，取前 10 字符给 date 控件
-    document.getElementById('edit-notify-date').value = item ? ((item.notifyTime || '').slice(0, 10)) : '';
+    // 通知日期：只读显示（由 publish 流程自动记录）
+    const notifyDisplay = document.getElementById('edit-notify-date-display');
+    if (item && item.notifyTime) {
+      notifyDisplay.textContent = item.notifyTime;  // 后端已是 yyyy/MM/dd
+      notifyDisplay.classList.add('notified');
+    } else {
+      notifyDisplay.textContent = '未通知';
+      notifyDisplay.classList.remove('notified');
+    }
     _setRadio('edit-data-source', item ? (item.module || 'base') : 'base');
     document.getElementById('edit-app-platform').value = item ? item.appPlatform : '';
     _setChecked('edit-scope', _splitMulti(item ? item.scope : ''));
@@ -1314,7 +1602,14 @@
     _setRadio('edit-is-highlight', item ? (item.isHighlight || '否') : '否');
     document.getElementById('edit-special-notes').value = item ? (item.specialNotes || '') : '';
     document.getElementById('edit-notes').value = item ? (item.notes || '') : '';
-    document.getElementById('edit-thumbs').innerHTML = item ? Array(item.images || 0).fill(0).map(() => '<div class="thumb"><span class="rm" onclick="removeThumb(this)">×</span></div>').join('') : '';
+    // 截图区：用新的 _editImages 状态
+    _editImages = (item && item.imageList) ? item.imageList.map(im => ({
+      localUrl: im.url,
+      serverUrl: im.url,
+      serverPath: im.path,
+      uploaded: true,
+    })) : [];
+    renderEditThumbs();
   }
   function openAddModal() {
     editingId = null;
@@ -1322,9 +1617,11 @@
     document.getElementById('edit-modal-title').textContent = '新增发版详情';
     document.getElementById('edit-modal').classList.add('show', 'mode-add');
   }
-  function openEditModal(id) {
-    const item = items.find(i => i.id === id);
-    if (!item) return alert('记录不存在');
+  async function openEditModal(id) {
+    let item = items.find(i => i.id === id);
+    if (!item) { alert('记录不存在'); return; }
+    // 从后端拉取最新（确保拿到 imageList）
+    try { item = await apiGet('/api/items/' + id); } catch (e) { /* fallback 到本地缓存 */ }
     editingId = id;
     fillModal(item);
     document.getElementById('edit-modal-title').textContent = item.notifyTime ? '编辑发版详情' : '编辑草稿';
@@ -1337,82 +1634,515 @@
     }
   }
 
-  async function saveItem(publish) {
+  async function saveItem() {
     const data = collectForm();
     if (!data.featurePoint || !data.appPlatform) { alert('请完整填写：涉及应用/平台、功能点描述'); return; }
-    // 通知日期是 date 类型，值已经是 YYYY-MM-DD，无需转换
-    data.publish = publish;
+    data.publish = false;  // 通知日期由 publish 流程单独处理
+    // 附上图片清单（仅已上传的）
+    data.imageList = _editImages
+      .filter(im => im.uploaded && im.serverPath)
+      .map((im, idx) => ({ path: im.serverPath, url: im.serverUrl, sort_order: idx }));
     try {
-      if (publish && !data.notifyTime) {
-        // 发布时若未填通知日期，默认用发版日期
-        data.notifyTime = data.releaseDate;
-      }
       if (editingId) {
         await apiSend('PUT', '/api/items/' + editingId, data);
-        if (publish) await apiSend('POST', '/api/items/' + editingId + '/publish', { notifyTime: data.notifyTime });
       } else {
-        const created = await apiSend('POST', '/api/items', data);
-        if (publish) await apiSend('POST', '/api/items/' + created.id + '/publish', { notifyTime: data.notifyTime });
+        await apiSend('POST', '/api/items', data);
       }
       await loadItems();
       closeEditModal();
-      if (publish) switchEditTab('published'); else switchEditTab('draft');
     } catch (e) {
       alert('保存失败：' + e.message);
     }
   }
   function removeThumb(el) { el.parentElement.remove(); }
 
+  // ============ 截图上传（粘/拖/选/URL）============
+  // _editImages: 弹窗内图片状态
+  //   { localUrl, serverUrl, serverPath, uploaded }
+  let _editImages = [];
+
+  function renderEditThumbs() {
+    const html = _editImages.map((img, i) => `
+      <div class="thumb" data-i="${i}">
+        <img src="${esc(img.serverUrl || img.localUrl)}" alt="截图${i + 1}" onclick="openThumbModalFromEdit(${i})">
+        <span class="idx">${i + 1}</span>
+        <span class="rm" onclick="removeEditThumb(${i})" title="删除">×</span>
+      </div>
+    `).join('');
+    document.getElementById('edit-thumbs').innerHTML = html;
+  }
+
+  async function uploadImageFile(file) {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      alert('仅支持图片文件');
+      return;
+    }
+    const localUrl = URL.createObjectURL(file);
+    _editImages.push({ localUrl, serverUrl: null, serverPath: null, uploaded: false });
+    renderEditThumbs();
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const resp = await fetch('/api/images/upload', { method: 'POST', body: fd });
+      const data = await resp.json();
+      // 后端 ok() 返回 code === 'OK'，同时兼容 code === 0
+      if (data && (data.code === 'OK' || data.code === 0)) {
+        const last = _editImages[_editImages.length - 1];
+        last.serverUrl = data.data.url;
+        last.serverPath = data.data.path;
+        last.uploaded = true;
+        renderEditThumbs();
+      } else {
+        alert('上传失败：' + ((data && data.message) || ('HTTP ' + resp.status)));
+      }
+    } catch (e) {
+      console.error('上传失败', e);
+      alert('上传失败：' + e.message);
+    }
+  }
+
+  function removeEditThumb(i) {
+    const img = _editImages[i];
+    if (img && img.localUrl && img.localUrl.startsWith('blob:')) {
+      try { URL.revokeObjectURL(img.localUrl); } catch (e) {}
+    }
+    _editImages.splice(i, 1);
+    renderEditThumbs();
+  }
+
+  function addImageByUrl(url) {
+    if (!url) return;
+    _editImages.push({ localUrl: url, serverUrl: url, serverPath: url, uploaded: true });
+    renderEditThumbs();
+  }
+
+  function initUpload() {
+    const z = document.getElementById('paste-zone');
+    if (!z) return;
+
+    // 1) 粘贴：监听 paste-zone 自身（焦点在该元素时生效）
+    z.addEventListener('paste', e => {
+      const cd = e.clipboardData || window.clipboardData;
+      if (!cd) return;
+      let handled = false;
+      for (const it of cd.items) {
+        if (it.kind === 'file') {
+          const f = it.getAsFile();
+          if (f && f.type.startsWith('image/')) { uploadImageFile(f); handled = true; }
+        }
+      }
+      if (handled) e.preventDefault();
+    });
+
+    // 1b) 全局粘贴：弹窗打开时，弹窗内任意位置 Ctrl+V 都能粘图
+    document.addEventListener('paste', e => {
+      const modal = document.getElementById('edit-modal');
+      if (!modal || !modal.classList.contains('show')) return;
+      // 焦点在文本输入框/textarea 时，让原生粘贴继续；非输入区才接管
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' && e.target.type !== 'file') return;
+      if (tag === 'TEXTAREA') return;
+      const cd = e.clipboardData || window.clipboardData;
+      if (!cd) return;
+      let handled = false;
+      for (const it of cd.items) {
+        if (it.kind === 'file') {
+          const f = it.getAsFile();
+          if (f && f.type.startsWith('image/')) { uploadImageFile(f); handled = true; }
+        }
+      }
+      if (handled) e.preventDefault();
+    });
+
+    // 2) 拖拽
+    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      z.classList.add('active');
+    }));
+    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      z.classList.remove('active');
+    }));
+    z.addEventListener('drop', e => {
+      const files = e.dataTransfer && e.dataTransfer.files;
+      if (!files) return;
+      for (const f of files) {
+        if (f.type && f.type.startsWith('image/')) uploadImageFile(f);
+      }
+    });
+
+    // 3) 文件选择
+    const ft = document.getElementById('file-trigger');
+    const fi = document.getElementById('file-input');
+    if (ft && fi) {
+      ft.onclick = e => { e.preventDefault(); fi.click(); };
+      fi.onchange = e => {
+        for (const f of e.target.files) uploadImageFile(f);
+        e.target.value = '';
+      };
+    }
+
+    // 4) URL 粘贴
+    const ut = document.getElementById('url-trigger');
+    if (ut) {
+      ut.onclick = e => {
+        e.preventDefault();
+        const url = prompt('请输入图片 URL（需可匿名访问）');
+        if (url && /^https?:\/\//i.test(url)) addImageByUrl(url);
+        else if (url) alert('URL 必须以 http:// 或 https:// 开头');
+      };
+    }
+
+    // 5) 缩略图浮层键盘事件
+    document.addEventListener('keydown', e => {
+      const m = document.getElementById('thumb-modal');
+      if (!m || !m.classList.contains('show')) return;
+      if (e.key === 'Escape') closeThumbModal();
+      if (e.key === 'ArrowLeft') navThumbModal(-1);
+      if (e.key === 'ArrowRight') navThumbModal(1);
+    });
+
+    // 6) 浮层点击空白关闭
+    const tm = document.getElementById('thumb-modal');
+    if (tm) tm.addEventListener('click', e => {
+      if (e.target.id === 'thumb-modal') closeThumbModal();
+    });
+    const tc = document.getElementById('thumb-close');
+    if (tc) tc.onclick = closeThumbModal;
+    const tp = document.getElementById('thumb-prev');
+    const tn = document.getElementById('thumb-next');
+    if (tp) tp.onclick = () => navThumbModal(-1);
+    if (tn) tn.onclick = () => navThumbModal(1);
+  }
+
+  // ============ 缩略图查看浮层 ============
+  let _thumbList = [];
+  let _thumbIdx = 0;
+
+  function openThumbModalFromEdit(i) {
+    _thumbList = _editImages.map(im => im.serverUrl || im.localUrl).filter(Boolean);
+    if (!_thumbList.length) return;
+    _thumbIdx = i;
+    showThumbModal();
+  }
+
+  function openThumbModalFromList(images, i) {
+    _thumbList = (images || []).slice();
+    if (!_thumbList.length) return;
+    _thumbIdx = i || 0;
+    showThumbModal();
+  }
+
+  function showThumbModal() {
+    const m = document.getElementById('thumb-modal');
+    document.getElementById('thumb-img').src = _thumbList[_thumbIdx];
+    document.getElementById('thumb-counter').textContent = (_thumbIdx + 1) + ' / ' + _thumbList.length;
+    document.getElementById('thumb-prev').classList.toggle('disabled', _thumbIdx === 0);
+    document.getElementById('thumb-next').classList.toggle('disabled', _thumbIdx === _thumbList.length - 1);
+    m.classList.add('show');
+  }
+
+  function navThumbModal(d) {
+    const n = _thumbIdx + d;
+    if (n < 0 || n >= _thumbList.length) return;
+    _thumbIdx = n;
+    showThumbModal();
+  }
+
+  function closeThumbModal() {
+    const m = document.getElementById('thumb-modal');
+    if (!m) return;
+    m.classList.remove('show');
+    document.getElementById('thumb-img').src = '';
+  }
+
+  // ---- 长图模板渲染（来自 long_image_demo.html） ----
+  function escLongImage(s) {
+    if (s == null) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  const LI_TAG_CLASS = { '全部': 'all', '作业': 'job', '教辅': 'teach' };
+  function tagClassLongImage(name) { return LI_TAG_CLASS[name] || escLongImage(name); }
+
+  function renderLongImage(d) {
+    const header = `
+      <div class="header">
+        <h1>${escLongImage(d.header.title)}</h1>
+        <div class="subtitle">${d.header.subtitleHtml}</div>
+      </div>`;
+
+    const overview = `
+      <div class="section section-overview">
+        <div class="section-header">
+          <div class="section-header-title">
+            <span class="section-bar"></span>
+            <span class="title">发版概览</span>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="stats">
+            <div class="stat-card total"><div class="num">${d.overview.total}</div><div class="label">功能点总数</div></div>
+            <div class="stat-card add"><div class="num">${d.overview.add}</div><div class="label">新增功能</div></div>
+            <div class="stat-card opt"><div class="num">${d.overview.opt}</div><div class="label">优化功能</div></div>
+            <div class="stat-card fix"><div class="num">${d.overview.fix}</div><div class="label">修复功能</div></div>
+          </div>
+          ${d.overview.keyItems && d.overview.keyItems.length ? `
+          <div class="keylist">
+            <div class="keylist-title">重点功能一览</div>
+            <ul>
+              ${d.overview.keyItems.map(it => `
+                <li>${escLongImage(it.text)}${it.ref ? ` <span class="ref-tag">${escLongImage(it.ref)}</span>` : ''}</li>
+              `).join('')}
+            </ul>
+          </div>` : ''}
+        </div>
+      </div>`;
+
+    function renderItem(it) {
+      const tagsHtml = it.tags.map(t => `<span class="tag tag-${tagClassLongImage(t)}">${escLongImage(t)}</span>`).join('');
+      const imagesHtml = (it.images || []).map((src, i) => {
+        if (src) return `<div class="item-image"><img src="${escLongImage(src)}" alt="配图 ${i+1}"></div>`;
+        return '';
+      }).join('');
+      return `
+        <div class="item">
+          <div class="item-title">${tagsHtml}<span class="entry">${escLongImage(it.entry)}</span>${escLongImage(it.desc)}</div>
+          ${imagesHtml}
+        </div>`;
+    }
+
+    function renderSection(cls, title, items) {
+      if (!items || !items.length) return '';
+      return `
+        <div class="section">
+          <div class="section-header ${cls}">
+            <div class="section-header-title">
+              <span class="section-bar"></span>
+              <span class="title">${title}</span>
+            </div>
+            <span class="count">${items.length} 项</span>
+          </div>
+          <div class="section-body">${items.map(renderItem).join('')}</div>
+        </div>`;
+    }
+
+    const addedSection = renderSection('section-add', '新增功能', d.added);
+    const optimizedSection = renderSection('section-opt', '优化功能', d.optimized);
+    const fixedSection = renderSection('section-fix', '修复功能', d.fixed);
+
+    const footer = `
+      <div class="footer">
+        <div class="line product">${escLongImage(d.footer.product)}</div>
+        <div class="line">${escLongImage(d.footer.date)}</div>
+      </div>`;
+
+    return header + overview + addedSection + optimizedSection + fixedSection + footer;
+  }
+
+  function formatDateCN(dateStr) {
+    const m = String(dateStr).match(/(\d{4})[-\/](\d{2})[-\/](\d{2})/);
+    return m ? `${m[1]}年${m[2]}月${m[3]}日` : dateStr;
+  }
+
+  function mode(arr) {
+    if (!arr || !arr.length) return '';
+    const map = {};
+    let max = 0, res = arr[0];
+    arr.forEach(v => { map[v] = (map[v] || 0) + 1; if (map[v] > max) { max = map[v]; res = v; } });
+    return res;
+  }
+
+  function buildLongImageData(items, version) {
+    const filtered = items.filter(it => {
+      if (version === 'all') return true;
+      const targets = _splitMulti(it.targetUser || '全部');
+      if (version === 'homework') return targets.includes('作业') || targets.includes('全部');
+      if (version === 'teaching') return targets.includes('教辅') || targets.includes('全部');
+      return false;
+    });
+
+    const dates = [...new Set(filtered.map(i => i.releaseDate).filter(Boolean))].sort().reverse();
+    const latestDate = dates[0] || todayStr();
+    const dateTitle = formatDateCN(latestDate);
+    const productLines = filtered.map(i => i.productLine).filter(Boolean);
+    const product = productLines.length ? mode(productLines) : '数字业务平台';
+
+    const added = [], optimized = [], fixed = [];
+    filtered.forEach(it => {
+      const entry = it.featureEntry ? `[${it.featureEntry}]` : `[${it.appPlatform}]`;
+      const tags = _splitMulti(it.targetUser || '全部');
+      const item = {
+        tags,
+        entry,
+        desc: it.featurePoint,
+        images: (it.imageList || []).map(im => im.url).filter(Boolean)
+      };
+      if (it.releaseType === '新增') added.push(item);
+      else if (it.releaseType === '优化') optimized.push(item);
+      else fixed.push(item);
+    });
+
+    const keyItems = filtered
+      .filter(it => it.isHighlight === '是')
+      .map(it => ({
+        text: it.featurePoint,
+        ref: it.productLine || (_splitMulti(it.targetUser || '')[0] || '闻道作业')
+      }));
+
+    let subtitleHtml = '给内部同事、运营：<br>';
+    if (dates.length <= 1) {
+      subtitleHtml += `数字业务平台已迭代至 ${dateTitle} 版本，请知悉！本次发版功能点如下：`;
+    } else {
+      subtitleHtml += `本次整理的功能点涉及多个发版日期（${dates.slice(0, 3).join('、')}${dates.length > 3 ? ' 等' : ''}），以 ${dateTitle} 为统计基准，请知悉！`;
+    }
+
+    return {
+      header: { title: `${dateTitle} 发版功能点通知`, subtitleHtml },
+      overview: {
+        total: filtered.length,
+        add: added.length,
+        opt: optimized.length,
+        fix: fixed.length,
+        keyItems
+      },
+      added,
+      optimized,
+      fixed,
+      footer: { product, date: dateTitle }
+    };
+  }
+
+  function getSelectedItems() {
+    const ids = Array.from(document.querySelectorAll('.list-table .row-check:checked'))
+      .map(cb => Number(cb.dataset.id));
+    return ids.map(id => items.find(i => i.id === id)).filter(Boolean);
+  }
+
+  function waitForImages(container) {
+    const imgs = Array.from(container.querySelectorAll('img'));
+    return Promise.all(imgs.map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    }));
+  }
+
   // ---- 分版本生图 ----
   async function generateLongImages() {
     const status = document.getElementById('generate-status');
-    status.textContent = '正在生成 3 张分版本长图，请稍候...';
+    if (!status) return;
+
+    const selected = getSelectedItems();
+    if (!selected.length) {
+      status.textContent = '请先勾选至少一条发版记录';
+      return;
+    }
+
+    status.textContent = '正在生成长图预览，请稍候...';
     try {
-      const data = await apiSend('POST', '/api/images/generate', {});
-      lastGeneratedDate = (data.images[0] && data.images[0].url.match(/date=(\d+)/)[1]) || '';
-      // 预拉取 3 张 base64 供前端预览
-      generatedImages = {};
-      for (const img of data.images) {
-        try {
-          const prev = await apiGet('/api/images/' + img.version + '/preview?date=' + lastGeneratedDate);
-          generatedImages[img.version] = prev.dataUrl;
-        } catch (e) {
-          generatedImages[img.version] = null;
-        }
-      }
-      status.textContent = '✓ 已生成 3 张分版本长图，点击「预览 / 下载」查看。';
-      renderImagePreview();
+      await renderLongImagePreviews(selected);
+      status.textContent = `✓ 已生成 ${Object.values(renderedLongImages).filter(Boolean).length} 个版本预览`;
       openImagePreviewModal();
     } catch (e) {
+      console.error(e);
       status.textContent = '✗ 生成失败：' + e.message;
     }
   }
+
+  async function renderLongImagePreviews(selectedItems) {
+    renderedLongImages = { all: null, homework: null, teaching: null };
+
+    Object.keys(longImageVersions).forEach(version => {
+      const data = buildLongImageData(selectedItems, version);
+      const html = renderLongImage(data);
+      const stage = document.getElementById('stage-' + version);
+      stage.innerHTML = html;
+      renderedLongImages[version] = stage;
+    });
+
+    renderPreviewTabs();
+    renderImagePreview();
+  }
+
+  function renderPreviewTabs() {
+    const container = document.getElementById('preview-version-tabs');
+    container.innerHTML = Object.keys(longImageVersions).map(v => {
+      const count = renderedLongImages[v] ? renderedLongImages[v].querySelectorAll('.item').length : 0;
+      return `<div class="version-tab ${v === currentPreviewVersion ? 'active' : ''}" onclick="switchPreviewVersion('${v}')">${longImageVersions[v]} (${count})</div>`;
+    }).join('');
+  }
+
   function openImagePreviewModal() {
     renderImagePreview();
     document.getElementById('image-preview-modal').classList.add('show');
   }
-  function closeImagePreviewModal(e) { if (!e || e.target.id === 'image-preview-modal') document.getElementById('image-preview-modal').classList.remove('show'); }
+
+  function closeImagePreviewModal(e) {
+    if (!e || e.target.id === 'image-preview-modal') {
+      document.getElementById('image-preview-modal').classList.remove('show');
+    }
+  }
+
   function switchPreviewVersion(v) {
     currentPreviewVersion = v;
-    document.querySelectorAll('#preview-version-tabs .version-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('#preview-version-tabs .version-tab[onclick="switchPreviewVersion(\'' + v + '\')"]').classList.add('active');
+    renderPreviewTabs();
     renderImagePreview();
   }
+
   function renderImagePreview() {
-    const img = generatedImages[currentPreviewVersion];
-    const el = document.getElementById('long-image-preview');
-    if (img) el.innerHTML = '<img class="img" src="' + img + '" alt="长图预览" />';
-    else el.innerHTML = '<div class="placeholder"><div class="big">🖼</div><div>尚未生成长图</div><div class="empty-tip">请先在「录入 / 编辑」页点击「一键生成长图」</div></div>';
+    const preview = document.getElementById('long-image-preview');
+    const stage = renderedLongImages[currentPreviewVersion];
+    if (!stage) {
+      preview.innerHTML = '<div class="placeholder"><div>尚未生成长图</div></div>';
+      return;
+    }
+    preview.innerHTML = '';
+    const clone = stage.cloneNode(true);
+    clone.id = '';
+    clone.removeAttribute('data-version');
+    clone.style.position = 'relative';
+    clone.style.left = 'auto';
+    preview.appendChild(clone);
   }
-  function downloadCurrentImage() {
-    if (!generatedImages[currentPreviewVersion]) return alert('尚未生成长图');
-    const a = document.createElement('a'); a.href = generatedImages[currentPreviewVersion]; a.download = '闻道作业-' + currentPreviewVersion + '-' + todayStr() + '.png'; a.click();
+
+  async function downloadCurrentImage() {
+    const stage = renderedLongImages[currentPreviewVersion];
+    if (!stage) return alert('尚未生成长图');
+    if (typeof html2canvas === 'undefined') {
+      return alert('下载组件未加载，请检查网络或刷新页面后重试');
+    }
+    await waitForImages(stage);
+
+    const canvas = await html2canvas(stage, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#f7fafc',
+      width: 750,
+      windowWidth: 750,
+      logging: false
+    });
+
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `闻道作业-${currentPreviewVersion}-${todayStr()}.png`;
+    a.click();
   }
+
   async function downloadAllImages() {
-    if (!generatedImages.all) return alert('尚未生成长图');
     for (const v of ['all', 'homework', 'teaching']) {
-      if (generatedImages[v]) {
-        const a = document.createElement('a'); a.href = generatedImages[v]; a.download = '闻道作业-' + v + '-' + todayStr() + '.png'; a.click();
+      if (renderedLongImages[v]) {
+        currentPreviewVersion = v;
+        await downloadCurrentImage();
+        await new Promise(r => setTimeout(r, 300));
       }
     }
   }
@@ -1442,6 +2172,20 @@
   rebuildAllMultiSelectOptions();
   initMultiSelect();
   loadItems();
+</script>
+
+<!-- 缩略图查看浮层（操作列外部独立组件） -->
+<div class="thumb-modal" id="thumb-modal">
+  <span class="close-x" id="thumb-close">×</span>
+  <span class="nav prev" id="thumb-prev">‹</span>
+  <img id="thumb-img" src="" alt="">
+  <span class="nav next" id="thumb-next">›</span>
+  <div class="counter" id="thumb-counter">1 / 1</div>
+</div>
+
+<!-- 必须在 thumb-modal 渲染之后调用,否则 getElementById 拿不到元素、事件绑不上 -->
+<script>
+  initUpload();
 </script>
 
 </body>

@@ -37,15 +37,22 @@ def validate_date(value, field):
     if not value:
         return None
     import re
-    if not re.match(r"^\d{4}-\d{2}-\d{2}$", value):
-        return f"{field} 日期格式应为 YYYY-MM-DD"
+    # 兼容 yyyy-MM-dd / yyyy.MM.dd / yyyy.MM / yyyy-MM
+    if not re.match(r"^\d{4}[-./]\d{1,2}([-./]\d{1,2})?$", str(value).strip()):
+        return f"{field} 日期格式应为 yyyy.MM.dd"
     return None
 
 
 def validate_datetime(value, field):
+    """兼容纯日期 (yyyy/MM/dd) 与带时间 (yyyy/MM/dd HH:MM / yyyy-MM-ddTHH:MM)"""
     if not value:
         return None
     import re
-    if not re.match(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}", value):
-        return f"{field} 时间格式应为 YYYY-MM-DD HH:MM"
-    return None
+    v = str(value).strip()
+    # 纯日期 yyyy.MM.dd / yyyy-MM-dd / yyyy/MM/dd（可选只到月）
+    if re.match(r"^\d{4}[-./]\d{1,2}([-./]\d{1,2})?$", v):
+        return None
+    # 日期 + 时间 yyyy.MM.dd HH:MM / yyyy-MM-ddTHH:MM
+    if re.match(r"^\d{4}[-./]\d{1,2}[-./]\d{1,2}[T ]\d{1,2}:\d{2}", v):
+        return None
+    return f"{field} 时间格式应为 yyyy/MM/dd 或 yyyy/MM/dd HH:MM"

@@ -142,9 +142,20 @@ def init_db():
         last_imported_count INTEGER DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS item_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        url TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+        FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_items_module ON items(module);
     CREATE INDEX IF NOT EXISTS idx_items_release_date ON items(release_date);
     CREATE INDEX IF NOT EXISTS idx_items_status ON items(status);
+    CREATE INDEX IF NOT EXISTS idx_item_images_item ON item_images(item_id);
     """
     with _lock, get_conn() as conn:
         conn.executescript(schema)
