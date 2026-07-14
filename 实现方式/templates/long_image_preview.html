@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>发版功能点通知长图 · 模板预览</title>
+<style>
+  /* ===== 基础 ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    background: #f7fafc;
+    padding: 24px 0;
+    color: #1f2330;
+  }
+  .canvas {
+    width: 750px;
+    margin: 0 auto;
+    background: #f7fafc;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  /* ===== 顶部标题区 ===== */
+  .header {
+    padding: 36px 40px 28px;
+    background: #2b5797;
+    color: #ffffff;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.8;
+  }
+
+  /* ===== 发版概览区 ===== */
+  .stats { display: flex; gap: 14px; }
+  .stat-card {
+    flex: 1;
+    padding: 22px 12px;
+    border-radius: 8px;
+    color: #ffffff;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 30px; font-weight: 700; line-height: 1.2; }
+  .stat-card .label { font-size: 13px; margin-top: 4px; opacity: 0.95; }
+  .stat-card.total { background: #5b6cff; }
+  .stat-card.add   { background: #38a169; }
+  .stat-card.opt   { background: #3484cf; }
+  .stat-card.fix   { background: #dd6b20; }
+
+  .keylist { margin-top: 22px; }
+  .keylist-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2330;
+    margin-bottom: 8px;
+  }
+  .keylist ul { list-style: none; padding-left: 0; }
+  .keylist li {
+    font-size: 13px;
+    color: #5a6172;
+    line-height: 1.9;
+    padding-left: 18px;
+    position: relative;
+  }
+  .keylist li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: #2b6cb0;
+  }
+  .keylist li .ref-tag {
+    color: #3484cf;
+    background: #ebf8ff;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  /* ===== 功能区通用 ===== */
+  .section {
+    margin: 0 40px 22px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #eef0f5;
+  }
+  .section-overview { margin-top: 22px; }
+  .section-header {
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-bar {
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .section-header .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2330;
+  }
+  .section-header .count {
+    font-size: 13px;
+    color: #5a6172;
+  }
+
+  .section-add { background: #f0fff4; }
+  .section-add .section-bar { background: #38a169; }
+
+  .section-opt { background: #ebf8ff; }
+  .section-opt .section-bar { background: #3484cf; }
+
+  .section-fix { background: #fffaf0; }
+  .section-fix .section-bar { background: #dd6b20; }
+
+  .section-overview { background: #ebf8ff; }
+  .section-overview .section-bar { background: #2b6cb0; }
+
+  .section-body {
+    background: #ffffff;
+    padding: 6px 22px;
+  }
+  .section-overview .section-body { padding: 18px 28px 24px; }
+  .item {
+    padding: 16px 0;
+    border-bottom: 1px dashed #eef0f5;
+  }
+  .item:last-child { border-bottom: none; }
+
+  .item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2330;
+    line-height: 1.7;
+  }
+
+  /* 业务线标签（按业务线区分颜色） */
+  .tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 6px;
+    vertical-align: 2px;
+  }
+  .tag-all    { background: #eef0ff; color: #5b6cff; }  /* 全部 */
+  .tag-job    { background: #e6f4ea; color: #2bb673; }  /* 作业 */
+  .tag-teach  { background: #fff4e0; color: #e89b2a; }  /* 教辅 */
+
+  .entry {
+    color: #9098ac;
+    font-size: 13px;
+    font-weight: 500;
+    margin-right: 4px;
+  }
+
+  /* ===== 配图（占位） ===== */
+  .item-image {
+    display: block;
+    margin: 12px auto 0;
+    width: 90%;
+    max-width: 560px;
+    background: #f0f1f5;
+    border: 1px dashed #c8ccd9;
+    border-radius: 6px;
+    height: 200px;
+    line-height: 200px;
+    text-align: center;
+    color: #9098ac;
+    font-size: 13px;
+  }
+  .item-image + .item-image { margin-top: 12px; }
+
+  /* ===== 底部 ===== */
+  .footer {
+    padding: 26px 40px 30px;
+    text-align: center;
+    border-top: 1px solid #eef0f5;
+  }
+  .footer .line {
+    font-size: 13px;
+    color: #5a6172;
+    line-height: 1.9;
+  }
+  .footer .line.product { color: #1f2330; font-weight: 600; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- ============ 顶部标题区 ============ -->
+  <div class="header">
+    <h1>2026年05月28日 发版功能点通知</h1>
+    <div class="subtitle">
+      给内部同事、运营：<br>
+      数字业务平台已迭代至本月版本，请知悉！本次发版功能点如下：
+    </div>
+  </div>
+
+  <!-- ============ 发版概览区 ============ -->
+  <div class="section section-overview">
+    <div class="section-header">
+      <div class="section-header-title">
+        <span class="section-bar"></span>
+        <span class="title">发版概览</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="stats">
+        <div class="stat-card total">
+          <div class="num">22</div>
+          <div class="label">功能点总数</div>
+        </div>
+        <div class="stat-card add">
+          <div class="num">3</div>
+          <div class="label">新增功能</div>
+        </div>
+        <div class="stat-card opt">
+          <div class="num">13</div>
+          <div class="label">优化功能</div>
+        </div>
+        <div class="stat-card fix">
+          <div class="num">3</div>
+          <div class="label">修复功能</div>
+        </div>
+      </div>
+      <div class="keylist">
+        <div class="keylist-title">重点功能一览</div>
+        <ul>
+          <li>提升 AI 识别率 <span class="ref-tag">闻道作业</span></li>
+          <li>整卷上传初题优化为「智题识解」工作台 <span class="ref-tag">闻道作业</span></li>
+          <li>批量解决持续输入超卷总分后，系统自动分配难度分值 <span class="ref-tag">闻道作业</span></li>
+          <li>答题卡支持字体调节 <span class="ref-tag">闻道作业</span></li>
+          <li>平台接入「学科网」 <span class="ref-tag">闻道作业</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 新增功能区 ============ -->
+  <div class="section">
+    <div class="section-header section-add">
+      <div class="section-header-title">
+        <span class="section-bar"></span>
+        <span class="title">新增功能</span>
+      </div>
+      <span class="count">3 项</span>
+    </div>
+    <div class="section-body">
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-all">全部</span>
+          <span class="entry">[作业练习]</span>支持在答题卡设置考生可对试题申请讲评，当学生作答时填涂了某道题的「请求讲评」框，判作卷上传后，教师可在该份试卷的试题统计界面查看到该题的请求讲评标记
+        </div>
+        <div class="item-image">配图占位 · 截图 1</div>
+        <div class="item-image">配图占位 · 截图 2</div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-job">作业</span>
+          <span class="entry">[其它]</span>有学科网账号的老师，支持在平台内使用学科网试题。该功能支持在「个人中心-系统设置」自行开启或关闭
+        </div>
+        <div class="item-image">配图占位 · 截图 1</div>
+        <div class="item-image">配图占位 · 截图 2</div>
+        <div class="item-image">配图占位 · 截图 3</div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-teach">教辅</span>
+          <span class="entry">[电子书包]</span>建设中心电子书包及电子书的任意章节上下架，下架时发送消息，AI 自动通过消息按需更新电子书，保证教辅作业业务不因未同步电子书数据而无法使用
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 优化功能区 ============ -->
+  <div class="section">
+    <div class="section-header section-opt">
+      <div class="section-header-title">
+        <span class="section-bar"></span>
+        <span class="title">优化功能</span>
+      </div>
+      <span class="count">13 项</span>
+    </div>
+    <div class="section-body">
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-job">作业</span>
+          <span class="tag tag-teach">教辅</span>
+          <span class="entry">[班级练习]</span>已发布的题库中，若有学生已删除，则该份题单的统计试卷中学生显示为缺考后的名称
+        </div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-job">作业</span>
+          <span class="entry">[班级练习]</span>答题卡上传异常处理，学生列表由原来的显示转名调修改为姓名字号
+        </div>
+        <div class="item-image">配图占位 · 截图 1</div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-job">作业</span>
+          <span class="entry">[班级练习]</span>识别成绩优化，解决个别学校纸张太薄井界面打印时，背面空白页也被识别为作答页的问题
+        </div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-job">作业</span>
+          <span class="entry">[校级学情]</span>优化学生考号和姓名的识别逻辑，提升识别率
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 修复功能区 ============ -->
+  <div class="section">
+    <div class="section-header section-fix">
+      <div class="section-header-title">
+        <span class="section-bar"></span>
+        <span class="title">修复功能</span>
+      </div>
+      <span class="count">3 项</span>
+    </div>
+    <div class="section-body">
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-all">闻道作业</span>
+          <span class="entry">[闻道扫描助手 V1.0.9]</span>添加文件上传超时机制，处理网络异常时的文件上传问题
+        </div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-all">闻道作业</span>
+          <span class="entry">[闻道扫描助手 V1.0.9]</span>解决特定情况下偶现出现的上传空文件的问题
+        </div>
+      </div>
+      <div class="item">
+        <div class="item-title">
+          <span class="tag tag-teach">教辅中心</span>
+          <span class="entry">[试题组卷]</span>修复题录中心使用方式不可用的问题
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 底部 ============ -->
+  <div class="footer">
+    <div class="line product">数字业务平台</div>
+    <div class="line">2026年05月28日</div>
+  </div>
+
+</div>
+</body>
+</html>

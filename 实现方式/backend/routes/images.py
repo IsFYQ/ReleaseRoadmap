@@ -25,7 +25,8 @@ def _filter_items(version):
     if version == "all":
         return rows
     target = VERSION_TO_TARGET[version]
-    return [r for r in rows if r["target_user"] == target or r["target_user"] == "全部"]
+    # 多值 target_user：包含目标值 或 包含"全部"都视为命中
+    return [r for r in rows if target in (r["target_user"] or "") or "全部" in (r["target_user"] or "")]
 
 
 def _build_svg(version, title, target, rows):

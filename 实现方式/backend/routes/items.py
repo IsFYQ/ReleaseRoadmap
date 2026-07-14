@@ -3,12 +3,39 @@
 """
 import os
 import random
+import re
 import time
 from collections import defaultdict
 from flask import Blueprint, request
 
 from backend.db import query, execute, query as run_query
 from backend.utils import ok, fail, validate_required, validate_enum, validate_date, validate_datetime, VALID_RELEASES_TYPE, VALID_TARGET_USER, VALID_SCOPE, VALID_STATUS
+
+
+# 多值字段分隔符（前端以「、」提交，兼容英文逗号）
+MULTI_SEP_RE = re.compile(r"[、,]")
+
+
+def _normalize_multi(value, allowed, field):
+    """多值字段标准化：拆分 + 逐值校验 + 去空去重 + 用「、」拼接。返回 (normalized, error)"""
+    if value is None or value == "":
+        return "", None
+    if isinstance(value, list):
+        parts = value
+    else:
+        parts = MULTI_SEP_RE.split(str(value))
+    cleaned = []
+    seen = set()
+    for p in parts:
+        v = p.strip()
+        if not v or v in seen:
+            continue
+        seen.add(v)
+        cleaned.append(v)
+    for v in cleaned:
+        if allowed and v not in allowed:
+            return None, f"{field} 取值「{v}」不合法，允许: {', '.join(sorted(allowed))}"
+    return "、".join(cleaned), None
 
 bp = Blueprint("items", __name__)
 
@@ -105,9 +132,10 @@ def list_items():
             if v and v not in seen:
                 seen.add(v); cleaned.append(v)
         if cleaned:
-            placeholders = ",".join("?" * len(cleaned))
-            sql += f" AND target_user IN ({placeholders})"
-            params.extend(cleaned)
+            # 多值字段：用 LIKE 包含任一值（OR 语义）
+            or_parts = " OR ".join(["target_user LIKE ?" for _ in cleaned])
+            sql += f" AND ({or_parts})"
+            params.extend([f"%{v}%" for v in cleaned])
     if keyword:
         sql += " AND (feature_point LIKE ? OR feature_entry LIKE ? OR app_platform LIKE ?)"
         kw = f"%{keyword}%"
@@ -139,13 +167,15 @@ def create_item():
     err = validate_enum(data["releaseType"], VALID_RELEASES_TYPE, "releaseType")
     if err:
         return fail("INVALID_INPUT", err)
-    err = validate_enum(data.get("targetUser", "全部"), VALID_TARGET_USER, "targetUser")
+    # 多值字段：targetUser、scope（前端以「、」分隔，兼容英文逗号）
+    target_user, err = _normalize_multi(data.get("targetUser", "全部"), VALID_TARGET_USER, "targetUser")
     if err:
         return fail("INVALID_INPUT", err)
-    if data.get("scope"):
-        err = validate_enum(data["scope"], VALID_SCOPE, "scope")
-        if err:
-            return fail("INVALID_INPUT", err)
+    if not target_user:
+        target_user = "全部"
+    scope, err = _normalize_multi(data.get("scope", ""), VALID_SCOPE, "scope")
+    if err:
+        return fail("INVALID_INPUT", err)
 
     is_publish = bool(data.get("publish"))
     notify_time = data.get("notifyTime") or (data["releaseDate"] + "T09:00" if is_publish else "")
@@ -161,7 +191,7 @@ def create_item():
             data["releaseDate"],
             data.get("platformScope", ""),
             data["appPlatform"].strip(),
-            data.get("scope", "App"),
+            scope or "App",
             data["releaseType"],
             data["featurePoint"].strip(),
             (data.get("featureEntry") or "").strip(),
@@ -171,7 +201,7 @@ def create_item():
             data.get("isHighlight", "否"),
             (data.get("provideMaterial") or "").strip(),
             (data.get("remarks") or "").strip(),
-            data.get("targetUser", "全部"),
+            target_user,
             status,
             notify_time,
             data.get("productLine", "闻道作业"),
@@ -197,14 +227,23 @@ def update_item(item_id):
         err = validate_enum(data["releaseType"], VALID_RELEASES_TYPE, "releaseType")
         if err:
             return fail("INVALID_INPUT", err)
-    if data.get("targetUser"):
-        err = validate_enum(data["targetUser"], VALID_TARGET_USER, "targetUser")
+    # 多值字段校验
+    if "targetUser" in data:
+        target_user, err = _normalize_multi(data.get("targetUser") or "", VALID_TARGET_USER, "targetUser")
         if err:
             return fail("INVALID_INPUT", err)
-    if data.get("scope"):
-        err = validate_enum(data["scope"], VALID_SCOPE, "scope")
+        if not target_user:
+            target_user = row["target_user"] or "全部"
+    else:
+        target_user = row["target_user"]
+    if "scope" in data:
+        scope, err = _normalize_multi(data.get("scope") or "", VALID_SCOPE, "scope")
         if err:
             return fail("INVALID_INPUT", err)
+        if not scope:
+            scope = row["scope"] or "App"
+    else:
+        scope = row["scope"]
 
     publish = bool(data.get("publish"))
     notify_time = data.get("notifyTime", row["notify_time"] or "")
@@ -232,7 +271,7 @@ def update_item(item_id):
             data.get("releaseDate", row["release_date"]),
             data.get("platformScope", row["platform_scope"] or ""),
             (data.get("appPlatform") or row["app_platform"]).strip(),
-            data.get("scope", row["scope"]),
+            scope,
             data.get("releaseType", row["release_type"]),
             (data.get("featurePoint") or row["feature_point"]).strip(),
             (data.get("featureEntry") or row["feature_entry"] or "").strip(),
@@ -242,7 +281,7 @@ def update_item(item_id):
             data.get("isHighlight", row["is_highlight"] or "否"),
             (data.get("provideMaterial") or row["provide_material"] or "").strip(),
             (data.get("remarks") or row["remarks"] or "").strip(),
-            data.get("targetUser", row["target_user"]),
+            target_user,
             new_status,
             notify_time,
             data.get("productLine", row["product_line"] or "闻道作业"),
@@ -442,8 +481,11 @@ def stats():
 
     total = query("SELECT COUNT(*) c " + sql_base, tuple(params), one=True)["c"]
     by_type = {row["release_type"]: row["c"] for row in query("SELECT release_type, COUNT(*) c " + sql_base + " GROUP BY release_type", tuple(params))}
-    by_target_rows = query("SELECT target_user, COUNT(*) c " + sql_base + " AND target_user IN ('全部','作业','教辅') GROUP BY target_user", tuple(params))
-    by_target = {row["target_user"]: row["c"] for row in by_target_rows}
+    # by_target：按单值聚合（多值字段按 LIKE 计入每个匹配的目标）
+    by_target = {k: 0 for k in VALID_TARGET_USER}
+    for target in VALID_TARGET_USER:
+        cnt = query("SELECT COUNT(*) c " + sql_base + " AND target_user LIKE ?", tuple(params + [f"%{target}%"]), one=True)["c"]
+        by_target[target] = cnt
     published = query("SELECT COUNT(*) c " + sql_base + " AND status='published'", tuple(params), one=True)["c"]
     draft = total - published
     highlight = query("SELECT COUNT(*) c " + sql_base + " AND is_highlight='是'", tuple(params), one=True)["c"]

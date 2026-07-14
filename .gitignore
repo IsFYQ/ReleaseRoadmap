@@ -18,3 +18,5 @@ __pycache__/
 # 运行时数据（后端 SQLite + 上传文件）
 实现方式/data.db
 实现方式/uploads/
+data.db
+*.db

@@ -102,6 +102,43 @@
   .form-item input:focus, .form-item select:focus, .form-item textarea:focus { outline: none; border-color: var(--primary); }
   .form-item input:disabled, .form-item select:disabled, .form-item textarea:disabled { background: #F8F9FC; color: var(--text-3); cursor: not-allowed; }
   .form-item .readonly-note { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+  /* 外置单选/多选控件（弹窗字段用） */
+  .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 14px 18px; padding: 6px 0 2px; align-items: center; }
+  .radio-group label, .checkbox-group label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; user-select: none; margin: 0; }
+  .radio-group input, .checkbox-group input { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
+  .radio-group input:disabled + *, .checkbox-group input:disabled + * { color: var(--text-3); cursor: not-allowed; }
+
+  /* 新增模式：隐藏「保存草稿」「保存并发布」 */
+  .modal.mode-add .btn-save-extra { display: none; }
+
+  /* 弹窗内字段：label-左 / 控件-右 横向布局 */
+  .modal .form-item { flex-direction: row; align-items: center; column-gap: 16px; row-gap: 8px; flex-wrap: wrap; }
+  .modal .form-item > label { flex-shrink: 0; width: 90px; text-align: left; font-size: 13px; color: var(--text); white-space: nowrap; }
+  .modal .form-item > input, .modal .form-item > select, .modal .form-item > textarea,
+  .modal .form-item > .radio-group, .modal .form-item > .checkbox-group { flex: 1 1 auto; min-width: 180px; }
+  .modal .form-item > input, .modal .form-item > select, .modal .form-item > textarea { padding: 9px 12px; font-size: 13.5px; border-radius: 6px; }
+  .modal .form-item > textarea { resize: vertical; min-height: 96px; }
+  /* 纵向布局：label 在上、控件/区块在下（用于大 textarea、截图粘贴区） */
+  .modal .form-item.form-item-stack { flex-direction: column; align-items: stretch; }
+  .modal .form-item.form-item-stack > label { width: auto; text-align: left; margin-bottom: 4px; }
+  .modal .form-item.form-item-stack > textarea, .modal .form-item.form-item-stack > .paste-zone, .modal .form-item.form-item-stack > .thumb-grid { width: 100%; min-width: 0; }
+  /* 横向布局下 readonly-note 强制换行独占第二行 */
+  .modal .form-item .readonly-note { flex: 1 1 100%; margin-top: 2px; white-space: normal; text-align: left; }
+  /* checkbox/radio 组内允许换行（除非空间够） */
+  .modal .checkbox-group, .modal .radio-group { flex-wrap: wrap; row-gap: 8px; column-gap: 18px; }
+  /* 涉及端独占一行时不让组内换行 */
+  .modal .form-item > .checkbox-group { flex-wrap: nowrap; }
+  /* 行间距加大 */
+  .modal .form-row { margin-bottom: 18px; }
+  /* 弹窗 header 极简化 */
+  .modal-header { padding: 20px 28px 16px; border-bottom: 1px solid var(--border); }
+  .modal-header .title { font-size: 17px; font-weight: 700; color: var(--text); }
+  /* 弹窗 body 留白加大 */
+  .modal-body { padding: 24px 28px 8px; }
+  /* 弹窗底部按钮 padding 加大 */
+  .modal-footer { padding: 16px 28px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+  .modal-footer .btn { padding: 8px 22px; font-size: 13.5px; }
   .import-hint { background: #F5F6FA; border: 1px solid #E6E8EF; border-radius: 6px; padding: 8px 12px; font-size: 12.5px; line-height: 1.7; margin-bottom: 10px; color: var(--text-2); min-height: 20px; }
   .import-hint b { color: var(--text); }
   .import-hint .text-warn { color: var(--warn); }
@@ -323,7 +360,7 @@
 
     <div class="card">
       <div class="card-title">待办 · 草稿待发布</div>
-      <div class="card-sub">未填写通知时间的功能，补充通知时间后自动进入发版通知</div>
+      <div class="card-sub">未填写通知日期的草稿，补充通知日期后可发布</div>
       <table>
         <thead><tr><th>发版日期</th><th>导入时间</th><th>发版类型</th><th>功能点描述</th><th>截图</th><th class="actions">操作</th></tr></thead>
         <tbody id="dashboard-draft-body"></tbody>
@@ -538,56 +575,86 @@
         <div class="form-item">
           <label>发版日期</label>
           <input type="date" id="edit-release-date" disabled />
-          <div class="readonly-note">发版时间由发布清单确定，运营不可修改</div>
         </div>
         <div class="form-item">
-          <label>通知时间</label>
-          <input type="datetime-local" id="edit-notify-time" />
-          <div class="readonly-note">运营唯一可控时间字段，默认与发版日期相同</div>
-        </div>
-        <div class="form-item">
-          <label>产品线</label>
-          <input id="edit-product-line" value="闻道作业" disabled />
-          <div class="readonly-note">你仅可见自己负责的产品线</div>
+          <label>通知日期</label>
+          <input type="date" id="edit-notify-date" />
         </div>
       </div>
       <div class="form-row">
-        <div class="form-item"><label>所属平台</label><select id="edit-data-source"><option value="base">底座</option><option value="resource">资源应用</option></select></div>
+        <div class="form-item">
+          <label>所属平台</label>
+          <div class="radio-group" id="edit-data-source-group">
+            <label><input type="radio" name="edit-data-source" value="base" checked>底座</label>
+            <label><input type="radio" name="edit-data-source" value="resource">资源应用</label>
+          </div>
+        </div>
         <div class="form-item"><label>涉及应用/平台</label><input id="edit-app-platform" placeholder="如：学生端App、教师端后台" /></div>
-        <div class="form-item"><label>涉及端</label><select id="edit-scope"><option>PC</option><option>App</option><option>小程序</option><option>PC + App</option></select></div>
-        <div class="form-item"><label>发版类型</label><select id="edit-release-type"><option>新增</option><option>优化</option><option>修复</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-item" style="flex:2"><label>功能点描述</label><input id="edit-feature-point" placeholder="简要描述该功能点" /></div>
+        <div class="form-item">
+          <label>发版类型</label>
+          <div class="radio-group" id="edit-release-type-group">
+            <label><input type="radio" name="edit-release-type" value="新增" checked>新增</label>
+            <label><input type="radio" name="edit-release-type" value="优化">优化</label>
+            <label><input type="radio" name="edit-release-type" value="修复">修复</label>
+          </div>
+        </div>
         <div class="form-item"><label>功能入口</label><input id="edit-feature-entry" placeholder="功能入口路径" /></div>
       </div>
       <div class="form-row">
         <div class="form-item">
+          <label>涉及端</label>
+          <div class="checkbox-group" id="edit-scope-group">
+            <label><input type="checkbox" name="edit-scope" value="PC">PC</label>
+            <label><input type="checkbox" name="edit-scope" value="web">web</label>
+            <label><input type="checkbox" name="edit-scope" value="小程序">小程序</label>
+            <label><input type="checkbox" name="edit-scope" value="Android">Android</label>
+            <label><input type="checkbox" name="edit-scope" value="后端服务">后端服务</label>
+            <label><input type="checkbox" name="edit-scope" value="钉钉">钉钉</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-item">
           <label>面向用户</label>
-          <select id="edit-target-user"><option>全部</option><option>作业</option><option>教辅</option></select>
+          <div class="checkbox-group" id="edit-target-user-group">
+            <label><input type="checkbox" name="edit-target-user" value="作业">作业</label>
+            <label><input type="checkbox" name="edit-target-user" value="教辅">教辅</label>
+          </div>
         </div>
         <div class="form-item">
           <label>是否重点</label>
-          <select id="edit-is-highlight"><option value="否">否</option><option value="是">是</option></select>
+          <div class="radio-group" id="edit-is-highlight-group">
+            <label><input type="radio" name="edit-is-highlight" value="否" checked>否</label>
+            <label><input type="radio" name="edit-is-highlight" value="是">是</label>
+          </div>
         </div>
-        <div class="form-item" style="flex:2"><label>限制条件</label><input id="edit-limit-notes" placeholder="如：仅 V3.7+ 可用" /></div>
       </div>
       <div class="form-row">
-        <div class="form-item" style="flex:1"><label>特殊说明</label><textarea rows="2" id="edit-special-notes" placeholder="已知BUG或特殊规则"></textarea></div>
-        <div class="form-item" style="flex:1"><label>备注</label><textarea rows="2" id="edit-notes" placeholder="运营验证结论或其他补充"></textarea></div>
+        <div class="form-item form-item-stack" style="flex:1 0 100%">
+          <label>功能点描述</label>
+          <textarea id="edit-feature-point" placeholder="简要描述该功能点"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-item" style="flex:1 0 100%"><label>特殊说明</label><input id="edit-special-notes" placeholder="已知BUG或特殊规则" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item" style="flex:1 0 100%"><label>备注</label><input id="edit-notes" placeholder="运营验证结论或其他补充" /></div>
       </div>
       <div class="form-row" style="margin-bottom:0">
-        <div class="form-item" style="flex:1">
-          <label>截图 / 提供材料</label>
-          <div class="thumb-grid" id="edit-thumbs"></div>
+        <div class="form-item form-item-stack" style="flex:1 0 100%">
+          <label>截图</label>
           <div class="paste-zone" id="paste-zone" contenteditable="true">点击此处后按 Ctrl+V 粘贴图片 · 或拖拽上传</div>
+          <div class="thumb-grid" id="edit-thumbs"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeEditModal()">取消</button>
-      <button class="btn" onclick="saveItem(false)">保存草稿</button>
-      <button class="btn btn-primary" onclick="saveItem(true)">保存并发布</button>
+      <button class="btn" onclick="saveItem(false)">保存</button>
+      <button class="btn btn-save-extra btn-primary" onclick="saveItem(true)">保存并发布</button>
     </div>
   </div>
 </div>
@@ -1195,18 +1262,19 @@
 
   // ---- 弹窗表单 ----
   function collectForm() {
+    // 通知日期是 date 类型（YYYY-MM-DD），后端期望 ISO datetime；空值原样传
+    const notifyDateVal = document.getElementById('edit-notify-date').value;
     return {
       releaseDate: document.getElementById('edit-release-date').value,
-      notifyTime: document.getElementById('edit-notify-time').value,
+      notifyTime: notifyDateVal,  // 后端字段名沿用 notifyTime，值是 YYYY-MM-DD
       appPlatform: document.getElementById('edit-app-platform').value.trim(),
-      module: document.getElementById('edit-data-source').value,
-      scope: document.getElementById('edit-scope').value,
-      releaseType: document.getElementById('edit-release-type').value,
+      module: document.querySelector('input[name="edit-data-source"]:checked').value,
+      scope: Array.from(document.querySelectorAll('input[name="edit-scope"]:checked')).map(el => el.value).join('、'),
+      releaseType: document.querySelector('input[name="edit-release-type"]:checked').value,
       featurePoint: document.getElementById('edit-feature-point').value.trim(),
       featureEntry: document.getElementById('edit-feature-entry').value.trim(),
-      targetUser: document.getElementById('edit-target-user').value,
-      isHighlight: document.getElementById('edit-is-highlight').value,
-      limitNotes: document.getElementById('edit-limit-notes').value.trim(),
+      targetUser: Array.from(document.querySelectorAll('input[name="edit-target-user"]:checked')).map(el => el.value).join('、'),
+      isHighlight: document.querySelector('input[name="edit-is-highlight"]:checked').value,
       specialNotes: document.getElementById('edit-special-notes').value.trim(),
       notes: document.getElementById('edit-notes').value.trim(),
       platformScope: '',
@@ -1214,23 +1282,46 @@
       module: currentModule
     };
   }
+
+  // 将存储的「、」分隔字符串拆为去重数组，用于回填 checkbox
+  function _splitMulti(s) {
+    if (!s) return [];
+    return s.split(/[、,,]/).map(v => v.trim()).filter(Boolean);
+  }
+
+  // 在 radio/checkbox 组内按 value 列表勾选
+  function _setChecked(name, values) {
+    const set = new Set(values);
+    document.querySelectorAll('input[name="' + name + '"]').forEach(el => { el.checked = set.has(el.value); });
+  }
+  // 在 radio 组内勾选首个匹配 value
+  function _setRadio(name, value) {
+    const el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+    if (el) el.checked = true;
+  }
+
   function fillModal(item) {
     document.getElementById('edit-release-date').value = item ? item.releaseDate : todayStr();
-    document.getElementById('edit-notify-time').value = item ? (item.notifyTime || '').replace('T', ' ').slice(0, 16) : '';
-    document.getElementById('edit-data-source').value = item ? (item.module || 'base') : 'base';
+    // notifyTime 可能是 "YYYY-MM-DD" 或 "YYYY-MM-DDTHH:MM"，取前 10 字符给 date 控件
+    document.getElementById('edit-notify-date').value = item ? ((item.notifyTime || '').slice(0, 10)) : '';
+    _setRadio('edit-data-source', item ? (item.module || 'base') : 'base');
     document.getElementById('edit-app-platform').value = item ? item.appPlatform : '';
-    document.getElementById('edit-scope').value = item ? item.scope : 'App';
-    document.getElementById('edit-release-type').value = item ? item.releaseType : '新增';
+    _setChecked('edit-scope', _splitMulti(item ? item.scope : ''));
+    _setRadio('edit-release-type', item ? (item.releaseType || '新增') : '新增');
     document.getElementById('edit-feature-point').value = item ? item.featurePoint : '';
     document.getElementById('edit-feature-entry').value = item ? item.featureEntry : '';
-    document.getElementById('edit-target-user').value = item ? item.targetUser : '全部';
-    document.getElementById('edit-is-highlight').value = item ? item.isHighlight : '否';
-    document.getElementById('edit-limit-notes').value = item ? (item.limitNotes || '') : '';
+    _setChecked('edit-target-user', _splitMulti(item ? item.targetUser : ''));
+    _setRadio('edit-is-highlight', item ? (item.isHighlight || '否') : '否');
     document.getElementById('edit-special-notes').value = item ? (item.specialNotes || '') : '';
     document.getElementById('edit-notes').value = item ? (item.notes || '') : '';
     document.getElementById('edit-thumbs').innerHTML = item ? Array(item.images || 0).fill(0).map(() => '<div class="thumb"><span class="rm" onclick="removeThumb(this)">×</span></div>').join('') : '';
   }
-  function openAddModal() { editingId = null; fillModal(null); document.getElementById('edit-modal-title').textContent = '新增发版详情'; document.getElementById('edit-modal').classList.add('show'); }
+  function openAddModal() {
+    editingId = null;
+    fillModal(null);
+    document.getElementById('edit-modal-title').textContent = '新增发版详情';
+    document.getElementById('edit-modal').classList.add('show', 'mode-add');
+  }
   function openEditModal(id) {
     const item = items.find(i => i.id === id);
     if (!item) return alert('记录不存在');
@@ -1238,18 +1329,23 @@
     fillModal(item);
     document.getElementById('edit-modal-title').textContent = item.notifyTime ? '编辑发版详情' : '编辑草稿';
     document.getElementById('edit-modal').classList.add('show');
+    document.getElementById('edit-modal').classList.remove('mode-add');
   }
-  function closeEditModal(e) { if (!e || e.target.id === 'edit-modal') document.getElementById('edit-modal').classList.remove('show'); }
+  function closeEditModal(e) {
+    if (!e || e.target.id === 'edit-modal') {
+      document.getElementById('edit-modal').classList.remove('show', 'mode-add');
+    }
+  }
 
   async function saveItem(publish) {
     const data = collectForm();
     if (!data.featurePoint || !data.appPlatform) { alert('请完整填写：涉及应用/平台、功能点描述'); return; }
-    // 通知时间 datetime-local 格式转 YYYY-MM-DDTHH:MM
-    if (data.notifyTime) data.notifyTime = data.notifyTime.replace('T', 'T').slice(0, 16);
+    // 通知日期是 date 类型，值已经是 YYYY-MM-DD，无需转换
     data.publish = publish;
     try {
       if (publish && !data.notifyTime) {
-        data.notifyTime = data.releaseDate + 'T09:00';
+        // 发布时若未填通知日期，默认用发版日期
+        data.notifyTime = data.releaseDate;
       }
       if (editingId) {
         await apiSend('PUT', '/api/items/' + editingId, data);
@@ -1332,7 +1428,6 @@
         '<div class="text-sm text-muted">应用/平台：' + esc(i.appPlatform) + ' · 端：' + esc(i.scope) + '</div>' +
         '<div class="text-sm text-muted">入口：' + esc(i.featureEntry) + ' · 面向用户：' + esc(i.targetUser) + '</div>' +
         '<div class="text-sm text-muted">特殊说明：' + esc(i.specialNotes || '—') + '</div>' +
-        '<div class="text-sm text-muted">限制条件：' + esc(i.limitNotes || '—') + '</div>' +
         '<div class="text-sm text-muted">备注：' + esc(i.notes || '—') + '</div>' +
         '</div>'
       ).join('') || '<div class="empty">该日期无已发布内容</div>';

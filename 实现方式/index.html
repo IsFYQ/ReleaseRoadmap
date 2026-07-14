@@ -100,7 +100,12 @@
   .toc-item.active { color: var(--primary); border-left-color: var(--primary); font-weight: 500; }
 
   /* Date group */
-  .group { margin-bottom: 28px; }
+  .group {
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
   .group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
   .group-head .date { font-size: 18px; font-weight: 600; }
   .group-head .count { color: var(--text-3); font-size: 13px; margin-right: auto; }
@@ -118,25 +123,15 @@
 
   /* Item row */
   .item-row {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 10px 0; border-bottom: 1px solid var(--border); gap: 16px;
+    padding: 7px 0;
+    font-size: 13.5px; line-height: 1.55;
   }
-  .item-row:last-child { border-bottom: none; }
-  .item-main { flex: 1; min-width: 0; }
-  .item-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
-  .item-tags .tag { font-size: 11px; padding: 1px 7px; border-radius: 4px; }
-  .item-tags .tag-soft { background: #F1F3F8; color: var(--text-2); }
-  .item-tags .tag-info { background: #E4F0FB; color: var(--info); }
-  .item-tags .tag-warn { background: #FDF1DE; color: var(--warn); }
-  .item-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
-  .item-text .pl { color: var(--text-2); }
-  .item-extras { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
-  .item-extra { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-  .extra-label { display: inline-block; color: var(--text-3); font-size: 11px; margin-right: 6px; }
+  .item-business { font-weight: 500; color: var(--text); }
+  .item-feature { color: var(--text); }
   .item-entry {
-    flex-shrink: 0; font-size: 12px; color: var(--primary);
-    background: var(--primary-soft); padding: 3px 8px; border-radius: 4px;
-    margin-top: 1px; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+    display: inline; font-size: 12px; color: var(--primary);
+    background: var(--primary-soft); padding: 2px 6px; border-radius: 4px;
+    margin-left: 6px; white-space: nowrap;
   }
   .type-count { color: var(--text-3); font-size: 12px; font-weight: normal; margin-left: 4px; }
 
@@ -219,25 +214,27 @@
     </div>
   </div>
   <div class="filter">
-    <select>
+    <select id="filter-product">
       <option>全部产品线</option>
       <option>闻道作业</option>
       <option>直播教学</option>
       <option>开放学校</option>
     </select>
-    <select>
+    <select id="filter-type">
       <option>全部类型</option>
       <option>新增</option>
       <option>优化</option>
       <option>修复</option>
     </select>
-    <select>
+    <select id="filter-date">
       <option>全部日期</option>
       <option>最近 7 天</option>
       <option>最近 30 天</option>
       <option>2026 年 7 月</option>
     </select>
-    <input type="text" placeholder="搜索功能点 / 功能入口" />
+    <input type="text" id="filter-keyword" placeholder="搜索功能点 / 功能入口" />
+    <button class="btn btn-primary" onclick="applyFilter()">确定</button>
+    <button class="btn" onclick="clearFilter()">清除筛选</button>
   </div>
 </div>
 
@@ -331,10 +328,12 @@
 
   let currentUser = null;
   let releasesByDate = {};
+  let rawData = null;
 
   function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function weekday(date) { return ['周日','周一','周二','周三','周四','周五','周六'][new Date(date).getDay()]; }
   function typeClass(type) { return type === '新增' ? 'add' : type === '优化' ? 'opt' : 'fix'; }
+  function parseDate(d) { return new Date(d + 'T00:00:00'); }
 
   function jumpTo(id) {
     const el = document.getElementById(id);
@@ -419,11 +418,13 @@
     }
     closeLogin();
     renderHeader();
+    loadPublic();
   }
 
   function logout() {
     currentUser = null;
     renderHeader();
+    loadPublic();
   }
 
   function renderHeader() {
@@ -486,29 +487,18 @@
         if (!list.length) return '';
         return '<div class="type-section"><div class="type-title"><span class="type-dot ' + typeClass(t) + '"></span>' + t + ' <span class="type-count">· ' + list.length + ' 项</span></div>' +
           list.map(it => {
-            // 字段：发版类型(已有) + 产品线 + 涉及应用/平台 + 涉及端 + 功能点描述 + 功能入口 + 重点 + 备注/限制/特殊
-            const tags = [];
-            if (it.productLine) tags.push('<span class="tag tag-soft">' + escapeHtml(it.productLine) + '</span>');
-            if (it.appPlatform) tags.push('<span class="tag tag-soft">' + escapeHtml(it.appPlatform) + '</span>');
-            if (it.scope) tags.push('<span class="tag tag-soft">' + escapeHtml(it.scope) + '</span>');
-            if (it.platformScope) tags.push('<span class="tag tag-soft">' + escapeHtml(it.platformScope) + '</span>');
-            if (it.targetUser && it.targetUser !== '全部') tags.push('<span class="tag tag-info">面向 ' + escapeHtml(it.targetUser) + '</span>');
-            if (it.isHighlight === '是') tags.push('<span class="tag tag-warn">重点</span>');
-            const extra = [];
-            if (it.specialNotes) extra.push('<div class="item-extra"><span class="extra-label">特殊说明</span>' + escapeHtml(it.specialNotes) + '</div>');
-            if (it.limitNotes) extra.push('<div class="item-extra"><span class="extra-label">限制条件</span>' + escapeHtml(it.limitNotes) + '</div>');
-            if (it.notes) extra.push('<div class="item-extra"><span class="extra-label">备注</span>' + escapeHtml(it.notes) + '</div>');
+            // 精简展示：所属业务：功能点 「功能入口」
             return '<div class="item-row">' +
-              '<div class="item-main">' +
-                '<div class="item-tags">' + tags.join('') + '</div>' +
-                '<div class="item-text">' + escapeHtml(it.featurePoint) + '</div>' +
-                (extra.length ? '<div class="item-extras">' + extra.join('') + '</div>' : '') +
-              '</div>' +
-              '<div class="item-entry">' + escapeHtml(it.featureEntry || '—') + '</div>' +
+              '<span class="item-business">' + escapeHtml(it.productLine || it.appPlatform || '—') + '</span>：' +
+              '<span class="item-feature">' + escapeHtml(it.featurePoint) + '</span>' +
+              '<span class="item-entry">「' + escapeHtml(it.featureEntry || '—') + '」</span>' +
             '</div>';
           }).join('') + '</div>';
       }).join('');
-      wrap.innerHTML = '<div class="group-head"><div class="date">' + g.date + ' · ' + weekday(g.date) + '</div><div class="count">共 ' + g.items.length + ' 项</div><button class="detail-btn" onclick="openDetail(\'' + g.date + '\')">查看详情</button></div>' + sections;
+      const detailBtn = currentUser && currentUser.role !== 'guest'
+        ? '<button class="detail-btn" onclick="openDetail(\'' + g.date + '\')">查看详情</button>'
+        : '';
+      wrap.innerHTML = '<div class="group-head"><div class="date">' + g.date + ' · ' + weekday(g.date) + '</div><div class="count">共 ' + g.items.length + ' 项</div>' + detailBtn + '</div>' + sections;
       content.appendChild(wrap);
       // TOC
       const ti = document.createElement('div');
@@ -519,9 +509,60 @@
     });
   }
 
+  // ---- 筛选逻辑 ----
+  function getFilterValues() {
+    return {
+      productLine: document.getElementById('filter-product').value,
+      type: document.getElementById('filter-type').value,
+      date: document.getElementById('filter-date').value,
+      keyword: document.getElementById('filter-keyword').value.trim()
+    };
+  }
+
+  function filterGroups(groups, fv) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d7 = new Date(today); d7.setDate(d7.getDate() - 7);
+    const d30 = new Date(today); d30.setDate(d30.getDate() - 30);
+
+    return groups.map(g => {
+      if (fv.date !== '全部日期') {
+        const gd = parseDate(g.date);
+        if (fv.date === '最近 7 天' && gd < d7) return null;
+        if (fv.date === '最近 30 天' && gd < d30) return null;
+        if (fv.date === '2026 年 7 月' && !(g.date >= '2026-07-01' && g.date <= '2026-07-31')) return null;
+      }
+      const items = g.items.filter(it => {
+        if (fv.productLine !== '全部产品线' && it.productLine !== fv.productLine) return false;
+        if (fv.type !== '全部类型' && it.releaseType !== fv.type) return false;
+        if (fv.keyword) {
+          const hay = ((it.featurePoint || '') + ' ' + (it.featureEntry || '')).toLowerCase();
+          if (!hay.includes(fv.keyword.toLowerCase())) return false;
+        }
+        return true;
+      });
+      if (items.length === 0) return null;
+      return { ...g, items };
+    }).filter(Boolean);
+  }
+
+  function applyFilter() {
+    if (!rawData) return;
+    renderGroups(filterGroups(rawData.groups, getFilterValues()));
+  }
+
+  function clearFilter() {
+    document.getElementById('filter-product').selectedIndex = 0;
+    document.getElementById('filter-type').selectedIndex = 0;
+    document.getElementById('filter-date').selectedIndex = 0;
+    document.getElementById('filter-keyword').value = '';
+    if (rawData) renderGroups(rawData.groups);
+  }
+
   async function loadPublic() {
     try {
       const data = await apiGet('/api/public/releases');
+      rawData = data;
       renderOverview(data.overview);
       renderGroups(data.groups);
     } catch (e) {

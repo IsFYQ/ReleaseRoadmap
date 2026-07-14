@@ -14,7 +14,7 @@ def fail(code, message, status=400, data=None):
 
 VALID_RELEASES_TYPE = {"新增", "优化", "修复", "删除", "微软云相关依赖移除"}
 VALID_TARGET_USER = {"全部", "作业", "教辅"}
-VALID_SCOPE = {"web", "App", "小程序", "PC", "Android", "钉钉", "后端", "服务端", "多端", "\\"}
+VALID_SCOPE = {"web", "App", "小程序", "PC", "Android", "钉钉", "后端", "服务端", "多端", "\\", "后端服务"}
 VALID_STATUS = {"imported", "edited", "published"}
 
 

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>发版功能点通知长图 · 数据注入演示</title>
+<style>
+  /* ===== 基础 ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    background: #f7fafc;
+    padding: 24px 0;
+    color: #1f2330;
+  }
+  .toolbar {
+    width: 750px; margin: 0 auto 16px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .toolbar button {
+    padding: 8px 16px; font-size: 13px;
+    border: 1px solid #d0d4dd; background: #ffffff;
+    color: #1f2330; border-radius: 6px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .toolbar button:hover { background: #eef0ff; border-color: #5b6cff; color: #5b6cff; }
+  .toolbar button.active { background: #5b6cff; color: #ffffff; border-color: #5b6cff; }
+
+  .canvas {
+    width: 750px;
+    margin: 0 auto;
+    background: #f7fafc;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  /* ===== 顶部标题区 ===== */
+  .header {
+    padding: 36px 40px 28px;
+    background: #2b5797;
+    color: #ffffff;
+  }
+  .header h1 { font-size: 26px; font-weight: 600; color: #ffffff; margin-bottom: 12px; }
+  .header .subtitle { font-size: 14px; color: rgba(255, 255, 255, 0.85); line-height: 1.8; }
+
+  /* ===== 发版概览区 ===== */
+  .stats { display: flex; gap: 14px; }
+  .stat-card {
+    flex: 1; padding: 22px 12px; border-radius: 8px;
+    color: #ffffff; text-align: center;
+  }
+  .stat-card .num { font-size: 30px; font-weight: 700; line-height: 1.2; }
+  .stat-card .label { font-size: 13px; margin-top: 4px; opacity: 0.95; }
+  .stat-card.total { background: #5b6cff; }
+  .stat-card.add   { background: #38a169; }
+  .stat-card.opt   { background: #3484cf; }
+  .stat-card.fix   { background: #dd6b20; }
+
+  .keylist { margin-top: 22px; }
+  .keylist-title { font-size: 14px; font-weight: 600; color: #1f2330; margin-bottom: 8px; }
+  .keylist ul { list-style: none; padding-left: 0; }
+  .keylist li {
+    font-size: 13px; color: #5a6172;
+    line-height: 1.9; padding-left: 18px; position: relative;
+  }
+  .keylist li::before { content: "•"; position: absolute; left: 4px; color: #2b6cb0; }
+  .keylist li .ref-tag {
+    color: #3484cf; background: #ebf8ff;
+    padding: 0 4px; border-radius: 3px; font-size: 12px; margin-left: 4px;
+  }
+
+  /* ===== 功能区通用 ===== */
+  .section {
+    margin: 0 40px 22px; border-radius: 8px;
+    overflow: hidden; border: 1px solid #eef0f5;
+  }
+  .section-overview { margin-top: 22px; }
+  .section-header {
+    padding: 16px 22px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .section-header-title { display: flex; align-items: center; gap: 12px; }
+  .section-bar {
+    display: inline-block; width: 4px; height: 18px;
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .section-header .title { font-size: 18px; font-weight: 600; color: #1f2330; }
+  .section-header .count { font-size: 13px; color: #5a6172; }
+
+  .section-add { background: #f0fff4; }
+  .section-add .section-bar { background: #38a169; }
+  .section-opt { background: #ebf8ff; }
+  .section-opt .section-bar { background: #3484cf; }
+  .section-fix { background: #fffaf0; }
+  .section-fix .section-bar { background: #dd6b20; }
+  .section-overview { background: #ebf8ff; }
+  .section-overview .section-bar { background: #2b6cb0; }
+
+  .section-body { background: #ffffff; padding: 6px 22px; }
+  .section-overview .section-body { padding: 18px 28px 24px; }
+  .item { padding: 16px 0; border-bottom: 1px dashed #eef0f5; }
+  .item:last-child { border-bottom: none; }
+  .item-title { font-size: 15px; font-weight: 600; color: #1f2330; line-height: 1.7; }
+
+  .tag {
+    display: inline-block; padding: 1px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 500;
+    margin-right: 6px; vertical-align: 2px;
+  }
+  .tag-all    { background: #eef0ff; color: #5b6cff; }
+  .tag-job    { background: #e6f4ea; color: #2bb673; }
+  .tag-teach  { background: #fff4e0; color: #e89b2a; }
+  .entry { color: #9098ac; font-size: 13px; font-weight: 500; margin-right: 4px; }
+
+  .item-image {
+    display: block; margin: 12px auto 0; width: 90%; max-width: 560px;
+    background: #f0f1f5; border: 1px dashed #c8ccd9; border-radius: 6px;
+    height: 200px; line-height: 200px;
+    text-align: center; color: #9098ac; font-size: 13px;
+  }
+  .item-image + .item-image { margin-top: 12px; }
+  .item-image img { max-width: 100%; max-height: 100%; display: block; }
+
+  .footer {
+    padding: 26px 40px 30px;
+    text-align: center;
+    border-top: 1px solid #eef0f5;
+  }
+  .footer .line { font-size: 13px; color: #5a6172; line-height: 1.9; }
+  .footer .line.product { color: #1f2330; font-weight: 600; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar" id="toolbar">
+  <button data-idx="0" class="active">示例 1 · 完整版</button>
+  <button data-idx="1">示例 2 · 仅新增</button>
+  <button data-idx="2">示例 3 · 极简版</button>
+</div>
+
+<div class="canvas" id="canvas"></div>
+
+<script>
+/* ===========================================================
+ *  数据模型（后端 API 返回的数据结构）
+ *  --------------------------------------------------------
+ *  {
+ *    header: { title, subtitleHtml },
+ *    overview: { total, add, opt, fix, keyItems: [{ text, ref? }, ...] },
+ *    added:   [ { tags: ['作业','教辅'...], entry: '...', desc: '...', images: [...] }, ... ],
+ *    optimized: [...同上...],
+ *    fixed:   [...同上...],
+ *    footer: { product, date }
+ *  }
+ * =========================================================== */
+
+const SAMPLES = [
+  // ===== 示例 1：完整版（与预览版完全一致） =====
+  {
+    header: {
+      title: "2026年05月28日 发版功能点通知",
+      subtitleHtml: "给内部同事、运营：<br>数字业务平台已迭代至本月版本，请知悉！本次发版功能点如下："
+    },
+    overview: {
+      total: 22, add: 3, opt: 13, fix: 3,
+      keyItems: [
+        { text: "提升 AI 识别率", ref: "闻道作业" },
+        { text: "整卷上传初题优化为「智题识解」工作台", ref: "闻道作业" },
+        { text: "批量解决持续输入超卷总分后，系统自动分配难度分值", ref: "闻道作业" },
+        { text: "答题卡支持字体调节", ref: "闻道作业" },
+        { text: "平台接入「学科网」", ref: "闻道作业" }
+      ]
+    },
+    added: [
+      { tags: ["全部"], entry: "[作业练习]",
+        desc: "支持在答题卡设置考生可对试题申请讲评，当学生作答时填涂了某道题的「请求讲评」框，判作卷上传后，教师可在该份试卷的试题统计界面查看到该题的请求讲评标记",
+        images: ["", ""] },
+      { tags: ["作业"], entry: "[其它]",
+        desc: "有学科网账号的老师，支持在平台内使用学科网试题。该功能支持在「个人中心-系统设置」自行开启或关闭",
+        images: ["", "", ""] },
+      { tags: ["教辅"], entry: "[电子书包]",
+        desc: "建设中心电子书包及电子书的任意章节上下架，下架时发送消息，AI 自动通过消息按需更新电子书，保证教辅作业业务不因未同步电子书数据而无法使用",
+        images: [] }
+    ],
+    optimized: [
+      { tags: ["作业","教辅"], entry: "[班级练习]",
+        desc: "已发布的题库中，若有学生已删除，则该份题单的统计试卷中学生显示为缺考后的名称", images: [] },
+      { tags: ["作业"], entry: "[班级练习]",
+        desc: "答题卡上传异常处理，学生列表由原来的显示转名调修改为姓名字号", images: [""] },
+      { tags: ["作业"], entry: "[班级练习]",
+        desc: "识别成绩优化，解决个别学校纸张太薄井界面打印时，背面空白页也被识别为作答页的问题", images: [] },
+      { tags: ["作业"], entry: "[校级学情]",
+        desc: "优化学生考号和姓名的识别逻辑，提升识别率", images: [] }
+    ],
+    fixed: [
+      { tags: ["全部"], entry: "[闻道扫描助手 V1.0.9]",
+        desc: "添加文件上传超时机制，处理网络异常时的文件上传问题", images: [] },
+      { tags: ["全部"], entry: "[闻道扫描助手 V1.0.9]",
+        desc: "解决特定情况下偶现出现的上传空文件的问题", images: [] },
+      { tags: ["教辅"], entry: "[试题组卷]",
+        desc: "修复题录中心使用方式不可用的问题", images: [] }
+    ],
+    footer: { product: "数字业务平台", date: "2026年05月28日" }
+  },
+
+  // ===== 示例 2：仅新增 =====
+  {
+    header: {
+      title: "2026年06月15日 发版功能点通知",
+      subtitleHtml: "给内部同事：<br>本次仅含新增功能，无优化/修复内容。"
+    },
+    overview: {
+      total: 2, add: 2, opt: 0, fix: 0,
+      keyItems: [
+        { text: "新增「智能批改」模块", ref: "闻道作业" }
+      ]
+    },
+    added: [
+      { tags: ["作业","教辅"], entry: "[智能批改]",
+        desc: "AI 自动批改客观题，支持数学、语文、英语三科，识别准确率达 95%", images: [] },
+      { tags: ["作业"], entry: "[个人中心]",
+        desc: "新增消息中心入口，所有系统通知、操作记录、学情提醒聚合展示", images: [] }
+    ],
+    optimized: [],
+    fixed: [],
+    footer: { product: "闻道作业", date: "2026年06月15日" }
+  },
+
+  // ===== 示例 3：极简版 =====
+  {
+    header: {
+      title: "2026年07月01日 紧急修复通知",
+      subtitleHtml: "给所有用户：<br>本次为紧急修复版本，请尽快更新。"
+    },
+    overview: { total: 1, add: 0, opt: 0, fix: 1, keyItems: [] },
+    added: [],
+    optimized: [],
+    fixed: [
+      { tags: ["全部"], entry: "[核心服务]",
+        desc: "修复服务器高并发场景下偶发的 500 错误问题", images: [] }
+    ],
+    footer: { product: "数字业务平台", date: "2026年07月01日" }
+  }
+];
+
+
+/* ===========================================================
+ *  转义函数（防 XSS）
+ * =========================================================== */
+function esc(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/* ===========================================================
+ *  业务线中文 → CSS class 映射
+ *  --------------------------------------------------------
+ *  数据里写中文（"作业"），CSS 类名是英文（.tag-job），
+ *  渲染时用这张表翻译，避免中文字符出现在 class 属性里。
+ * =========================================================== */
+const TAG_CLASS = { "全部": "all", "作业": "job", "教辅": "teach" };
+function tagClass(name) { return TAG_CLASS[name] || esc(name); }
+
+
+/* ===========================================================
+ *  渲染函数（数据 → HTML 字符串）
+ * =========================================================== */
+function render(d) {
+  // header
+  const header = `
+    <div class="header">
+      <h1>${esc(d.header.title)}</h1>
+      <div class="subtitle">${d.header.subtitleHtml}</div>
+    </div>`;
+
+  // overview（统计卡片 + 重点功能）
+  const overview = `
+    <div class="section section-overview">
+      <div class="section-header">
+        <div class="section-header-title">
+          <span class="section-bar"></span>
+          <span class="title">发版概览</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="stats">
+          <div class="stat-card total"><div class="num">${d.overview.total}</div><div class="label">功能点总数</div></div>
+          <div class="stat-card add"><div class="num">${d.overview.add}</div><div class="label">新增功能</div></div>
+          <div class="stat-card opt"><div class="num">${d.overview.opt}</div><div class="label">优化功能</div></div>
+          <div class="stat-card fix"><div class="num">${d.overview.fix}</div><div class="label">修复功能</div></div>
+        </div>
+        ${d.overview.keyItems && d.overview.keyItems.length ? `
+        <div class="keylist">
+          <div class="keylist-title">重点功能一览</div>
+          <ul>
+            ${d.overview.keyItems.map(it => `
+              <li>${esc(it.text)}${it.ref ? ` <span class="ref-tag">${esc(it.ref)}</span>` : ""}</li>
+            `).join("")}
+          </ul>
+        </div>` : ""}
+      </div>
+    </div>`;
+
+  // 单个 item 渲染
+  function renderItem(it) {
+    const tagsHtml = it.tags.map(t => `<span class="tag tag-${tagClass(t)}">${esc(t)}</span>`).join("");
+    const imagesHtml = (it.images || []).map((src, i) => {
+      if (src) return `<div class="item-image"><img src="${esc(src)}" alt="配图 ${i+1}"></div>`;
+      return `<div class="item-image">配图占位 · 截图 ${i+1}</div>`;
+    }).join("");
+    return `
+      <div class="item">
+        <div class="item-title">${tagsHtml}<span class="entry">${esc(it.entry)}</span>${esc(it.desc)}</div>
+        ${imagesHtml}
+      </div>`;
+  }
+
+  // 三个功能区
+  function renderSection(cls, title, items, count) {
+    if (!items || !items.length) return "";   // 空数组不渲染该区
+    return `
+      <div class="section">
+        <div class="section-header ${cls}">
+          <div class="section-header-title">
+            <span class="section-bar"></span>
+            <span class="title">${title}</span>
+          </div>
+          <span class="count">${items.length} 项</span>
+        </div>
+        <div class="section-body">${items.map(renderItem).join("")}</div>
+      </div>`;
+  }
+
+  const addedSection   = renderSection("section-add", "新增功能", d.added, d.overview.add);
+  const optimizedSection = renderSection("section-opt", "优化功能", d.optimized, d.overview.opt);
+  const fixedSection   = renderSection("section-fix", "修复功能", d.fixed, d.overview.fix);
+
+  // footer
+  const footer = `
+    <div class="footer">
+      <div class="line product">${esc(d.footer.product)}</div>
+      <div class="line">${esc(d.footer.date)}</div>
+    </div>`;
+
+  return header + overview + addedSection + optimizedSection + fixedSection + footer;
+}
+
+
+/* ===========================================================
+ *  加载数据 + 注入到 canvas
+ * =========================================================== */
+let currentIdx = 0;
+function loadData(idx) {
+  currentIdx = idx;
+  document.getElementById("canvas").innerHTML = render(SAMPLES[idx]);
+  document.querySelectorAll(".toolbar button").forEach((btn, i) => {
+    btn.classList.toggle("active", i === idx);
+  });
+}
+
+document.querySelectorAll(".toolbar button").forEach(btn => {
+  btn.addEventListener("click", () => loadData(parseInt(btn.dataset.idx, 10)));
+});
+
+loadData(0);
+</script>
+</body>
+</html>
