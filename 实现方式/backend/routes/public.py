@@ -117,6 +117,41 @@ def public_release_by_date(date):
     return ok({"date": date, "items": [_row_to_public(r) for r in rows]})
 
 
+@bp.route("/public/target-map", methods=["GET"])
+def public_target_map():
+    """目标地图数据（登录后可见的视图）。当前为公开接口——前端根据登录态控制 Tab 显隐。
+
+    返回字段使用 PRD V2 命名规范（snake_case → camelCase 由前端约定）。
+    """
+    rows = query(
+        """SELECT id, source_row_no, scene, link, func, demand, level, biz,
+                  current_state, meet_status, follow_up, planned_at, status
+           FROM target_map
+           ORDER BY source_row_no ASC, id ASC"""
+    )
+    return ok({
+        "total": len(rows),
+        "items": [
+            {
+                "id": r["id"],
+                "rowNo": r["source_row_no"],
+                "scene": r["scene"] or "",
+                "link": r["link"] or "",
+                "func": r["func"] or "",
+                "demand": r["demand"] or "",
+                "level": r["level"] or "",
+                "biz": r["biz"] or "",
+                "currentState": r["current_state"] or "",
+                "meetStatus": r["meet_status"] or "",
+                "followUp": r["follow_up"] or "",
+                "plannedAt": r["planned_at"] or "",
+                "status": r["status"] or "",
+            }
+            for r in rows
+        ],
+    })
+
+
 @bp.route("/auth/login", methods=["POST"])
 def auth_login():
     """模拟登录（MVP 不做密码校验）"""

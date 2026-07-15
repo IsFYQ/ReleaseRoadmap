@@ -175,6 +175,74 @@
   /* Footer */
   .footer { text-align: center; color: var(--text-3); font-size: 12px; padding: 40px 32px; }
 
+  /* Tabs */
+  .tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin-top: 14px;
+    padding: 4px;
+    background: #F3F4F8;
+    border-radius: 12px;
+  }
+  .tab {
+    padding: 7px 18px;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 13.5px;
+    cursor: pointer;
+    border-radius: 9px;
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .tab:hover { color: var(--text); background: rgba(255, 255, 255, 0.7); }
+  .tab.active {
+    background: #fff;
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(31, 35, 48, 0.08);
+  }
+  .tab.locked { display: none; }
+
+  /* 目标地图 · 分组卡片列表 */
+  .tm-count { color: var(--text-3); font-size: 12px; margin-left: auto; }
+  .tm-list { margin-top: 16px; }
+  .tm-scene { margin-bottom: 26px; }
+  .tm-scene-head {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .tm-scene-head .name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .tm-scene-head .name::before {
+    content: ''; display: inline-block; width: 4px; height: 15px; border-radius: 2px;
+    background: var(--primary); margin-right: 8px; vertical-align: -2px;
+  }
+  .tm-scene-head .cnt { color: var(--text-3); font-size: 12.5px; }
+  .tm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+  .tm-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .tm-card:hover { box-shadow: 0 3px 12px rgba(31,34,53,0.06); border-color: #D7DBEA; }
+  .tm-card-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
+  .tm-card-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--text-2); }
+  .tm-card-meta b { color: var(--text-3); font-weight: 500; margin-right: 4px; }
+  .tm-card-plan { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--text-2); line-height: 1.55; }
+  .tm-card-plan b { color: var(--text-3); font-weight: 500; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11.5px; white-space: nowrap; }
+  .badge.meet-full { background: #E6F6EE; color: #1F9D5C; }
+  .badge.meet-basic { background: #E7F0FF; color: #3D8EE0; }
+  .badge.meet-none { background: #FDEAEA; color: #D64545; }
+  .badge.st-dev { background: #E7F0FF; color: #3D8EE0; }
+  .badge.st-sched { background: #FDF1E0; color: #C9862A; }
+  .badge.st-wait { background: #F1F2F6; color: #8A90A2; }
+  .badge.st-nores { background: #FDEAEA; color: #D64545; }
+  .lv-high { color: #D64545; font-weight: 600; }
+  .lv-mid { color: #C9862A; }
+  .lv-low { color: #1F9D5C; }
+  .lv-na { color: #8A90A2; }
+  .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
+
   /* Responsive */
   @media (max-width: 900px) {
     .header { padding: 16px 20px; }
@@ -207,13 +275,17 @@
   <div class="top">
     <div>
       <div class="title">发版路线图</div>
-      <div class="subtitle">闻道 / 直播 / 开放学校 · 已发布内容公开查看</div>
     </div>
     <div class="header-actions" id="header-actions">
       <button class="btn btn-primary" onclick="openLogin()">登录</button>
     </div>
   </div>
-  <div class="filter">
+  <div class="tabs">
+    <div class="tab active" id="tab-roadmap" onclick="switchTab('roadmap')">发版路线图</div>
+    <div class="tab locked" id="tab-targetmap" onclick="switchTab('targetmap')">目标地图</div>
+  </div>
+
+  <div class="filter" id="filter-roadmap">
     <select id="filter-product">
       <option>全部产品线</option>
       <option>闻道作业</option>
@@ -236,9 +308,20 @@
     <button class="btn btn-primary" onclick="applyFilter()">确定</button>
     <button class="btn" onclick="clearFilter()">清除筛选</button>
   </div>
+
+  <div class="filter" id="filter-targetmap" style="display:none">
+    <select id="tmf-biz"><option value="">全部业务</option><option>直播业务</option><option>录播业务</option><option>独立项目</option></select>
+    <select id="tmf-level"><option value="">全部等级</option><option>高</option><option>中</option><option>低</option><option>非必须</option></select>
+    <select id="tmf-meet"><option value="">全部满足度</option><option>完全满足</option><option>基本满足</option><option>完全不满足</option></select>
+    <select id="tmf-state"><option value="">全部状态</option><option>待排期</option><option>已排期</option><option>开发中</option><option>暂不响应</option></select>
+    <input type="text" id="tmf-keyword" placeholder="关键字" />
+    <button class="btn btn-primary" onclick="applyTargetFilter()">确定</button>
+    <button class="btn" onclick="clearTargetFilter()">清空筛选</button>
+    <span class="tm-count" id="tm-count"></span>
+  </div>
 </div>
 
-<div class="overview">
+<div class="overview" id="overview-cards">
   <div class="ov-card">
     <div class="label">最新发版</div>
     <div class="value" id="ov-latest">—</div>
@@ -262,13 +345,25 @@
 
 <div class="container">
   <div class="content">
-    <!-- 发版分组由 loadPublic() 动态渲染 -->
-    <div class="footer">仅展示已发布内容 · 数据由后端接口实时返回</div>
+    <div id="view-roadmap">
+      <!-- 发版分组由 loadPublic() 动态渲染 -->
+      <div class="footer">仅展示已发布内容 · 数据由后端接口实时返回</div>
+    </div>
+
+    <div id="view-targetmap" style="display:none">
+      <div id="tm-list"></div>
+      <p style="color:var(--text-3);font-size:12px;margin-top:14px">数据来源：闻道作业商用目标地图（全量进度管理）。本视图仅登录用户可见，不含单校交付明细。</p>
+    </div>
   </div>
 
-  <div class="toc">
+  <div class="toc" id="toc-roadmap">
     <div class="toc-title">目录</div>
     <!-- 目录项由 loadPublic() 动态生成 -->
+  </div>
+
+  <div class="toc" id="toc-targetmap" style="display:none">
+    <div class="toc-title">场景目录</div>
+    <!-- 场景目录由 renderTargetMap() 动态生成 -->
   </div>
 </div>
 
@@ -329,6 +424,7 @@
   let currentUser = null;
   let releasesByDate = {};
   let rawData = null;
+  let targetMapData = [];
 
   function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function weekday(date) { return ['周日','周一','周二','周三','周四','周五','周六'][new Date(date).getDay()]; }
@@ -419,20 +515,30 @@
     closeLogin();
     renderHeader();
     loadPublic();
+    if (currentUser) loadTargetMap();
   }
 
   function logout() {
     currentUser = null;
+    targetMapData = [];
     renderHeader();
     loadPublic();
+    if (!currentUser) {
+      // 退出登录时强制回到路线图视图
+      switchTab('roadmap');
+    }
   }
 
   function renderHeader() {
     const box = document.getElementById('header-actions');
+    const tabTargetmap = document.getElementById('tab-targetmap');
     if (!currentUser) {
       box.innerHTML = '<button class="btn btn-primary" onclick="openLogin()">登录</button>';
+      tabTargetmap.classList.add('locked');
       return;
     }
+
+    tabTargetmap.classList.remove('locked');
 
     let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + (currentUser.realname || roleName(currentUser.role)) + '</span></div>';
 
@@ -459,8 +565,8 @@
   }
 
   function renderGroups(groups) {
-    const content = document.querySelector('.content');
-    const toc = document.querySelector('.toc');
+    const content = document.getElementById('view-roadmap');
+    const toc = document.getElementById('toc-roadmap');
     // 移除旧 group + 目录
     content.querySelectorAll('.group').forEach(g => g.remove());
     toc.querySelectorAll('.toc-item').forEach(t => t.remove());
@@ -499,7 +605,10 @@
         ? '<button class="detail-btn" onclick="openDetail(\'' + g.date + '\')">查看详情</button>'
         : '';
       wrap.innerHTML = '<div class="group-head"><div class="date">' + g.date + ' · ' + weekday(g.date) + '</div><div class="count">共 ' + g.items.length + ' 项</div>' + detailBtn + '</div>' + sections;
-      content.appendChild(wrap);
+      // 插入到 view-roadmap 的 footer 之前
+      const footer = content.querySelector('.footer');
+      if (footer) content.insertBefore(wrap, footer);
+      else content.appendChild(wrap);
       // TOC
       const ti = document.createElement('div');
       ti.className = 'toc-item' + (idx === 0 ? ' active' : '');
@@ -570,6 +679,130 @@
     }
   }
   loadPublic();
+
+  // ---- 目标地图 ----
+  async function loadTargetMap() {
+    if (!currentUser) return;
+    try {
+      const data = await apiGet('/api/public/target-map');
+      targetMapData = data.items || [];
+      // 首次加载后，若当前在目标地图视图则渲染
+      const tmView = document.getElementById('view-targetmap');
+      if (tmView && tmView.style.display !== 'none') applyTargetFilter();
+    } catch (e) {
+      console.error('加载目标地图失败', e);
+      targetMapData = [];
+    }
+  }
+
+  function switchTab(which) {
+    const road = which === 'roadmap';
+    document.getElementById('view-roadmap').style.display = road ? '' : 'none';
+    document.getElementById('view-targetmap').style.display = road ? 'none' : '';
+    document.getElementById('toc-roadmap').style.display = road ? '' : 'none';
+    document.getElementById('toc-targetmap').style.display = road ? 'none' : '';
+    document.getElementById('filter-roadmap').style.display = road ? '' : 'none';
+    document.getElementById('filter-targetmap').style.display = road ? 'none' : '';
+    document.getElementById('overview-cards').style.display = road ? '' : 'none';
+    document.getElementById('tab-roadmap').classList.toggle('active', road);
+    document.getElementById('tab-targetmap').classList.toggle('active', !road);
+    if (!road) {
+      // 进入目标地图：未登录则强制跳回
+      if (!currentUser) {
+        alert('请先登录后查看目标地图');
+        switchTab('roadmap');
+        return;
+      }
+      // 数据未加载时按需拉取
+      if (!targetMapData.length) loadTargetMap();
+      else applyTargetFilter();
+    }
+  }
+
+  function meetBadge(m) {
+    if (m === '完全满足') return '<span class="badge meet-full">完全满足</span>';
+    if (m === '基本满足') return '<span class="badge meet-basic">基本满足</span>';
+    if (m === '完全不满足') return '<span class="badge meet-none">完全不满足</span>';
+    return '<span class="badge meet-none">' + escapeHtml(m || '—') + '</span>';
+  }
+  function stateBadge(s) {
+    const map = { '开发中': 'st-dev', '已排期': 'st-sched', '待排期': 'st-wait', '暂不响应': 'st-nores' };
+    return '<span class="badge ' + (map[s] || 'st-wait') + '">' + escapeHtml(s || '—') + '</span>';
+  }
+  function lvClass(l) { return ({ '高': 'lv-high', '中': 'lv-mid', '低': 'lv-low', '非必须': 'lv-na' }[l]) || ''; }
+
+  function applyTargetFilter() { renderTargetMap(); }
+  function clearTargetFilter() {
+    ['tmf-biz', 'tmf-level', 'tmf-meet', 'tmf-state'].forEach(function (id) { document.getElementById(id).value = ''; });
+    document.getElementById('tmf-keyword').value = '';
+    renderTargetMap();
+  }
+
+  function renderTargetMap() {
+    const biz = document.getElementById('tmf-biz').value;
+    const level = document.getElementById('tmf-level').value;
+    const meet = document.getElementById('tmf-meet').value;
+    const state = document.getElementById('tmf-state').value;
+    const kw = document.getElementById('tmf-keyword').value.trim().toLowerCase();
+    const rows = targetMapData.filter(function (r) {
+      if (biz && (r.biz || '').indexOf(biz) < 0) return false;
+      if (level && r.level !== level) return false;
+      if (meet && r.meetStatus !== meet) return false;
+      if (state && r.status !== state) return false;
+      if (kw) {
+        const hay = ((r.func || '') + (r.demand || '') + (r.biz || '')).toLowerCase();
+        if (hay.indexOf(kw) < 0) return false;
+      }
+      return true;
+    });
+    const groups = []; const map = new Map();
+    rows.forEach(function (r) {
+      const s = r.scene || '未分类';
+      if (!map.has(s)) { map.set(s, []); groups.push(s); }
+      map.get(s).push(r);
+    });
+    const list = document.getElementById('tm-list');
+    if (!groups.length) {
+      list.innerHTML = '<div class="tm-empty">无匹配的功能条目</div>';
+    } else {
+      list.innerHTML = groups.map(function (s, i) {
+        const items = map.get(s);
+        return '<div class="tm-scene" id="scene-' + i + '">'
+          + '<div class="tm-scene-head"><span class="name">' + escapeHtml(s) + '</span><span class="cnt">' + items.length + ' 项</span></div>'
+          + '<div class="tm-cards">' + items.map(tmCardHtml).join('') + '</div>'
+          + '</div>';
+      }).join('');
+    }
+    document.getElementById('tm-count').textContent = '共 ' + rows.length + ' 条';
+    renderSceneToc(groups);
+  }
+
+  function tmCardHtml(r) {
+    return '<div class="tm-card">'
+      + '<div class="tm-card-title">' + escapeHtml(r.demand || '—') + '</div>'
+      + '<div class="tm-card-meta">'
+        + '<span><b>环节</b>' + escapeHtml(r.link || '—') + '</span>'
+        + '<span><b>功能</b>' + escapeHtml(r.func || '—') + '</span>'
+        + '<span><b>必备</b><span class="' + lvClass(r.level) + '">' + escapeHtml(r.level || '—') + '</span></span>'
+        + '<span><b>业务</b>' + escapeHtml(r.biz || '—') + '</span>'
+        + '<span><b>满足度</b>' + meetBadge(r.meetStatus) + '</span>'
+        + '<span><b>状态</b>' + stateBadge(r.status) + '</span>'
+        + '<span><b>计划完成</b>' + escapeHtml(r.plannedAt || '—') + '</span>'
+        + '</div>'
+      + (r.currentState ? '<div class="tm-card-plan"><b>现状：</b>' + escapeHtml(r.currentState) + '</div>' : '')
+      + (r.followUp ? '<div class="tm-card-plan"><b>后续计划：</b>' + escapeHtml(r.followUp) + '</div>' : '')
+      + '</div>';
+  }
+
+  function renderSceneToc(groups) {
+    const box = document.getElementById('toc-targetmap');
+    box.innerHTML = '<div class="toc-title">场景目录</div>'
+      + groups.map(function (s, i) { return '<div class="toc-item" onclick="scrollToScene(' + i + ')">' + escapeHtml(s) + '</div>'; }).join('');
+  }
+  function scrollToScene(i) {
+    const el = document.getElementById('scene-' + i);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 </script>
 
 </body>

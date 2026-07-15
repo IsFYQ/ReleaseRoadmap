@@ -1,6 +1,7 @@
 """
 数据库初始化与连接
 """
+import json
 import os
 import sqlite3
 import threading
@@ -152,10 +153,29 @@ def init_db():
         FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS target_map (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_row_no INTEGER NOT NULL,
+        scene TEXT NOT NULL,
+        link TEXT,
+        func TEXT,
+        demand TEXT NOT NULL,
+        level TEXT,
+        biz TEXT,
+        current_state TEXT,
+        meet_status TEXT,
+        follow_up TEXT,
+        planned_at TEXT,
+        status TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_items_module ON items(module);
     CREATE INDEX IF NOT EXISTS idx_items_release_date ON items(release_date);
     CREATE INDEX IF NOT EXISTS idx_items_status ON items(status);
     CREATE INDEX IF NOT EXISTS idx_item_images_item ON item_images(item_id);
+    CREATE INDEX IF NOT EXISTS idx_target_map_scene ON target_map(scene);
     """
     with _lock, get_conn() as conn:
         conn.executescript(schema)
@@ -163,6 +183,7 @@ def init_db():
 
     # 种子数据（首次启动时）
     seed_if_empty()
+    seed_target_map_if_empty()
 
 
 def seed_if_empty():
@@ -281,3 +302,34 @@ def reset_all(operator="system", reason="手动重置"):
 def _now_str():
     from datetime import datetime
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def seed_target_map_if_empty():
+    """从 backend/data/target_map_seed.json 灌入目标地图数据，仅在表为空时执行。"""
+    if query("SELECT id FROM target_map LIMIT 1", one=True):
+        return
+    seed_path = os.path.join(os.path.dirname(__file__), "data", "target_map_seed.json")
+    if not os.path.isfile(seed_path):
+        return
+    try:
+        with open(seed_path, "r", encoding="utf-8") as f:
+            rows = json.load(f)
+    except (OSError, ValueError) as e:
+        print(f"[seed_target_map] 读取种子失败: {e}")
+        return
+    if not rows:
+        return
+    seq = [
+        (r["source_row_no"], r["scene"], r["link"], r["func"], r["demand"],
+         r["level"], r["biz"], r["current_state"], r["meet_status"],
+         r["follow_up"], r["planned_at"], r["status"])
+        for r in rows
+    ]
+    execute_many(
+        """INSERT INTO target_map
+           (source_row_no, scene, link, func, demand, level, biz,
+            current_state, meet_status, follow_up, planned_at, status)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+        seq,
+    )
+    print(f"[seed_target_map] 已灌入 {len(seq)} 条目标地图数据")
