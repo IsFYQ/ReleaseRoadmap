@@ -5,6 +5,7 @@ import json
 import csv
 import io
 import random
+import re
 import time
 from flask import Blueprint, request, Response
 
@@ -133,7 +134,30 @@ def data_source_logs(ds_id):
 @bp.route("/users", methods=["GET"])
 def list_users():
     rows = query("SELECT id,username,realname,role,product_lines,status,last_login,created_at FROM users ORDER BY id")
+    mapping = _pl_code_to_name()
+    for r in rows:
+        if r["product_lines"]:
+            parts = [p.strip() for p in re.split(r"[/,、]", r["product_lines"]) if p.strip()]
+            converted = []
+            for p in parts:
+                converted.append(mapping.get(p, p))
+            r["product_lines"] = " / ".join(converted)
     return ok(rows)
+
+
+def _pl_code_to_name():
+    return {r["code"]: r["name"] for r in query("SELECT code, name FROM product_lines")}
+
+
+def _normalize_product_lines_to_names(values):
+    mapping = _pl_code_to_name()
+    result = []
+    for v in values:
+        v = str(v).strip()
+        if not v:
+            continue
+        result.append(mapping.get(v, v))
+    return result
 
 
 @bp.route("/users", methods=["POST"])
@@ -150,10 +174,10 @@ def create_user():
         return fail("USERNAME_EXISTS", f"账号 {data['username']} 已存在")
     product_lines = data.get("productLines", "")
     if isinstance(product_lines, list):
-        product_lines = " / ".join(product_lines)
+        product_lines = " / ".join(_normalize_product_lines_to_names(product_lines))
     new_id = execute(
         "INSERT INTO users(username,realname,password,role,product_lines,status) VALUES (?,?,?,?,?,?)",
-        (data["username"], data["realname"], data.get("password", ""), data.get("role", "ops"),
+        (data["username"], data["realname"], "123456", data.get("role", "ops"),
          product_lines, data.get("status", "启用"))
     )
     execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
@@ -170,7 +194,7 @@ def update_user(user_id):
     data = request.get_json(silent=True) or {}
     product_lines = data.get("productLines", row["product_lines"])
     if isinstance(product_lines, list):
-        product_lines = " / ".join(product_lines)
+        product_lines = " / ".join(_normalize_product_lines_to_names(product_lines))
     execute(
         "UPDATE users SET realname=?, role=?, product_lines=?, status=? WHERE id=?",
         (data.get("realname", row["realname"]), data.get("role", row["role"]),
@@ -195,11 +219,33 @@ def delete_user(user_id):
     return ok(message="账号已删除")
 
 
+@bp.route("/users/<int:user_id>/reset-password", methods=["PUT"])
+def reset_password(user_id):
+    row = query("SELECT * FROM users WHERE id=?", (user_id,), one=True)
+    if not row:
+        return fail("NOT_FOUND", f"账号 {user_id} 不存在", 404)
+    execute("UPDATE users SET password=? WHERE id=?", ("123456", user_id))
+    execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
+            ("admin", "reset-password", f"user:{user_id}", f"重置账号 {row['username']} 密码"))
+    return ok(message="密码已重置为 123456")
+
+
 # ============ 产品线 ============
 
 @bp.route("/product-lines", methods=["GET"])
 def list_product_lines():
+    from datetime import datetime
+    month = datetime.now().strftime("%Y/%m")
     rows = query("SELECT * FROM product_lines ORDER BY id")
+    for r in rows:
+        name = r["name"]
+        ops_count = query("SELECT COUNT(*) c FROM users WHERE product_lines LIKE ?", (f"%{name}%",), one=True)["c"]
+        release_count = query(
+            "SELECT COUNT(*) c FROM items WHERE product_line=? AND status='published' AND substr(notify_time,1,7)=?",
+            (name, month), one=True
+        )["c"]
+        r["ops_count"] = ops_count
+        r["release_count"] = release_count
     return ok(rows)
 
 
@@ -232,6 +278,17 @@ def update_product_line(pl_id):
             ("admin", "update", f"product_line:{pl_id}", f"更新产品线 {row['name']}"))
     new_row = query("SELECT * FROM product_lines WHERE id=?", (pl_id,), one=True)
     return ok(new_row, message="产品线更新成功")
+
+
+@bp.route("/product-lines/<int:pl_id>", methods=["DELETE"])
+def delete_product_line(pl_id):
+    row = query("SELECT * FROM product_lines WHERE id=?", (pl_id,), one=True)
+    if not row:
+        return fail("NOT_FOUND", f"产品线 {pl_id} 不存在", 404)
+    execute("DELETE FROM product_lines WHERE id=?", (pl_id,))
+    execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
+            ("admin", "delete", f"product_line:{pl_id}", f"删除产品线 {row['name']}"))
+    return ok(message="产品线已删除")
 
 
 # ============ 审计日志 ============

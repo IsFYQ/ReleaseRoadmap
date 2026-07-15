@@ -243,6 +243,100 @@
   .lv-na { color: #8A90A2; }
   .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
 
+  /* 筛选栏：单行布局 */
+  #filter-roadmap, #filter-targetmap {
+    display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;
+    overflow-x: auto; padding-bottom: 2px;
+  }
+  #filter-roadmap .btn, #filter-targetmap .btn { flex-shrink: 0; padding: 7px 12px; }
+  #filter-roadmap input, #filter-targetmap input {
+    flex: 0 0 120px; min-width: 100px; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; background: #fff; color: var(--text);
+  }
+  #filter-targetmap .tm-count { margin-left: auto; white-space: nowrap; }
+
+  /* 多选下拉组件 */
+  .multi-select { position: relative; z-index: 1; flex: 0 0 auto; min-width: 80px; max-width: 130px; }
+  .multi-select.open { z-index: 2; }
+  .multi-trigger {
+    padding: 5px 22px 5px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+    background: #fff; color: var(--text); cursor: pointer; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; position: relative; min-height: 32px; display: flex; align-items: center; gap: 4px;
+  }
+  .multi-trigger::after {
+    content: ''; position: absolute; right: 8px; top: 50%; width: 0; height: 0;
+    margin-top: -2px; border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 4px solid var(--text-3);
+  }
+  .multi-select.open .multi-trigger { border-color: var(--primary); }
+  .multi-trigger .multi-placeholder { color: var(--text-3); font-size: 12.5px; }
+  .multi-trigger .multi-tag {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 1px 4px 1px 7px; border-radius: 10px; font-size: 11.5px;
+    background: var(--primary-soft); color: var(--primary); white-space: nowrap; flex-shrink: 0;
+  }
+  .multi-trigger .multi-tag .remove {
+    cursor: pointer; opacity: 0.6; font-size: 13px; line-height: 1; padding: 0 2px;
+  }
+  .multi-trigger .multi-tag .remove:hover { opacity: 1; background: rgba(91,108,255,0.15); border-radius: 50%; }
+  .multi-trigger .multi-more {
+    display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 10px;
+    font-size: 11.5px; background: #F0F0F4; color: var(--text-2); white-space: nowrap; flex-shrink: 0;
+  }
+  .multi-options {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; width: max-content; max-height: 240px;
+    overflow-y: auto; background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(31,35,48,0.12); z-index: 1000; padding: 6px 0;
+  }
+  .multi-options.fixed { position: fixed; }
+  .multi-select.open .multi-options { display: block; }
+  .multi-options label {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; font-size: 13px; color: var(--text);
+    cursor: pointer; white-space: nowrap;
+  }
+  .multi-options label:hover { background: var(--primary-soft); }
+  .multi-options input[type="checkbox"] { display: none; }
+  .multi-options label.selected { color: var(--primary); background: var(--primary-soft); }
+  .multi-options label.selected::after {
+    content: '✓'; margin-left: 10px; color: var(--primary); font-size: 12px; font-weight: 600;
+  }
+
+  /* 目标地图 · 行卡片 */
+  .tm-cards { display: flex; flex-direction: column; gap: 10px; }
+  .tm-card {
+    display: flex; flex-direction: column; gap: 8px;
+    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .tm-card:hover { box-shadow: 0 3px 12px rgba(31,34,53,0.06); border-color: #D7DBEA; }
+  .tm-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; }
+  .tm-card-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px;
+    font-size: 12px; white-space: nowrap; flex-shrink: 0;
+  }
+  .tag-link { background: #F3F4F8; color: var(--text); }
+  .tag-level-high { background: #FDEAEA; color: #D64545; }
+  .tag-level-mid { background: #FDF1E0; color: #C9862A; }
+  .tag-level-low { background: #E6F6EE; color: #1F9D5C; }
+  .tag-level-na { background: #F1F2F6; color: #8A90A2; }
+  .tag-meet-full { background: #E6F6EE; color: #1F9D5C; }
+  .tag-meet-basic { background: #E7F0FF; color: #3D8EE0; }
+  .tag-meet-none { background: #FDEAEA; color: #D64545; }
+  .tag-state-dev { background: #E7F0FF; color: #3D8EE0; }
+  .tag-state-sched { background: #FDF1E0; color: #C9862A; }
+  .tag-state-wait { background: #F1F2F6; color: #8A90A2; }
+  .tag-state-nores { background: #FDEAEA; color: #D64545; }
+  .tag-biz { background: #EEF0FF; color: var(--primary); }
+  .tm-card-state, .tm-card-follow {
+    font-size: 12px; color: var(--text-2); line-height: 1.5;
+  }
+  .tm-card-state .label, .tm-card-follow .label {
+    color: var(--text-3); font-weight: 500; margin-right: 4px;
+  }
+  .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
+
   /* Responsive */
   @media (max-width: 900px) {
     .header { padding: 16px 20px; }
@@ -262,6 +356,14 @@
     .overview { grid-template-columns: 1fr; }
     .header .filter { flex-direction: column; align-items: stretch; }
     .header .filter select, .header .filter input { width: 100%; }
+    .header .filter .multi-select { width: 100%; }
+    .header .filter .multi-trigger { width: 100%; }
+    #filter-roadmap, #filter-targetmap {
+      flex-direction: row; align-items: center; flex-wrap: nowrap;
+    }
+    #filter-roadmap .multi-select, #filter-targetmap .multi-select { width: auto; min-width: 80px; max-width: 130px; }
+    #filter-roadmap .multi-trigger, #filter-targetmap .multi-trigger { width: auto; }
+    #filter-roadmap input, #filter-targetmap input { flex: 0 0 100px; min-width: 80px; }
     .item-row { flex-direction: column; gap: 6px; }
     .item-entry { align-self: flex-start; margin-top: 0; }
   }
@@ -286,34 +388,70 @@
   </div>
 
   <div class="filter" id="filter-roadmap">
-    <select id="filter-product">
-      <option>全部产品线</option>
-      <option>闻道作业</option>
-      <option>直播教学</option>
-      <option>开放学校</option>
-    </select>
-    <select id="filter-type">
-      <option>全部类型</option>
-      <option>新增</option>
-      <option>优化</option>
-      <option>修复</option>
-    </select>
-    <select id="filter-date">
-      <option>全部日期</option>
-      <option>最近 7 天</option>
-      <option>最近 30 天</option>
-      <option>2026 年 7 月</option>
-    </select>
+    <div class="multi-select" id="ms-product">
+      <div class="multi-trigger" onclick="toggleMulti('ms-product')"><span class="multi-placeholder">全部产品线</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="闻道作业" onchange="onMultiChange('ms-product')">闻道作业</label>
+        <label><input type="checkbox" value="直播教学" onchange="onMultiChange('ms-product')">直播教学</label>
+        <label><input type="checkbox" value="开放学校" onchange="onMultiChange('ms-product')">开放学校</label>
+      </div>
+    </div>
+    <div class="multi-select" id="ms-type">
+      <div class="multi-trigger" onclick="toggleMulti('ms-type')"><span class="multi-placeholder">全部类型</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="新增" onchange="onMultiChange('ms-type')">新增</label>
+        <label><input type="checkbox" value="优化" onchange="onMultiChange('ms-type')">优化</label>
+        <label><input type="checkbox" value="修复" onchange="onMultiChange('ms-type')">修复</label>
+      </div>
+    </div>
+    <div class="multi-select" id="ms-date">
+      <div class="multi-trigger" onclick="toggleMulti('ms-date')"><span class="multi-placeholder">全部日期</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="最近 7 天" onchange="onMultiChange('ms-date')">最近 7 天</label>
+        <label><input type="checkbox" value="最近 30 天" onchange="onMultiChange('ms-date')">最近 30 天</label>
+        <label><input type="checkbox" value="2026 年 7 月" onchange="onMultiChange('ms-date')">2026 年 7 月</label>
+      </div>
+    </div>
     <input type="text" id="filter-keyword" placeholder="搜索功能点 / 功能入口" />
     <button class="btn btn-primary" onclick="applyFilter()">确定</button>
     <button class="btn" onclick="clearFilter()">清除筛选</button>
   </div>
 
   <div class="filter" id="filter-targetmap" style="display:none">
-    <select id="tmf-biz"><option value="">全部业务</option><option>直播业务</option><option>录播业务</option><option>独立项目</option></select>
-    <select id="tmf-level"><option value="">全部等级</option><option>高</option><option>中</option><option>低</option><option>非必须</option></select>
-    <select id="tmf-meet"><option value="">全部满足度</option><option>完全满足</option><option>基本满足</option><option>完全不满足</option></select>
-    <select id="tmf-state"><option value="">全部状态</option><option>待排期</option><option>已排期</option><option>开发中</option><option>暂不响应</option></select>
+    <div class="multi-select" id="ms-biz">
+      <div class="multi-trigger" onclick="toggleMulti('ms-biz')"><span class="multi-placeholder">全部业务</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="直播业务" onchange="onMultiChange('ms-biz')">直播业务</label>
+        <label><input type="checkbox" value="录播业务" onchange="onMultiChange('ms-biz')">录播业务</label>
+        <label><input type="checkbox" value="独立项目" onchange="onMultiChange('ms-biz')">独立项目</label>
+      </div>
+    </div>
+    <div class="multi-select" id="ms-level">
+      <div class="multi-trigger" onclick="toggleMulti('ms-level')"><span class="multi-placeholder">全部等级</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="高" onchange="onMultiChange('ms-level')">高</label>
+        <label><input type="checkbox" value="中" onchange="onMultiChange('ms-level')">中</label>
+        <label><input type="checkbox" value="低" onchange="onMultiChange('ms-level')">低</label>
+        <label><input type="checkbox" value="非必须" onchange="onMultiChange('ms-level')">非必须</label>
+      </div>
+    </div>
+    <div class="multi-select" id="ms-meet">
+      <div class="multi-trigger" onclick="toggleMulti('ms-meet')"><span class="multi-placeholder">全部满足度</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="完全满足" onchange="onMultiChange('ms-meet')">完全满足</label>
+        <label><input type="checkbox" value="基本满足" onchange="onMultiChange('ms-meet')">基本满足</label>
+        <label><input type="checkbox" value="完全不满足" onchange="onMultiChange('ms-meet')">完全不满足</label>
+      </div>
+    </div>
+    <div class="multi-select" id="ms-state">
+      <div class="multi-trigger" onclick="toggleMulti('ms-state')"><span class="multi-placeholder">全部状态</span></div>
+      <div class="multi-options">
+        <label><input type="checkbox" value="待排期" onchange="onMultiChange('ms-state')">待排期</label>
+        <label><input type="checkbox" value="已排期" onchange="onMultiChange('ms-state')">已排期</label>
+        <label><input type="checkbox" value="开发中" onchange="onMultiChange('ms-state')">开发中</label>
+        <label><input type="checkbox" value="暂不响应" onchange="onMultiChange('ms-state')">暂不响应</label>
+      </div>
+    </div>
     <input type="text" id="tmf-keyword" placeholder="关键字" />
     <button class="btn btn-primary" onclick="applyTargetFilter()">确定</button>
     <button class="btn" onclick="clearTargetFilter()">清空筛选</button>
@@ -422,6 +560,18 @@
   }
 
   let currentUser = null;
+  const AUTH_KEY = 'release_roadmap_user';
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    if (raw) currentUser = JSON.parse(raw);
+  } catch (e) {}
+
+  function saveUserToStorage(user) {
+    try {
+      if (user) localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+      else localStorage.removeItem(AUTH_KEY);
+    } catch (e) {}
+  }
   let releasesByDate = {};
   let rawData = null;
   let targetMapData = [];
@@ -431,13 +581,16 @@
   function typeClass(type) { return type === '新增' ? 'add' : type === '优化' ? 'opt' : 'fix'; }
   function parseDate(d) { return new Date(d + 'T00:00:00'); }
 
-  function jumpTo(id) {
+  function jumpTo(id, targetEl) {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
-      event.target.classList.add('active');
-    }
+    if (!el) return;
+    // 减去 sticky header 高度，避免标题被顶部遮挡
+    const header = document.querySelector('.header');
+    const offset = (header ? header.offsetHeight : 0) + 8;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+    document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    if (targetEl) targetEl.classList.add('active');
   }
 
   async function openDetail(date) {
@@ -512,6 +665,7 @@
         return;
       }
     }
+    saveUserToStorage(currentUser);
     closeLogin();
     renderHeader();
     loadPublic();
@@ -520,6 +674,7 @@
 
   function logout() {
     currentUser = null;
+    saveUserToStorage(null);
     targetMapData = [];
     renderHeader();
     loadPublic();
@@ -540,7 +695,7 @@
 
     tabTargetmap.classList.remove('locked');
 
-    let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + (currentUser.realname || roleName(currentUser.role)) + '</span></div>';
+    let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + roleName(currentUser.role) + '</span></div>';
 
     if (currentUser.role === 'ops' || currentUser.role === 'admin') {
       html += '<a class="btn btn-primary" href="' + (currentUser.role === 'admin' ? 'admin.html' : 'ops.html') + '">进入后台</a>';
@@ -613,7 +768,7 @@
       const ti = document.createElement('div');
       ti.className = 'toc-item' + (idx === 0 ? ' active' : '');
       ti.textContent = g.date;
-      ti.onclick = function() { jumpTo('g-' + g.date); };
+      ti.onclick = function(e) { jumpTo('g-' + g.date, e.currentTarget); };
       toc.appendChild(ti);
     });
   }
@@ -621,9 +776,9 @@
   // ---- 筛选逻辑 ----
   function getFilterValues() {
     return {
-      productLine: document.getElementById('filter-product').value,
-      type: document.getElementById('filter-type').value,
-      date: document.getElementById('filter-date').value,
+      productLine: getMultiValues('ms-product'),
+      type: getMultiValues('ms-type'),
+      date: getMultiValues('ms-date'),
       keyword: document.getElementById('filter-keyword').value.trim()
     };
   }
@@ -635,15 +790,19 @@
     const d30 = new Date(today); d30.setDate(d30.getDate() - 30);
 
     return groups.map(g => {
-      if (fv.date !== '全部日期') {
+      if (fv.date.length) {
         const gd = parseDate(g.date);
-        if (fv.date === '最近 7 天' && gd < d7) return null;
-        if (fv.date === '最近 30 天' && gd < d30) return null;
-        if (fv.date === '2026 年 7 月' && !(g.date >= '2026-07-01' && g.date <= '2026-07-31')) return null;
+        const keep = fv.date.some(function (d) {
+          if (d === '最近 7 天') return gd >= d7;
+          if (d === '最近 30 天') return gd >= d30;
+          if (d === '2026 年 7 月') return (g.date >= '2026-07-01' && g.date <= '2026-07-31');
+          return false;
+        });
+        if (!keep) return null;
       }
       const items = g.items.filter(it => {
-        if (fv.productLine !== '全部产品线' && it.productLine !== fv.productLine) return false;
-        if (fv.type !== '全部类型' && it.releaseType !== fv.type) return false;
+        if (fv.productLine.length && !fv.productLine.includes(it.productLine || '')) return false;
+        if (fv.type.length && !fv.type.includes(it.releaseType || '')) return false;
         if (fv.keyword) {
           const hay = ((it.featurePoint || '') + ' ' + (it.featureEntry || '')).toLowerCase();
           if (!hay.includes(fv.keyword.toLowerCase())) return false;
@@ -661,9 +820,12 @@
   }
 
   function clearFilter() {
-    document.getElementById('filter-product').selectedIndex = 0;
-    document.getElementById('filter-type').selectedIndex = 0;
-    document.getElementById('filter-date').selectedIndex = 0;
+    ['ms-product', 'ms-type', 'ms-date'].forEach(function (id) {
+      const el = document.getElementById(id);
+      el.querySelectorAll('.multi-options input').forEach(function (i) { i.checked = false; });
+      setMultiTriggerText(id);
+      updateMultiOptionStyles(id);
+    });
     document.getElementById('filter-keyword').value = '';
     if (rawData) renderGroups(rawData.groups);
   }
@@ -678,7 +840,9 @@
       console.error('加载发版列表失败', e);
     }
   }
+  renderHeader();
   loadPublic();
+  if (currentUser) loadTargetMap();
 
   // ---- 目标地图 ----
   async function loadTargetMap() {
@@ -719,78 +883,188 @@
     }
   }
 
-  function meetBadge(m) {
-    if (m === '完全满足') return '<span class="badge meet-full">完全满足</span>';
-    if (m === '基本满足') return '<span class="badge meet-basic">基本满足</span>';
-    if (m === '完全不满足') return '<span class="badge meet-none">完全不满足</span>';
-    return '<span class="badge meet-none">' + escapeHtml(m || '—') + '</span>';
+  // ---- 目标地图多选组件 ----
+  function resetMultiOptions(ms) {
+    const opts = ms.querySelector('.multi-options');
+    if (opts) {
+      opts.classList.remove('fixed');
+      opts.style.top = '';
+      opts.style.left = '';
+      opts.style.width = '';
+      opts.style.minWidth = '';
+    }
   }
-  function stateBadge(s) {
-    const map = { '开发中': 'st-dev', '已排期': 'st-sched', '待排期': 'st-wait', '暂不响应': 'st-nores' };
-    return '<span class="badge ' + (map[s] || 'st-wait') + '">' + escapeHtml(s || '—') + '</span>';
+  function updateMultiOptionStyles(id) {
+    const el = document.getElementById(id);
+    el.querySelectorAll('.multi-options label').forEach(function (label) {
+      const cb = label.querySelector('input[type="checkbox"]');
+      if (cb && cb.checked) label.classList.add('selected');
+      else label.classList.remove('selected');
+    });
   }
-  function lvClass(l) { return ({ '高': 'lv-high', '中': 'lv-mid', '低': 'lv-low', '非必须': 'lv-na' }[l]) || ''; }
+  function toggleMulti(id) {
+    const el = document.getElementById(id);
+    const wasOpen = el.classList.contains('open');
+    // 关闭全部并清除定位样式
+    document.querySelectorAll('.multi-select').forEach(function (ms) {
+      ms.classList.remove('open');
+      resetMultiOptions(ms);
+    });
+    if (!wasOpen) {
+      el.classList.add('open');
+      const trigger = el.querySelector('.multi-trigger');
+      const opts = el.querySelector('.multi-options');
+      if (trigger && opts) {
+        const rect = trigger.getBoundingClientRect();
+        opts.classList.add('fixed');
+        opts.style.top = (rect.bottom + 4) + 'px';
+        opts.style.left = rect.left + 'px';
+        opts.style.minWidth = rect.width + 'px';
+        updateMultiOptionStyles(id);
+      }
+    }
+  }
+  function getMultiValues(id) {
+    const el = document.getElementById(id);
+    return Array.from(el.querySelectorAll('.multi-options input:checked')).map(function (i) { return i.value; });
+  }
+  function setMultiTriggerText(id) {
+    const defaults = {
+      'ms-biz': '全部业务', 'ms-level': '全部等级', 'ms-meet': '全部满足度', 'ms-state': '全部状态',
+      'ms-product': '全部产品线', 'ms-type': '全部类型', 'ms-date': '全部日期'
+    };
+    const values = getMultiValues(id);
+    const trigger = document.querySelector('#' + id + ' .multi-trigger');
+    if (!values.length) {
+      trigger.innerHTML = '<span class="multi-placeholder">' + defaults[id] + '</span>';
+    } else {
+      const visible = values.slice(0, 2);
+      const rest = values.slice(2);
+      let html = visible.map(function (v) {
+        return '<span class="multi-tag">' + escapeHtml(v) +
+          '<span class="remove" onclick="removeMultiValue(\'' + id + '\', \'' + v + '\'); event.stopPropagation();">×</span></span>';
+      }).join('');
+      if (rest.length) {
+        html += '<span class="multi-more" title="' + escapeHtml(rest.join('、')) + '">+' + rest.length + '</span>';
+      }
+      trigger.innerHTML = html;
+    }
+    trigger.title = values.length ? values.join('、') : defaults[id];
+  }
+  function removeMultiValue(id, value) {
+    const el = document.getElementById(id);
+    el.querySelectorAll('.multi-options input').forEach(function (i) {
+      if (i.value === value) i.checked = false;
+    });
+    onMultiChange(id);
+  }
+  function onMultiChange(id) {
+    setMultiTriggerText(id);
+    updateMultiOptionStyles(id);
+    // 仅更新 UI，不触发筛选；筛选仅在点击【确定】时执行
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.multi-select')) {
+      document.querySelectorAll('.multi-select').forEach(function (ms) {
+        ms.classList.remove('open');
+        resetMultiOptions(ms);
+      });
+    }
+  });
+  // 滚动或缩放时关闭下拉，避免 fixed 定位错位
+  window.addEventListener('scroll', function () {
+    document.querySelectorAll('.multi-select').forEach(function (ms) {
+      ms.classList.remove('open');
+      resetMultiOptions(ms);
+    });
+  }, { passive: true });
+  window.addEventListener('resize', function () {
+    document.querySelectorAll('.multi-select').forEach(function (ms) {
+      ms.classList.remove('open');
+      resetMultiOptions(ms);
+    });
+  });
 
   function applyTargetFilter() { renderTargetMap(); }
   function clearTargetFilter() {
-    ['tmf-biz', 'tmf-level', 'tmf-meet', 'tmf-state'].forEach(function (id) { document.getElementById(id).value = ''; });
+    ['ms-biz', 'ms-level', 'ms-meet', 'ms-state'].forEach(function (id) {
+      const el = document.getElementById(id);
+      el.querySelectorAll('.multi-options input').forEach(function (i) { i.checked = false; });
+      setMultiTriggerText(id);
+      updateMultiOptionStyles(id);
+    });
     document.getElementById('tmf-keyword').value = '';
     renderTargetMap();
   }
 
   function renderTargetMap() {
-    const biz = document.getElementById('tmf-biz').value;
-    const level = document.getElementById('tmf-level').value;
-    const meet = document.getElementById('tmf-meet').value;
-    const state = document.getElementById('tmf-state').value;
+    const bizSet = getMultiValues('ms-biz');
+    const levelSet = getMultiValues('ms-level');
+    const meetSet = getMultiValues('ms-meet');
+    const stateSet = getMultiValues('ms-state');
     const kw = document.getElementById('tmf-keyword').value.trim().toLowerCase();
-    const rows = targetMapData.filter(function (r) {
-      if (biz && (r.biz || '').indexOf(biz) < 0) return false;
-      if (level && r.level !== level) return false;
-      if (meet && r.meetStatus !== meet) return false;
-      if (state && r.status !== state) return false;
-      if (kw) {
-        const hay = ((r.func || '') + (r.demand || '') + (r.biz || '')).toLowerCase();
-        if (hay.indexOf(kw) < 0) return false;
-      }
-      return true;
-    });
-    const groups = []; const map = new Map();
-    rows.forEach(function (r) {
+
+    // 收集所有场景（按原始出现顺序），作为标题常驻的完整列表
+    const allScenes = [];
+    const sceneIndex = new Map();
+    targetMapData.forEach(function (r) {
       const s = r.scene || '未分类';
-      if (!map.has(s)) { map.set(s, []); groups.push(s); }
-      map.get(s).push(r);
+      if (!sceneIndex.has(s)) {
+        sceneIndex.set(s, allScenes.length);
+        allScenes.push(s);
+      }
     });
+
+    // 执行筛选，得到匹配项
+    const matchMap = new Map();
+    let total = 0;
+    targetMapData.forEach(function (r) {
+      const bizVal = r.biz || '';
+      if (bizSet.length && !bizSet.some(function (b) { return bizVal.indexOf(b) >= 0; })) return;
+      if (levelSet.length && !levelSet.includes(r.level || '')) return;
+      if (meetSet.length && !meetSet.includes(r.meetStatus || '')) return;
+      if (stateSet.length && !stateSet.includes(r.status || '')) return;
+      if (kw) {
+        const hay = ((r.demand || '') + (r.currentState || '') + (r.followUp || '') + (r.biz || '')).toLowerCase();
+        if (hay.indexOf(kw) < 0) return;
+      }
+      const s = r.scene || '未分类';
+      if (!matchMap.has(s)) matchMap.set(s, []);
+      matchMap.get(s).push(r);
+      total++;
+    });
+
     const list = document.getElementById('tm-list');
-    if (!groups.length) {
-      list.innerHTML = '<div class="tm-empty">无匹配的功能条目</div>';
+    if (!allScenes.length) {
+      list.innerHTML = '<div class="tm-empty">暂无目标地图数据</div>';
     } else {
-      list.innerHTML = groups.map(function (s, i) {
-        const items = map.get(s);
+      list.innerHTML = allScenes.map(function (s, i) {
+        const items = matchMap.get(s) || [];
         return '<div class="tm-scene" id="scene-' + i + '">'
           + '<div class="tm-scene-head"><span class="name">' + escapeHtml(s) + '</span><span class="cnt">' + items.length + ' 项</span></div>'
-          + '<div class="tm-cards">' + items.map(tmCardHtml).join('') + '</div>'
+          + (items.length ? '<div class="tm-cards">' + items.map(tmCardHtml).join('') + '</div>' : '')
           + '</div>';
       }).join('');
     }
-    document.getElementById('tm-count').textContent = '共 ' + rows.length + ' 条';
-    renderSceneToc(groups);
+    document.getElementById('tm-count').textContent = '共 ' + total + ' 条';
+    renderSceneToc(allScenes);
   }
 
   function tmCardHtml(r) {
+    const levelMap = { '高': 'tag-level-high', '中': 'tag-level-mid', '低': 'tag-level-low', '非必须': 'tag-level-na' };
+    const meetMap = { '完全满足': 'tag-meet-full', '基本满足': 'tag-meet-basic', '完全不满足': 'tag-meet-none' };
+    const stateMap = { '开发中': 'tag-state-dev', '已排期': 'tag-state-sched', '待排期': 'tag-state-wait', '暂不响应': 'tag-state-nores' };
     return '<div class="tm-card">'
       + '<div class="tm-card-title">' + escapeHtml(r.demand || '—') + '</div>'
-      + '<div class="tm-card-meta">'
-        + '<span><b>环节</b>' + escapeHtml(r.link || '—') + '</span>'
-        + '<span><b>功能</b>' + escapeHtml(r.func || '—') + '</span>'
-        + '<span><b>必备</b><span class="' + lvClass(r.level) + '">' + escapeHtml(r.level || '—') + '</span></span>'
-        + '<span><b>业务</b>' + escapeHtml(r.biz || '—') + '</span>'
-        + '<span><b>满足度</b>' + meetBadge(r.meetStatus) + '</span>'
-        + '<span><b>状态</b>' + stateBadge(r.status) + '</span>'
-        + '<span><b>计划完成</b>' + escapeHtml(r.plannedAt || '—') + '</span>'
-        + '</div>'
-      + (r.currentState ? '<div class="tm-card-plan"><b>现状：</b>' + escapeHtml(r.currentState) + '</div>' : '')
-      + (r.followUp ? '<div class="tm-card-plan"><b>后续计划：</b>' + escapeHtml(r.followUp) + '</div>' : '')
+      + '<div class="tm-card-tags">'
+        + '<span class="tag tag-link">' + escapeHtml(r.link || '—') + '</span>'
+        + '<span class="tag ' + (levelMap[r.level] || 'tag-level-na') + '">' + escapeHtml(r.level || '—') + '</span>'
+        + '<span class="tag ' + (meetMap[r.meetStatus] || 'tag-meet-none') + '">' + escapeHtml(r.meetStatus || '—') + '</span>'
+        + '<span class="tag ' + (stateMap[r.status] || 'tag-state-wait') + '">' + escapeHtml(r.status || '—') + '</span>'
+        + '<span class="tag tag-biz">' + escapeHtml(r.biz || '—') + '</span>'
+      + '</div>'
+      + '<div class="tm-card-state"><span class="label">现状：</span>' + escapeHtml(r.currentState || '-') + '</div>'
+      + (r.followUp ? '<div class="tm-card-follow"><span class="label">后续计划：</span>' + escapeHtml(r.followUp) + '</div>' : '')
       + '</div>';
   }
 
@@ -801,7 +1075,12 @@
   }
   function scrollToScene(i) {
     const el = document.getElementById('scene-' + i);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!el) return;
+    // 减去 sticky header 高度，避免标题被顶部遮挡
+    const header = document.querySelector('.header');
+    const offset = (header ? header.offsetHeight : 0) + 8;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: top, behavior: 'smooth' });
   }
 </script>
 

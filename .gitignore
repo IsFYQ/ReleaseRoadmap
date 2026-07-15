@@ -20,3 +20,7 @@ __pycache__/
 实现方式/uploads/
 data.db
 *.db
+
+# Office 临时文件
+~$*
+

@@ -380,8 +380,8 @@
     <a href="index.html" class="nav-link">公开页</a>
     <a href="ops.html" class="nav-link">运营后台</a>
     <span class="role">超级管理员</span>
-    <span>管理员 · 付羽淇</span>
-    <span class="avatar">付</span>
+    <span>管理员</span>
+    <span class="avatar">管</span>
   </div>
 </div>
 
@@ -428,19 +428,6 @@
       <div class="stat-card"><div class="label">已配置数据源</div><div class="value" id="stat-sources">—</div><div class="delta">启用中数据源</div></div>
       <div class="stat-card"><div class="label">本月发版数</div><div class="value" id="stat-month">—</div><div class="delta">已通知功能点</div></div>
       <div class="stat-card"><div class="label">待处理同步失败</div><div class="value" id="stat-sync-fail">0</div><div class="delta warn">需关注</div></div>
-    </div>
-
-    <div class="card mt-16">
-      <div class="card-title">各产品线状态</div>
-      <div class="card-sub">运营分布与本季发版密度</div>
-      <table>
-        <thead><tr><th>产品线</th><th>负责人</th><th>运营数</th><th>本月发版</th><th>未通知</th><th>已通知</th><th>下次发版</th></tr></thead>
-        <tbody>
-          <tr><td><span class="tag">闻道作业</span></td><td>王蓉</td><td>2</td><td>18</td><td>3</td><td>15</td><td>2026-07-15</td></tr>
-          <tr><td><span class="tag tag-info">直播教学</span></td><td>张颖</td><td>2</td><td>7</td><td>1</td><td>6</td><td>2026-07-12</td></tr>
-          <tr><td><span class="tag tag-warn">开放学校</span></td><td>余婷</td><td>1</td><td>3</td><td>0</td><td>3</td><td>2026-08-01</td></tr>
-        </tbody>
-      </table>
     </div>
 
     <div class="card">
@@ -537,7 +524,7 @@
   <div class="view" id="view-product-lines">
     <div class="page-header">
       <div><h1>产品线管理</h1><div class="desc">维护产品线字典，作为数据隔离单元</div></div>
-      <div class="right"><button class="btn btn-primary" onclick="openAddProductLine()">+ 新增产品线</button></div>
+      <div class="right"><button class="btn btn-primary" onclick="openProductLineModal()">+ 新增产品线</button></div>
     </div>
 
     <div class="card">
@@ -748,7 +735,7 @@
       <div class="form-row">
         <div class="form-item"><label>名称</label><input id="src-name" placeholder="如：闻道作业-发版记录表" /></div>
         <div class="form-item"><label>类型</label><select id="src-type"><option>钉钉文档</option><option>Excel 上传</option></select></div>
-        <div class="form-item"><label>所属产品线</label><select id="src-pl"><option>闻道作业</option><option>直播教学</option><option>开放学校</option></select></div>
+        <div class="form-item"><label>所属产品线</label><select id="src-pl"></select></div>
       </div>
       <div class="form-row">
         <div class="form-item" style="flex:2"><label>钉钉文档 URL / 路径</label><input id="src-url" placeholder="https://dingtalk.com/doc/xxxxx" /></div>
@@ -789,33 +776,78 @@
   </div>
 </div>
 
-<!-- 新建运营账号弹窗 -->
+<!-- 账号编辑/新增弹窗 -->
 <div class="modal" id="user-modal" onclick="closeModal(event, 'user-modal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <div class="title">新建运营账号</div>
+      <div class="title" id="user-modal-title">新建运营账号</div>
       <button class="modal-close" onclick="closeModal(null, 'user-modal')">×</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="user-id" />
       <div class="form-row">
         <div class="form-item"><label>用户名</label><input id="user-name" placeholder="登录账号" /></div>
-        <div class="form-item"><label>初始密码</label><input id="user-pwd" type="password" placeholder="首次登录后需修改" /></div>
         <div class="form-item"><label>姓名</label><input id="user-realname" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item">
+          <label>状态</label>
+          <div class="radio-group" id="user-status-group">
+            <label><input type="radio" name="user-status" value="启用" checked /> 启用</label>
+            <label><input type="radio" name="user-status" value="禁用" /> 禁用</label>
+          </div>
+        </div>
       </div>
       <div class="form-row" style="margin-bottom:0">
         <div class="form-item">
           <label>负责产品线（可多选）</label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" id="user-pl-wd" checked /> 闻道作业</label>
-            <label><input type="checkbox" id="user-pl-live" /> 直播教学</label>
-            <label><input type="checkbox" id="user-pl-os" /> 开放学校</label>
-          </div>
+          <div class="checkbox-group" id="user-product-lines"></div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0" id="user-pwd-hint-row">
+        <div class="form-item">
+          <div class="readonly-note">初始密码固定为 123456，创建后自动下发。</div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal(null, 'user-modal')">取消</button>
-      <button class="btn btn-primary" onclick="createUser()">创建并下发</button>
+      <button class="btn btn-primary" onclick="saveUser()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 产品线编辑/新增弹窗 -->
+<div class="modal" id="product-line-modal" onclick="closeModal(event, 'product-line-modal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="title" id="product-line-modal-title">新增产品线</div>
+      <button class="modal-close" onclick="closeModal(null, 'product-line-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="product-line-id" />
+      <div class="form-row">
+        <div class="form-item"><label>产品线名称</label><input id="pl-name" placeholder="如：闻道作业" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>代码</label><input id="pl-code" placeholder="小写英文，如 wd-homework" /></div>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-item">
+          <label>状态</label>
+          <div class="radio-group" id="pl-status-group">
+            <label><input type="radio" name="pl-status" value="启用" checked /> 启用</label>
+            <label><input type="radio" name="pl-status" value="禁用" /> 禁用</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-row" id="pl-code-readonly-row" style="display:none;margin-bottom:0">
+        <div class="form-item"><div class="readonly-note">编辑时产品线代码不可修改。</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal(null, 'product-line-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveProductLine()">保存</button>
     </div>
   </div>
 </div>
@@ -1045,7 +1077,9 @@
         '<td><span class="tag ' + (u.status === '启用' ? 'tag-success' : 'tag-warn') + '">' + esc(u.status) + '</span></td>' +
         '<td>' + esc(u.last_login || '—') + '</td>' +
         '<td><div class="actions">' +
-          (u.role !== 'admin' ? '<span class="link" onclick="resetUserPwd(' + u.id + ')">重置密码</span><span class="link" onclick="toggleUserStatus(' + u.id + ')">' + (u.status === '启用' ? '禁用' : '启用') + '</span><span class="link danger" onclick="deleteUser(' + u.id + ')">删除</span>' : '<span class="link">重置密码</span>') +
+          '<span class="link" onclick="openUserModal(' + u.id + ')">编辑</span>' +
+          '<span class="link" onclick="resetUserPwd(' + u.id + ')">重置密码</span>' +
+          (u.role !== 'admin' ? '<span class="link" onclick="toggleUserStatus(' + u.id + ')">' + (u.status === '启用' ? '禁用' : '启用') + '</span><span class="link danger" onclick="deleteUser(' + u.id + ')">删除</span>' : '') +
         '</div></td>' +
       '</tr>'
     ).join('') || '<tr><td colspan="6" class="empty">暂无账号</td></tr>';
@@ -1055,10 +1089,10 @@
       '<tr>' +
         '<td><span class="tag">' + esc(p.name) + '</span></td>' +
         '<td>' + esc(p.code) + '</td>' +
-        '<td>—</td>' +
-        '<td>—</td>' +
+        '<td>' + esc(p.ops_count || 0) + '</td>' +
+        '<td>' + esc(p.release_count || 0) + '</td>' +
         '<td><span class="tag ' + (p.status === '启用' ? 'tag-success' : 'tag-gray') + '">' + esc(p.status) + '</span></td>' +
-        '<td><div class="actions"><span class="link" onclick="editProductLine(' + p.id + ')">编辑</span><span class="link danger" onclick="archiveProductLine(' + p.id + ')">归档</span></div></td>' +
+        '<td><div class="actions"><span class="link" onclick="openProductLineModal(' + p.id + ')">编辑</span><span class="link danger" onclick="deleteProductLine(' + p.id + ')">删除</span></div></td>' +
       '</tr>'
     ).join('') || '<tr><td colspan="6" class="empty">暂无产品线</td></tr>';
   }
@@ -1163,36 +1197,63 @@
   }
 
   // ==================== 用户 ====================
-  function openUserModal() {
-    document.getElementById('user-name').value = '';
-    document.getElementById('user-pwd').value = '';
-    document.getElementById('user-realname').value = '';
-    document.getElementById('user-pl-wd').checked = false;
-    document.getElementById('user-pl-live').checked = false;
-    document.getElementById('user-pl-os').checked = false;
+  function renderUserProductLineOptions() {
+    const box = document.getElementById('user-product-lines');
+    if (!box) return;
+    const enabled = productLines.filter(p => p.status === '启用');
+    box.innerHTML = enabled.map(p => '<label><input type="checkbox" name="user-product-line" value="' + esc(p.name) + '" /> ' + esc(p.name) + '</label>').join('') || '<span class="text-muted">暂无可用产品线</span>';
+  }
+
+  function openUserModal(user_id) {
+    renderUserProductLineOptions();
+    document.getElementById('user-modal-title').textContent = user_id ? '编辑账号' : '新建运营账号';
+    document.getElementById('user-id').value = user_id || '';
+    const nameInput = document.getElementById('user-name');
+    if (user_id) {
+      const u = users.find(x => x.id === user_id);
+      nameInput.value = u.username;
+      nameInput.disabled = true;
+      document.getElementById('user-realname').value = u.realname || '';
+      const statusEl = document.querySelector('input[name="user-status"][value="' + u.status + '"]');
+      if (statusEl) statusEl.checked = true;
+      const pls = (u.product_lines || '').split(' / ').map(s => s.trim()).filter(Boolean);
+      document.querySelectorAll('input[name="user-product-line"]').forEach(el => { el.checked = pls.includes(el.value); });
+      document.getElementById('user-pwd-hint-row').style.display = 'none';
+    } else {
+      nameInput.value = '';
+      nameInput.disabled = false;
+      document.getElementById('user-realname').value = '';
+      const statusEl = document.querySelector('input[name="user-status"][value="启用"]');
+      if (statusEl) statusEl.checked = true;
+      document.querySelectorAll('input[name="user-product-line"]').forEach(el => { el.checked = false; });
+      document.getElementById('user-pwd-hint-row').style.display = 'flex';
+    }
     document.getElementById('user-modal').classList.add('show');
   }
-  async function createUser() {
-    const pls = [];
-    if (document.getElementById('user-pl-wd').checked) pls.push('闻道作业');
-    if (document.getElementById('user-pl-live').checked) pls.push('直播教学');
-    if (document.getElementById('user-pl-os').checked) pls.push('开放学校');
+  async function saveUser() {
+    const user_id = document.getElementById('user-id').value;
+    const body = {
+      username: document.getElementById('user-name').value.trim(),
+      realname: document.getElementById('user-realname').value.trim(),
+      productLines: Array.from(document.querySelectorAll('input[name="user-product-line"]:checked')).map(el => el.value),
+      status: (document.querySelector('input[name="user-status"]:checked') || {}).value || '启用',
+      role: 'ops',
+    };
+    if (!body.username) { alert('请填写用户名'); return; }
     try {
-      await apiSend('POST', '/api/admin/users', {
-        username: document.getElementById('user-name').value.trim(),
-        realname: document.getElementById('user-realname').value.trim(),
-        password: document.getElementById('user-pwd').value,
-        productLines: pls,
-        role: 'ops',
-        status: '启用',
-      });
+      if (user_id) {
+        await apiSend('PUT', '/api/admin/users/' + user_id, body);
+      } else {
+        await apiSend('POST', '/api/admin/users', body);
+      }
       await loadUsers();
+      await loadProductLines();
       closeModal(null, 'user-modal');
-    } catch (e) { alert('创建失败：' + e.message); }
+    } catch (e) { alert('保存失败：' + e.message); }
   }
   async function deleteUser(user_id) {
     if (!confirm('确认删除该账号？')) return;
-    try { await apiSend('DELETE', '/api/admin/users/' + user_id, {}); await loadUsers(); }
+    try { await apiSend('DELETE', '/api/admin/users/' + user_id, {}); await loadUsers(); await loadProductLines(); }
     catch (e) { alert('删除失败：' + e.message); }
   }
   async function toggleUserStatus(user_id) {
@@ -1203,30 +1264,70 @@
       await loadUsers();
     } catch (e) { alert('操作失败：' + e.message); }
   }
-  function resetUserPwd(user_id) { alert('重置密码：已向用户邮箱发送重置链接（MVP 演示）'); }
+  async function resetUserPwd(user_id) {
+    if (!confirm('确认重置该账号密码？重置后密码为 123456。')) return;
+    try {
+      await apiSend('PUT', '/api/admin/users/' + user_id + '/reset-password', {});
+      alert('密码已重置为 123456');
+    } catch (e) { alert('重置失败：' + e.message); }
+  }
 
   // ==================== 产品线 ====================
-  async function openAddProductLine() {
-    const code = prompt('产品线代码（小写英文，如 wd-homework）');
-    if (!code) return;
-    const name = prompt('产品线名称（如 闻道作业）');
-    if (!name) return;
-    try { await apiSend('POST', '/api/admin/product-lines', { code, name, status: '启用' }); await loadProductLines(); }
-    catch (e) { alert('创建失败：' + e.message); }
+  function openProductLineModal(pl_id) {
+    document.getElementById('product-line-modal-title').textContent = pl_id ? '编辑产品线' : '新增产品线';
+    document.getElementById('product-line-id').value = pl_id || '';
+    const codeInput = document.getElementById('pl-code');
+    if (pl_id) {
+      const p = productLines.find(x => x.id === pl_id);
+      document.getElementById('pl-name').value = p.name;
+      codeInput.value = p.code;
+      codeInput.disabled = true;
+      const statusEl = document.querySelector('input[name="pl-status"][value="' + p.status + '"]');
+      if (statusEl) statusEl.checked = true;
+      document.getElementById('pl-code-readonly-row').style.display = 'flex';
+    } else {
+      document.getElementById('pl-name').value = '';
+      codeInput.value = '';
+      codeInput.disabled = false;
+      const statusEl = document.querySelector('input[name="pl-status"][value="启用"]');
+      if (statusEl) statusEl.checked = true;
+      document.getElementById('pl-code-readonly-row').style.display = 'none';
+    }
+    document.getElementById('product-line-modal').classList.add('show');
   }
-  function editProductLine(pl_id) { alert('编辑产品线 ' + pl_id + '（MVP 演示）'); }
-  async function archiveProductLine(pl_id) {
-    if (!confirm('确认归档该产品线？')) return;
-    try { await apiSend('PUT', '/api/admin/product-lines/' + pl_id, { status: '已归档' }); await loadProductLines(); }
-    catch (e) { alert('操作失败：' + e.message); }
+  async function saveProductLine() {
+    const pl_id = document.getElementById('product-line-id').value;
+    const body = {
+      name: document.getElementById('pl-name').value.trim(),
+      code: document.getElementById('pl-code').value.trim(),
+      status: (document.querySelector('input[name="pl-status"]:checked') || {}).value || '启用',
+    };
+    if (!body.name || !body.code) { alert('请填写产品线名称和代码'); return; }
+    try {
+      if (pl_id) {
+        await apiSend('PUT', '/api/admin/product-lines/' + pl_id, body);
+      } else {
+        await apiSend('POST', '/api/admin/product-lines', body);
+      }
+      await loadProductLines();
+      closeModal(null, 'product-line-modal');
+    } catch (e) { alert('保存失败：' + e.message); }
+  }
+  async function deleteProductLine(pl_id) {
+    if (!confirm('确认删除该产品线？')) return;
+    try { await apiSend('DELETE', '/api/admin/product-lines/' + pl_id, {}); await loadProductLines(); }
+    catch (e) { alert('删除失败：' + e.message); }
   }
   // 把产品线字典填入筛选下拉与编辑弹窗
   function fillProductLineOptions() {
     const filterSel = document.getElementById('filter-product-line');
     const editSel = document.getElementById('edit-product-line');
+    const srcPl = document.getElementById('src-pl');
+    const enabled = productLines.filter(p => p.status === '启用');
     const opts = '<option value="">全部</option>' + productLines.map(p => '<option value="' + esc(p.name) + '">' + esc(p.name) + '</option>').join('');
     if (filterSel) filterSel.innerHTML = opts;
-    if (editSel) editSel.innerHTML = productLines.map(p => '<option value="' + esc(p.name) + '">' + esc(p.name) + '</option>').join('') || '<option>闻道作业</option>';
+    if (editSel) editSel.innerHTML = enabled.map(p => '<option value="' + esc(p.name) + '">' + esc(p.name) + '</option>').join('') || '<option>闻道作业</option>';
+    if (srcPl) srcPl.innerHTML = productLines.map(p => '<option value="' + esc(p.name) + '">' + esc(p.name) + '</option>').join('') || '<option>闻道作业</option>';
   }
 
   // ==================== 排期 ====================

@@ -200,12 +200,12 @@ def seed_if_empty():
         if not query("SELECT id FROM product_lines WHERE code=?", (code,), one=True):
             execute("INSERT INTO product_lines(code,name,status) VALUES (?,?,?)", (code, name, status))
 
-    # 用户
+    # 用户（product_lines 使用产品线名称，便于前后端联动）
     users = [
         ("admin", "付羽淇", "admin", "全产品线", "启用"),
-        ("wangrong", "王蓉", "ops", "wd-homework", "启用"),
-        ("zhangying", "张颖", "ops", "live-teach", "启用"),
-        ("yuting", "余婷", "ops", "open-school", "启用"),
+        ("wangrong", "王蓉", "ops", "闻道作业", "启用"),
+        ("zhangying", "张颖", "ops", "直播教学", "启用"),
+        ("yuting", "余婷", "ops", "开放学校", "启用"),
     ]
     for u, n, r, pl, s in users:
         if not query("SELECT id FROM users WHERE username=?", (u,), one=True):
