@@ -19,6 +19,19 @@
     --warn: #E89B2A;
     --danger: #E25555;
     --info: #3D8EE0;
+    /* 目标地图专用变量（对齐原型） */
+    --tm-meet-full: #2DA878; --tm-meet-full-bg: #E7F4EE;
+    --tm-meet-basic: #4488D0; --tm-meet-basic-bg: #E9F0FA;
+    --tm-meet-none: #D0615C; --tm-meet-none-bg: #FBEAE9;
+    --tm-meet-empty-bg: #F1F2F6; --tm-meet-empty-border: #C5CAD7;
+    --tm-status-dev: #0D9488; --tm-status-sched: #D97706;
+    --tm-status-wait: #94A3B8; --tm-status-nores: #BE185D;
+    --tm-bg: #FFFFFF; --tm-bg-subtle: #FAFBFD; --tm-bg-muted: #F7F8FC; --tm-bg-inset: #F3F4F8;
+    --tm-text: #1F2330; --tm-text-2: #5A6172; --tm-text-3: #9098AC;
+    --tm-border: #E6E8EF; --tm-border-light: #EEF0F4;
+    --tm-radius-md: 6px; --tm-radius-lg: 8px; --tm-radius-xl: 10px; --tm-radius-2xl: 12px;
+    --tm-shadow-md: 0 4px 14px rgba(31,35,48,0.08); --tm-shadow-tip: 0 8px 28px rgba(31,35,48,0.14);
+    --tm-tf: 0.12s ease; --tm-tb: 0.18s ease;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -203,45 +216,99 @@
   }
   .tab.locked { display: none; }
 
-  /* 目标地图 · 分组卡片列表 */
-  .tm-count { color: var(--text-3); font-size: 12px; margin-left: auto; }
-  .tm-list { margin-top: 16px; }
-  .tm-scene { margin-bottom: 26px; }
-  .tm-scene-head {
-    display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-  }
-  .tm-scene-head .name { font-size: 16px; font-weight: 600; color: var(--text); }
-  .tm-scene-head .name::before {
-    content: ''; display: inline-block; width: 4px; height: 15px; border-radius: 2px;
-    background: var(--primary); margin-right: 8px; vertical-align: -2px;
-  }
-  .tm-scene-head .cnt { color: var(--text-3); font-size: 12.5px; }
-  .tm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
-  .tm-card {
-    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  }
-  .tm-card:hover { box-shadow: 0 3px 12px rgba(31,34,53,0.06); border-color: #D7DBEA; }
-  .tm-card-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
-  .tm-card-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--text-2); }
-  .tm-card-meta b { color: var(--text-3); font-weight: 500; margin-right: 4px; }
-  .tm-card-plan { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--text-2); line-height: 1.55; }
-  .tm-card-plan b { color: var(--text-3); font-weight: 500; }
+  /* ===== 目标地图（按原型重写） ===== */
+  .tm-count { color: var(--tm-text-3); font-size: 12px; margin-left: auto; }
 
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11.5px; white-space: nowrap; }
-  .badge.meet-full { background: #E6F6EE; color: #1F9D5C; }
-  .badge.meet-basic { background: #E7F0FF; color: #3D8EE0; }
-  .badge.meet-none { background: #FDEAEA; color: #D64545; }
-  .badge.st-dev { background: #E7F0FF; color: #3D8EE0; }
-  .badge.st-sched { background: #FDF1E0; color: #C9862A; }
-  .badge.st-wait { background: #F1F2F6; color: #8A90A2; }
-  .badge.st-nores { background: #FDEAEA; color: #D64545; }
-  .lv-high { color: #D64545; font-weight: 600; }
-  .lv-mid { color: #C9862A; }
-  .lv-low { color: #1F9D5C; }
-  .lv-na { color: #8A90A2; }
-  .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
+  /* 总览仪表盘：4 列 KPI 网格 */
+  .tm-overview { display: grid; grid-template-columns: 0.85fr 1.5fr 1.15fr 1.3fr; gap: 0; background: var(--tm-bg-subtle); border: 1px solid var(--tm-border); border-radius: var(--tm-radius-2xl); margin-bottom: 24px; overflow: hidden; }
+  .tm-kpi { padding: 18px 20px; border-right: 1px solid var(--tm-border-light); display: flex; flex-direction: column; }
+  .tm-kpi:last-child { border-right: none; }
+  .tm-kpi-label { font-size: 12px; font-weight: 500; color: var(--tm-text-3); margin-bottom: 10px; }
+  .tm-kpi-num { font-size: 26px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--tm-text); }
+  .tm-kpi-num .pct { font-size: 14px; font-weight: 600; margin-left: 2px; }
+  .tm-kpi-sub { font-size: 12px; color: var(--tm-text-2); margin-top: 6px; line-height: 1.6; }
+  .tm-kpi-sub .seg { display: inline-block; margin-right: 8px; }
+  .tm-kpi-sub .seg b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tm-stack { height: 10px; border-radius: 5px; overflow: hidden; background: var(--tm-border-light); display: flex; margin-top: auto; }
+  .tm-stack span { height: 100%; transition: width var(--tm-tb); }
+  .tm-stack span.full { background: var(--tm-meet-full); }
+  .tm-stack span.basic { background: var(--tm-meet-basic); }
+  .tm-stack span.none { background: var(--tm-meet-none); }
+  .tm-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 11.5px; color: var(--tm-text-2); flex-wrap: wrap; }
+  .tm-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+  .tm-legend b { font-weight: 600; color: var(--tm-text); font-variant-numeric: tabular-nums; margin-left: 1px; }
+  .tm-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 2px; }
+  .tm-status-item { display: flex; align-items: center; gap: 6px; }
+  .tm-status-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tm-status-item .n { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tm-text); line-height: 1; }
+  .tm-status-item .t { font-size: 11.5px; color: var(--tm-text-2); }
+  .tm-biz-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; }
+  .tm-biz-row .bn { width: 56px; color: var(--tm-text-2); flex-shrink: 0; }
+  .tm-biz-row .bar { flex: 1; height: 8px; border-radius: 4px; overflow: hidden; background: var(--tm-border-light); display: flex; }
+  .tm-biz-row .br { width: 36px; text-align: right; color: var(--tm-text-3); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+  /* 视图切换 */
+  .tm-switch { display: inline-flex; gap: 4px; padding: 4px; background: var(--tm-bg-inset); border-radius: 10px; margin-bottom: 16px; }
+  .tm-switch button { padding: 6px 16px; border: none; background: transparent; color: var(--tm-text-2); font-size: 13px; cursor: pointer; border-radius: 7px; transition: all var(--tm-tb); font-family: inherit; }
+  .tm-switch button:hover { color: var(--tm-text); background: rgba(255,255,255,0.7); }
+  .tm-switch button.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 3px rgba(31,35,48,0.08); }
+
+  /* 地图视图：场景 → 环节 → 色块墙 */
+  .tm-map { margin-top: 4px; }
+  .tm-map .tm-scene { margin-bottom: 24px; }
+  .tm-scene-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--tm-border); }
+  .tm-scene-head .name { font-size: 16px; font-weight: 600; color: var(--tm-text); }
+  .tm-scene-head .name::before { content: ''; display: inline-block; width: 4px; height: 15px; border-radius: 2px; background: var(--primary); margin-right: 8px; vertical-align: -2px; }
+  .tm-scene-head .cnt { color: var(--tm-text-3); font-size: 12.5px; }
+  .tm-link-row { margin-bottom: 16px; }
+  .tm-link-name { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px; color: var(--tm-text-3); margin-bottom: 9px; padding-left: 2px; }
+  .tm-link-name::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--tm-text-3); flex-shrink: 0; }
+  .tm-blocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 8px; }
+  .tm-block { position: relative; min-height: 54px; padding: 8px 10px 8px 11px; border-radius: var(--tm-radius-lg); background: var(--tm-meet-empty-bg); border-left: 4px solid var(--tm-meet-empty-border); cursor: pointer; transition: transform var(--tm-tf), box-shadow var(--tm-tf); overflow: hidden; }
+  .tm-block:hover { transform: translateY(-1px); box-shadow: var(--tm-shadow-md); z-index: 2; }
+  .tm-block.mf { background: var(--tm-meet-full-bg); border-left-color: var(--tm-meet-full); }
+  .tm-block.mb { background: var(--tm-meet-basic-bg); border-left-color: var(--tm-meet-basic); }
+  .tm-block.mn { background: var(--tm-meet-none-bg); border-left-color: var(--tm-meet-none); }
+  .tm-block.lh { border-left-width: 4px; opacity: 1; }
+  .tm-block.lm { border-left-width: 3px; opacity: 1; }
+  .tm-block.ll { border-left-width: 2px; opacity: 0.88; }
+  .tm-block.ln { border-left-width: 1px; opacity: 0.70; }
+  .tm-block-title { font-size: 12.5px; font-weight: 500; line-height: 1.4; color: var(--tm-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding-right: 14px; }
+  .tm-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; }
+  .tm-dot.d-dev { background: var(--tm-status-dev); }
+  .tm-dot.d-sched { background: var(--tm-status-sched); }
+  .tm-dot.d-wait { background: var(--tm-status-wait); }
+  .tm-dot.d-nores { background: var(--tm-status-nores); }
+  .tm-empty-scene { padding: 12px; color: var(--tm-text-3); font-size: 12.5px; }
+
+  /* hover 气泡 */
+  .tm-tip { position: fixed; z-index: 1000; max-width: 340px; padding: 12px 14px; background: #fff; border: 1px solid var(--tm-border); border-radius: var(--tm-radius-xl); box-shadow: var(--tm-shadow-tip); pointer-events: none; font-size: 12.5px; line-height: 1.6; }
+  .tm-tip-title { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; color: var(--tm-text); }
+  .tm-tip-row { color: var(--tm-text-2); margin-bottom: 2px; }
+  .tm-tip-row b { color: var(--tm-text-3); font-weight: 500; margin-right: 5px; }
+  .tm-tip-sep { border-top: 1px dashed var(--tm-border); margin: 8px 0; padding-top: 8px; }
+  .tm-tip-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+
+  /* 表格视图 */
+  .tm-table-wrap { border: 1px solid var(--tm-border); border-radius: var(--tm-radius-xl); overflow: hidden; max-height: 72vh; overflow-y: auto; }
+  .tm-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .tm-table th { position: sticky; top: 0; background: #FAFBFF; color: var(--tm-text-2); font-weight: 600; font-size: 12.5px; padding: 9px 12px; border-bottom: 1px solid var(--tm-border); text-align: left; z-index: 5; white-space: nowrap; }
+  .tm-table td { padding: 9px 12px; border-bottom: 1px solid var(--tm-border-light); color: var(--tm-text); vertical-align: middle; }
+  .tm-table td:nth-child(4), .tm-table td:nth-child(5), .tm-table td:nth-child(6), .tm-table td:nth-child(7) { white-space: nowrap; }
+  .tm-table tr.scene-row td { background: var(--tm-bg-muted); font-weight: 600; color: var(--tm-text); font-size: 13px; border-top: 1px solid var(--tm-border); border-bottom: 1px solid var(--tm-border); box-shadow: inset 3px 0 0 var(--primary); }
+  .tm-table tr.data-row:hover td { background: var(--tm-bg-subtle); }
+  .tm-table tr.expand-row td { background: var(--tm-bg-subtle); border-bottom: 1px solid var(--tm-border); }
+  .tm-table tr.expand-row .exp-content { padding: 4px 0; font-size: 12.5px; color: var(--tm-text-2); line-height: 1.7; }
+  .tm-table tr.expand-row .exp-content b { color: var(--tm-text-3); font-weight: 600; margin-right: 5px; }
+  .tm-table .td-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+  .tm-table .lv-h { font-weight: 600; color: var(--tm-text); }
+  .tm-table .lv-m { font-weight: 500; color: var(--tm-text); }
+  .tm-table .lv-l { font-weight: 400; color: var(--tm-text-2); opacity: 0.85; }
+  .tm-table .lv-n { font-weight: 400; color: var(--tm-text-3); opacity: 0.65; }
+  .tm-table .exp-icon { display: inline-block; width: 0; height: 0; border-left: 5px solid var(--tm-text-3); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 0.15s ease; vertical-align: 1px; margin-right: 6px; cursor: pointer; }
+  .tm-table .exp-icon.open { transform: rotate(90deg); }
+  .tm-table .dash { color: var(--tm-text-3); }
+  .tm-empty { padding: 40px; text-align: center; color: var(--tm-text-3); }
 
   /* 筛选栏：单行布局 */
   #filter-roadmap, #filter-targetmap {
@@ -256,8 +323,7 @@
   #filter-targetmap .tm-count { margin-left: auto; white-space: nowrap; }
 
   /* 多选下拉组件 */
-  .multi-select { position: relative; z-index: 1; flex: 0 0 auto; min-width: 80px; max-width: 130px; }
-  .multi-select.open { z-index: 2; }
+  .multi-select { position: relative; z-index: 1; flex: 0 0 auto; min-width: 80px; max-width: 130px; }  .multi-select.open { z-index: 2; }
   .multi-trigger {
     padding: 5px 22px 5px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
     background: #fff; color: var(--text); cursor: pointer; white-space: nowrap; overflow: hidden;
@@ -301,41 +367,6 @@
   .multi-options label.selected::after {
     content: '✓'; margin-left: 10px; color: var(--primary); font-size: 12px; font-weight: 600;
   }
-
-  /* 目标地图 · 行卡片 */
-  .tm-cards { display: flex; flex-direction: column; gap: 10px; }
-  .tm-card {
-    display: flex; flex-direction: column; gap: 8px;
-    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  }
-  .tm-card:hover { box-shadow: 0 3px 12px rgba(31,34,53,0.06); border-color: #D7DBEA; }
-  .tm-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; }
-  .tm-card-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .tag {
-    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px;
-    font-size: 12px; white-space: nowrap; flex-shrink: 0;
-  }
-  .tag-link { background: #F3F4F8; color: var(--text); }
-  .tag-level-high { background: #FDEAEA; color: #D64545; }
-  .tag-level-mid { background: #FDF1E0; color: #C9862A; }
-  .tag-level-low { background: #E6F6EE; color: #1F9D5C; }
-  .tag-level-na { background: #F1F2F6; color: #8A90A2; }
-  .tag-meet-full { background: #E6F6EE; color: #1F9D5C; }
-  .tag-meet-basic { background: #E7F0FF; color: #3D8EE0; }
-  .tag-meet-none { background: #FDEAEA; color: #D64545; }
-  .tag-state-dev { background: #E7F0FF; color: #3D8EE0; }
-  .tag-state-sched { background: #FDF1E0; color: #C9862A; }
-  .tag-state-wait { background: #F1F2F6; color: #8A90A2; }
-  .tag-state-nores { background: #FDEAEA; color: #D64545; }
-  .tag-biz { background: #EEF0FF; color: var(--primary); }
-  .tm-card-state, .tm-card-follow {
-    font-size: 12px; color: var(--text-2); line-height: 1.5;
-  }
-  .tm-card-state .label, .tm-card-follow .label {
-    color: var(--text-3); font-weight: 500; margin-right: 4px;
-  }
-  .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
 
   /* Responsive */
   @media (max-width: 900px) {
@@ -489,7 +520,13 @@
     </div>
 
     <div id="view-targetmap" style="display:none">
-      <div id="tm-list"></div>
+      <div id="tm-overview"></div>
+      <div class="tm-switch">
+        <button class="active" id="vbtn-map" onclick="switchTmView('map')">地图视图</button>
+        <button id="vbtn-table" onclick="switchTmView('table')">表格视图</button>
+      </div>
+      <div id="tm-map-view" class="tm-map"></div>
+      <div id="tm-table-view" style="display:none"></div>
       <p style="color:var(--text-3);font-size:12px;margin-top:14px">数据来源：闻道作业商用目标地图（全量进度管理）。本视图仅登录用户可见，不含单校交付明细。</p>
     </div>
   </div>
@@ -985,6 +1022,14 @@
     });
   });
 
+  /* 目标地图 · 全局状态 */
+  let tmAllScenes = [];
+  let tmMatchMap = new Map();
+  let tmTotal = 0;
+  let tmViewMode = 'map';
+  let tmRowMap = {};
+  let tmTipEl = null;
+
   function applyTargetFilter() { renderTargetMap(); }
   function clearTargetFilter() {
     ['ms-biz', 'ms-level', 'ms-meet', 'ms-state'].forEach(function (id) {
@@ -997,6 +1042,15 @@
     renderTargetMap();
   }
 
+  /* 编码映射 */
+  // 配色映射（对齐原型命名）
+  function meetCls(m) { return m === '完全满足' ? 'mf' : m === '基本满足' ? 'mb' : m === '完全不满足' ? 'mn' : ''; }
+  function meetColor(m) { return m === '完全满足' ? 'var(--tm-meet-full)' : m === '基本满足' ? 'var(--tm-meet-basic)' : m === '完全不满足' ? 'var(--tm-meet-none)' : 'var(--tm-meet-empty-border)'; }
+  function lvCls(l) { return l === '高' ? 'lh' : l === '中' ? 'lm' : l === '低' ? 'll' : 'ln'; }
+  function lvTdCls(l) { return l === '高' ? 'lv-h' : l === '中' ? 'lv-m' : l === '低' ? 'lv-l' : 'lv-n'; }
+  function stDotCls(s) { return s === '开发中' ? 'd-dev' : s === '已排期' ? 'd-sched' : s === '待排期' ? 'd-wait' : s === '暂不响应' ? 'd-nores' : ''; }
+  function stColor(s) { return s === '开发中' ? 'var(--tm-status-dev)' : s === '已排期' ? 'var(--tm-status-sched)' : s === '待排期' ? 'var(--tm-status-wait)' : s === '暂不响应' ? 'var(--tm-status-nores)' : 'transparent'; }
+
   function renderTargetMap() {
     const bizSet = getMultiValues('ms-biz');
     const levelSet = getMultiValues('ms-level');
@@ -1005,19 +1059,18 @@
     const kw = document.getElementById('tmf-keyword').value.trim().toLowerCase();
 
     // 收集所有场景（按原始出现顺序），作为标题常驻的完整列表
-    const allScenes = [];
+    tmAllScenes = [];
     const sceneIndex = new Map();
     targetMapData.forEach(function (r) {
       const s = r.scene || '未分类';
-      if (!sceneIndex.has(s)) {
-        sceneIndex.set(s, allScenes.length);
-        allScenes.push(s);
-      }
+      if (!sceneIndex.has(s)) { sceneIndex.set(s, tmAllScenes.length); tmAllScenes.push(s); }
     });
 
-    // 执行筛选，得到匹配项
-    const matchMap = new Map();
-    let total = 0;
+    // 执行筛选
+    tmMatchMap = new Map();
+    tmRowMap = {};
+    tmTotal = 0;
+    const matchedRows = [];
     targetMapData.forEach(function (r) {
       const bizVal = r.biz || '';
       if (bizSet.length && !bizSet.some(function (b) { return bizVal.indexOf(b) >= 0; })) return;
@@ -1029,43 +1082,188 @@
         if (hay.indexOf(kw) < 0) return;
       }
       const s = r.scene || '未分类';
-      if (!matchMap.has(s)) matchMap.set(s, []);
-      matchMap.get(s).push(r);
-      total++;
+      if (!tmMatchMap.has(s)) tmMatchMap.set(s, []);
+      tmMatchMap.get(s).push(r);
+      tmRowMap[r.rowNo] = r;
+      matchedRows.push(r);
+      tmTotal++;
     });
 
-    const list = document.getElementById('tm-list');
-    if (!allScenes.length) {
-      list.innerHTML = '<div class="tm-empty">暂无目标地图数据</div>';
-    } else {
-      list.innerHTML = allScenes.map(function (s, i) {
-        const items = matchMap.get(s) || [];
-        return '<div class="tm-scene" id="scene-' + i + '">'
-          + '<div class="tm-scene-head"><span class="name">' + escapeHtml(s) + '</span><span class="cnt">' + items.length + ' 项</span></div>'
-          + (items.length ? '<div class="tm-cards">' + items.map(tmCardHtml).join('') + '</div>' : '')
-          + '</div>';
-      }).join('');
-    }
-    document.getElementById('tm-count').textContent = '共 ' + total + ' 条';
-    renderSceneToc(allScenes);
+    renderTmOverview(matchedRows);
+    renderMapView();
+    renderTableView();
+    document.getElementById('tm-count').textContent = '共 ' + tmTotal + ' 条';
+    renderSceneToc(tmAllScenes);
   }
 
-  function tmCardHtml(r) {
-    const levelMap = { '高': 'tag-level-high', '中': 'tag-level-mid', '低': 'tag-level-low', '非必须': 'tag-level-na' };
-    const meetMap = { '完全满足': 'tag-meet-full', '基本满足': 'tag-meet-basic', '完全不满足': 'tag-meet-none' };
-    const stateMap = { '开发中': 'tag-state-dev', '已排期': 'tag-state-sched', '待排期': 'tag-state-wait', '暂不响应': 'tag-state-nores' };
-    return '<div class="tm-card">'
-      + '<div class="tm-card-title">' + escapeHtml(r.demand || '—') + '</div>'
-      + '<div class="tm-card-tags">'
-        + '<span class="tag tag-link">' + escapeHtml(r.link || '—') + '</span>'
-        + '<span class="tag ' + (levelMap[r.level] || 'tag-level-na') + '">' + escapeHtml(r.level || '—') + '</span>'
-        + '<span class="tag ' + (meetMap[r.meetStatus] || 'tag-meet-none') + '">' + escapeHtml(r.meetStatus || '—') + '</span>'
-        + '<span class="tag ' + (stateMap[r.status] || 'tag-state-wait') + '">' + escapeHtml(r.status || '—') + '</span>'
-        + '<span class="tag tag-biz">' + escapeHtml(r.biz || '—') + '</span>'
-      + '</div>'
-      + '<div class="tm-card-state"><span class="label">现状：</span>' + escapeHtml(r.currentState || '-') + '</div>'
-      + (r.followUp ? '<div class="tm-card-follow"><span class="label">后续计划：</span>' + escapeHtml(r.followUp) + '</div>' : '')
-      + '</div>';
+  /* 总览仪表盘：4 列 KPI 网格（总需求 / 满足率堆叠条 / 状态分布 / 业务线覆盖率） */
+  function renderTmOverview(rows) {
+    const total = rows.length;
+    const mf = rows.filter(r => r.meetStatus === '完全满足').length;
+    const mb = rows.filter(r => r.meetStatus === '基本满足').length;
+    const mn = rows.filter(r => r.meetStatus === '完全不满足').length;
+    const dev = rows.filter(r => r.status === '开发中').length;
+    const sch = rows.filter(r => r.status === '已排期').length;
+    const wait = rows.filter(r => r.status === '待排期').length;
+    const nor = rows.filter(r => r.status === '暂不响应').length;
+    const pct = n => total ? Math.round(n * 100 / total) : 0;
+    const sceneCount = new Set(rows.map(r => r.scene || '未分类')).size;
+    const satRate = total ? Math.round((mf + mb) * 100 / total) : 0;
+    const bizList = ['直播业务', '录播业务', '独立项目'];
+    const bizStats = bizList.map(b => {
+      const sub = rows.filter(r => (r.biz || '').indexOf(b) >= 0);
+      const sf = sub.filter(r => r.meetStatus === '完全满足').length;
+      const sb = sub.filter(r => r.meetStatus === '基本满足').length;
+      const sn = sub.filter(r => r.meetStatus === '完全不满足').length;
+      const rate = sub.length ? Math.round((sf + sb) * 100 / sub.length) : 0;
+      return { name: b, total: sub.length, sf, sb, sn, rate };
+    });
+
+    let html = '<div class="tm-kpi"><div class="tm-kpi-label">总需求数</div><div class="tm-kpi-num">' + total + '</div><div class="tm-kpi-sub">分布于 ' + sceneCount + ' 个场景</div></div>';
+    html += '<div class="tm-kpi"><div class="tm-kpi-label">满足率（完全 + 基本）</div><div class="tm-kpi-num" style="color:var(--tm-meet-full)">' + satRate + '<span class="pct">%</span></div>';
+    html += '<div class="tm-stack"><span class="full" style="width:' + pct(mf) + '%"></span><span class="basic" style="width:' + pct(mb) + '%"></span><span class="none" style="width:' + pct(mn) + '%"></span></div>';
+    html += '<div class="tm-legend"><span><i style="background:var(--tm-meet-full)"></i>完全满足 <b>' + mf + '</b></span><span><i style="background:var(--tm-meet-basic)"></i>基本满足 <b>' + mb + '</b></span><span><i style="background:var(--tm-meet-none)"></i>完全不满足 <b>' + mn + '</b></span></div></div>';
+    html += '<div class="tm-kpi"><div class="tm-kpi-label">状态分布</div><div class="tm-status-grid">';
+    html += '<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-dev)"></span><span class="n">' + dev + '</span><span class="t">开发中</span></div>';
+    html += '<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-sched)"></span><span class="n">' + sch + '</span><span class="t">已排期</span></div>';
+    html += '<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-wait)"></span><span class="n">' + wait + '</span><span class="t">待排期</span></div>';
+    html += '<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-nores)"></span><span class="n">' + nor + '</span><span class="t">暂不响应</span></div>';
+    html += '</div></div>';
+    html += '<div class="tm-kpi"><div class="tm-kpi-label">业务线覆盖率</div>';
+    bizStats.forEach(b => {
+      const bw = b.total ? (b.sf * 100 / b.total) : 0;
+      const bbw = b.total ? (b.sb * 100 / b.total) : 0;
+      const bnw = b.total ? (b.sn * 100 / b.total) : 0;
+      html += '<div class="tm-biz-row"><span class="bn">' + b.name.replace('业务', '') + '</span><span class="bar"><span style="width:' + bw + '%;background:var(--tm-meet-full)"></span><span style="width:' + bbw + '%;background:var(--tm-meet-basic)"></span><span style="width:' + bnw + '%;background:var(--tm-meet-none)"></span></span><span class="br">' + b.rate + '%</span></div>';
+    });
+    html += '</div>';
+    document.getElementById('tm-overview').innerHTML = html;
+  }
+
+  /* 地图视图：场景 → 环节 → 色块墙 */
+  function renderMapView() {
+    const box = document.getElementById('tm-map-view');
+    if (!tmAllScenes.length) { box.innerHTML = '<div class="tm-empty-scene" style="padding:40px;text-align:center">暂无目标地图数据</div>'; return; }
+    const html = tmAllScenes.map(function (s, i) {
+      const items = tmMatchMap.get(s) || [];
+      const linkOrder = [], linkMap = {};
+      items.forEach(function (r) {
+        const l = r.link || '未分类';
+        if (!linkMap[l]) { linkMap[l] = []; linkOrder.push(l); }
+        linkMap[l].push(r);
+      });
+      const linkHtml = items.length ? linkOrder.map(function (l) {
+        return '<div class="tm-link-row"><div class="tm-link-name">' + escapeHtml(l) + '</div><div class="tm-blocks">' + linkMap[l].map(function (r) {
+          const mc = meetCls(r.meetStatus), lc = lvCls(r.level), dc = stDotCls(r.status);
+          return '<div class="tm-block ' + mc + ' ' + lc + '" data-row="' + r.rowNo + '">'
+            + '<div class="tm-block-title">' + escapeHtml(r.demand || '—') + '</div>'
+            + (dc ? '<span class="tm-dot ' + dc + '"></span>' : '')
+            + '</div>';
+        }).join('') + '</div></div>';
+      }).join('') : '<div class="tm-empty-scene">0 项</div>';
+      return '<div class="tm-scene" id="tm-scene-' + i + '"><div class="tm-scene-head"><span class="name">' + escapeHtml(s) + '</span><span class="cnt">' + items.length + ' 项</span></div>' + linkHtml + '</div>';
+    }).join('');
+    box.innerHTML = html;
+    bindTmBlockTips();
+  }
+
+  /* 表格视图：8 列 + 场景行 + 数据行展开 */
+  function renderTableView() {
+    const wrap = document.getElementById('tm-table-view');
+    if (!tmAllScenes.length) { wrap.innerHTML = '<div class="tm-empty">暂无目标地图数据</div>'; return; }
+    let bodyHtml = '';
+    tmAllScenes.forEach(function (s, i) {
+      const items = tmMatchMap.get(s) || [];
+      const linkOrder = [], linkMap = {};
+      items.forEach(function (r) {
+        const l = r.link || '未分类';
+        if (!linkMap[l]) { linkMap[l] = []; linkOrder.push(l); }
+        linkMap[l].push(r);
+      });
+      bodyHtml += '<tr class="scene-row" data-scene-idx="' + i + '"><td colspan="8">' + escapeHtml(s) + '（' + items.length + ' 项）</td></tr>';
+      linkOrder.forEach(function (l) {
+        linkMap[l].forEach(function (r, ri) {
+          const dc = stDotCls(r.status), ltc = lvTdCls(r.level);
+          const showLink = ri === 0;
+          bodyHtml += '<tr class="data-row" onclick="toggleTmRow(this)">';
+          bodyHtml += '<td>' + (showLink ? escapeHtml(l) : '') + '</td>';
+          bodyHtml += '<td>' + escapeHtml(r.func || '—') + '</td>';
+          bodyHtml += '<td><span class="exp-icon"></span>' + escapeHtml(r.demand || '—') + '</td>';
+          bodyHtml += '<td><span class="' + ltc + '">' + escapeHtml(r.level || '—') + '</span></td>';
+          bodyHtml += '<td>' + (r.meetStatus ? '<span class="td-dot" style="background:' + meetColor(r.meetStatus) + '"></span>' + escapeHtml(r.meetStatus) : '<span class="dash">—</span>') + '</td>';
+          bodyHtml += '<td>' + (r.status ? '<span class="td-dot" style="background:' + stColor(r.status) + '"></span>' + escapeHtml(r.status) : '<span class="dash">—</span>') + '</td>';
+          bodyHtml += '<td>' + (r.plannedAt ? escapeHtml(r.plannedAt) : '<span class="dash">—</span>') + '</td>';
+          bodyHtml += '<td style="font-size:11.5px;color:var(--tm-text-2)">' + escapeHtml(r.biz || '—') + '</td>';
+          bodyHtml += '</tr>';
+          bodyHtml += '<tr class="expand-row" style="display:none"><td colspan="8"><div class="exp-content"><b>现状：</b>' + (r.currentState ? escapeHtml(r.currentState) : '—') + '<br><b>后续计划：</b>' + (r.followUp ? escapeHtml(r.followUp) : '—') + '</div></td></tr>';
+        });
+      });
+    });
+    if (!tmAllScenes.length) bodyHtml = '<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--tm-text-3)">无匹配的功能条目</td></tr>';
+    wrap.innerHTML = '<div class="tm-table-wrap"><table class="tm-table"><thead><tr><th style="width:110px">环节</th><th style="width:130px">功能</th><th>需求</th><th style="width:54px">等级</th><th style="width:84px">满足度</th><th style="width:72px">状态</th><th style="width:92px">计划时间</th><th style="width:150px">业务线</th></tr></thead><tbody>' + bodyHtml + '</tbody></table></div>';
+  }
+
+  /* 视图切换 */
+  function switchTmView(view) {
+    tmViewMode = view;
+    document.getElementById('tm-map-view').style.display = view === 'map' ? '' : 'none';
+    document.getElementById('tm-table-view').style.display = view === 'table' ? '' : 'none';
+    document.getElementById('vbtn-map').classList.toggle('active', view === 'map');
+    document.getElementById('vbtn-table').classList.toggle('active', view === 'table');
+  }
+
+  /* 表格行展开（对齐原型 exp-icon 旋转） */
+  function toggleTmRow(tr) {
+    const next = tr.nextElementSibling;
+    if (!next || !next.classList.contains('expand-row')) return;
+    const icon = tr.querySelector('.exp-icon');
+    if (next.style.display === 'none') {
+      next.style.display = '';
+      if (icon) icon.classList.add('open');
+    } else {
+      next.style.display = 'none';
+      if (icon) icon.classList.remove('open');
+    }
+  }
+
+  /* hover 气泡（对齐原型 tm-tip-* 类名） */
+  function ensureTmTip() {
+    if (!tmTipEl) {
+      tmTipEl = document.createElement('div');
+      tmTipEl.className = 'tm-tip';
+      tmTipEl.style.display = 'none';
+      document.body.appendChild(tmTipEl);
+    }
+    return tmTipEl;
+  }
+  function tmTipHtml(r) {
+    const dc = stDotCls(r.status);
+    let html = '<div class="tm-tip-title">' + escapeHtml(r.demand || '—') + '</div>';
+    html += '<div class="tm-tip-row"><b>环节</b>' + escapeHtml(r.link || '—') + '</div>';
+    html += '<div class="tm-tip-row"><b>功能</b>' + escapeHtml(r.func || '—') + '</div>';
+    html += '<div class="tm-tip-row"><b>等级</b>' + escapeHtml(r.level || '—') + '　<b>满足度</b><span class="tm-tip-dot" style="background:' + meetColor(r.meetStatus) + '"></span>' + escapeHtml(r.meetStatus || '—') + (dc ? '　<b>状态</b><span class="tm-tip-dot" style="background:' + stColor(r.status) + '"></span>' + escapeHtml(r.status) : '') + '</div>';
+    html += '<div class="tm-tip-row"><b>业务线</b>' + escapeHtml(r.biz || '—') + '　<b>计划时间</b>' + escapeHtml(r.plannedAt || '—') + '</div>';
+    html += '<div class="tm-tip-sep"><div class="tm-tip-row"><b>现状</b>' + (r.currentState ? escapeHtml(r.currentState) : '<span style="color:var(--tm-text-3)">—</span>') + '</div>';
+    html += '<div class="tm-tip-row"><b>后续计划</b>' + (r.followUp ? escapeHtml(r.followUp) : '<span style="color:var(--tm-text-3)">—</span>') + '</div></div>';
+    return html;
+  }
+  function bindTmBlockTips() {
+    document.querySelectorAll('#tm-map-view .tm-block').forEach(function (b) {
+      b.addEventListener('mouseenter', function () {
+        const r = tmRowMap[b.dataset.row]; if (!r) return;
+        const tip = ensureTmTip();
+        tip.innerHTML = tmTipHtml(r);
+        tip.style.display = 'block';
+        const rect = b.getBoundingClientRect();
+        let left = rect.left;
+        if (left + 340 + 20 > window.innerWidth) left = window.innerWidth - 356;
+        let top = rect.bottom + 8;
+        if (top + tip.offsetHeight + 12 > window.innerHeight) top = rect.top - tip.offsetHeight - 8;
+        tip.style.top = Math.max(8, top) + 'px';
+        tip.style.left = Math.max(8, left) + 'px';
+      });
+      b.addEventListener('mouseleave', function () { ensureTmTip().style.display = 'none'; });
+    });
   }
 
   function renderSceneToc(groups) {
@@ -1074,11 +1272,16 @@
       + groups.map(function (s, i) { return '<div class="toc-item" onclick="scrollToScene(' + i + ')">' + escapeHtml(s) + '</div>'; }).join('');
   }
   function scrollToScene(i) {
-    const el = document.getElementById('scene-' + i);
+    if (tmViewMode === 'table') {
+      const scroll = document.querySelector('#tm-table-view .tm-table-wrap');
+      const row = scroll ? scroll.querySelector('[data-scene-idx="' + i + '"]') : null;
+      if (row) scroll.scrollTop = row.offsetTop;
+      return;
+    }
+    const el = document.getElementById('tm-scene-' + i);
     if (!el) return;
-    // 减去 sticky header 高度，避免标题被顶部遮挡
     const header = document.querySelector('.header');
-    const offset = (header ? header.offsetHeight : 0) + 8;
+    const offset = (header ? header.offsetHeight : 0) + 20;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top: top, behavior: 'smooth' });
   }

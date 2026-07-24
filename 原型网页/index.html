@@ -5,449 +5,209 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>发版路线图 · 公开查看</title>
 <style>
-  :root {
-    --primary: #5B6CFF;
-    --primary-soft: #EEF0FF;
-    --primary-hover: #4858E8;
-    --bg: #FFFFFF;
-    --surface: #FFFFFF;
-    --text: #1F2330;
-    --text-2: #5A6172;
-    --text-3: #9098AC;
-    --border: #E6E8EF;
-    --success: #2BB673;
-    --warn: #E89B2A;
-    --danger: #E25555;
-    --info: #3D8EE0;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  /* Header */
-  .header {
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    background: var(--surface);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .header .title { font-size: 22px; font-weight: 600; }
-  .header .filter { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
-  .header .filter select, .header .filter input {
-    padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
-    background: #fff; color: var(--text);
-  }
-  .header .filter input { width: 220px; }
-
-  /* Header actions */
-  .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
-    background: #fff; color: var(--text); font-size: 13px;
-    cursor: pointer; transition: all 0.15s; text-decoration: none;
-  }
-  .btn:hover { border-color: var(--primary); color: var(--primary); }
-  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
-  .btn-outline { border-color: var(--primary); color: var(--primary); background: #fff; }
-  .btn-outline:hover { background: var(--primary-soft); }
-  .user-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
-  .user-badge .avatar {
-    width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, var(--primary), #8E9BFF);
-  }
-
-  /* Overview cards */
-  .overview {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    padding: 24px 32px;
-    background: linear-gradient(180deg, #FAFBFF, #FFFFFF);
-  }
-  .ov-card {
-    background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
-    box-shadow: 0 2px 8px rgba(30,34,53,0.04);
-  }
-  .ov-card .label { color: var(--text-2); font-size: 12.5px; }
-  .ov-card .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
-  .ov-card .desc { color: var(--text-3); font-size: 12px; margin-top: 6px; }
-  .ov-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .ov-card .tags .tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--primary-soft); color: var(--primary); }
-
-  /* Layout */
-  .page-wrapper { max-width: 960px; margin: 0 auto; }
-  .container { display: flex; padding: 8px 32px 60px; gap: 28px; }
-  .content { flex: 1; min-width: 0; }
-  .toc {
-    width: 180px; flex-shrink: 0; position: sticky; top: 160px; align-self: flex-start;
-    border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff;
-  }
-  .toc-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-  .toc-item { font-size: 12.5px; color: var(--text-2); padding: 6px 0; cursor: pointer; border-left: 2px solid transparent; padding-left: 8px; }
-  .toc-item:hover { color: var(--primary); border-left-color: var(--primary); }
-  .toc-item.active { color: var(--primary); border-left-color: var(--primary); font-weight: 500; }
-
-  /* Date group */
-  .group { margin-bottom: 28px; }
-  .group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .group-head .date { font-size: 18px; font-weight: 600; }
-  .group-head .count { color: var(--text-3); font-size: 13px; margin-right: auto; }
-  .group-head .detail-btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; background: #fff; cursor: pointer; }
-  .group-head .detail-btn:hover { background: var(--primary-soft); }
-
-  /* Type section */
-  .type-section { margin-bottom: 18px; }
-  .type-section:last-child { margin-bottom: 0; }
-  .type-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
-  .type-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .type-dot.add { background: var(--success); }
-  .type-dot.opt { background: var(--info); }
-  .type-dot.fix { background: var(--warn); }
-
-  /* Item row */
-  .item-row {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 9px 0; border-bottom: 1px solid var(--border); gap: 16px;
-  }
-  .item-row:last-child { border-bottom: none; }
-  .item-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
-  .item-text .pl { color: var(--text-2); }
-  .item-entry {
-    flex-shrink: 0; font-size: 12px; color: var(--primary);
-    background: var(--primary-soft); padding: 2px 8px; border-radius: 4px;
-    margin-top: 1px; white-space: nowrap;
-  }
-
-  /* Modal */
-  .modal {
-    display: none; position: fixed; inset: 0; z-index: 200;
-    background: rgba(31, 35, 48, 0.5); align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal.show { display: flex; }
-  .modal-content {
-    background: #fff; border-radius: 12px; max-width: 760px; width: 100%; max-height: 85vh;
-    display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(31,35,48,0.2);
-  }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
-  .modal-header .title { font-size: 16px; font-weight: 600; }
-  .modal-close { background: none; border: none; font-size: 20px; color: var(--text-3); cursor: pointer; }
-  .modal-body { padding: 20px; overflow-y: auto; }
-  .image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .image-grid .img {
-    aspect-ratio: 16/10; background: linear-gradient(135deg, #DDE3FF, #C8CFFF); border-radius: 8px;
-  }
-  .image-grid .img.wide { grid-column: 1 / -1; }
-
-  /* Footer */
-  .footer { text-align: center; color: var(--text-3); font-size: 12px; padding: 40px 32px; }
-
-  /* Tabs + 商用目标地图 —— 柔和分段控件 */
-  .tabs {
-    display: inline-flex;
-    gap: 4px;
-    margin-top: 14px;
-    padding: 4px;
-    background: #F3F4F8;
-    border-radius: 12px;
-  }
-  .tab {
-    padding: 7px 18px;
-    border: none;
-    background: transparent;
-    color: var(--text-2);
-    font-size: 13.5px;
-    cursor: pointer;
-    border-radius: 9px;
-    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-  }
-  .tab:hover { color: var(--text); background: rgba(255, 255, 255, 0.7); }
-  .tab.active {
-    background: #fff;
-    color: var(--primary);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(31, 35, 48, 0.08);
-  }
-  .tab.locked { display: none; }
-
-  /* 目标地图 · 分组卡片列表 */
-  .tm-count { color: var(--text-3); font-size: 12px; margin-left: auto; }
-  .tm-list { margin-top: 16px; }
-  .tm-scene { margin-bottom: 26px; }
-  .tm-scene-head {
-    display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-  }
-  .tm-scene-head .name { font-size: 16px; font-weight: 600; color: var(--text); }
-  .tm-scene-head .name::before {
-    content: ''; display: inline-block; width: 4px; height: 15px; border-radius: 2px;
-    background: var(--primary); margin-right: 8px; vertical-align: -2px;
-  }
-  .tm-scene-head .cnt { color: var(--text-3); font-size: 12.5px; }
-  .tm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
-  .tm-card {
-    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 13px 14px;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  }
-  .tm-card:hover { box-shadow: 0 3px 12px rgba(31,34,53,0.06); border-color: #D7DBEA; }
-  .tm-card-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
-  .tm-card-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--text-2); }
-  .tm-card-meta b { color: var(--text-3); font-weight: 500; margin-right: 4px; }
-  .tm-card-plan { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--text-2); line-height: 1.55; }
-  .tm-card-plan b { color: var(--text-3); font-weight: 500; }
-
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11.5px; white-space: nowrap; }
-  .badge.meet-full { background: #E6F6EE; color: #1F9D5C; }
-  .badge.meet-basic { background: #E7F0FF; color: #3D8EE0; }
-  .badge.meet-none { background: #FDEAEA; color: #D64545; }
-  .badge.st-dev { background: #E7F0FF; color: #3D8EE0; }
-  .badge.st-sched { background: #FDF1E0; color: #C9862A; }
-  .badge.st-wait { background: #F1F2F6; color: #8A90A2; }
-  .badge.st-nores { background: #FDEAEA; color: #D64545; }
-  .lv-high { color: #D64545; font-weight: 600; }
-  .lv-mid { color: #C9862A; }
-  .lv-low { color: #1F9D5C; }
-  .lv-na { color: #8A90A2; }
-
-  .tm-empty { padding: 40px; text-align: center; color: var(--text-3); }
-
-  /* Responsive */
-  @media (max-width: 900px) {
-    .header { padding: 16px 20px; }
-    .header .top { flex-wrap: wrap; }
-    .header .filter { width: 100%; }
-    .header .filter input { flex: 1; width: auto; }
-    .header-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
-    .overview { grid-template-columns: repeat(2, 1fr); padding: 16px 20px; }
-    .container { flex-direction: column; padding: 8px 20px 40px; }
-    .toc { width: 100%; position: static; display: flex; gap: 10px; padding: 12px; overflow-x: auto; }
-    .toc-title { display: none; }
-    .toc-item { border-left: none; border-bottom: 2px solid transparent; padding: 4px 6px; white-space: nowrap; }
-    .toc-item:hover, .toc-item.active { border-left-color: transparent; border-bottom-color: var(--primary); }
-    .image-grid { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 560px) {
-    .overview { grid-template-columns: 1fr; }
-    .header .filter { flex-direction: column; align-items: stretch; }
-    .header .filter select, .header .filter input { width: 100%; }
-    .item-row { flex-direction: column; gap: 6px; }
-    .item-entry { align-self: flex-start; margin-top: 0; }
-  }
+:root{--primary:#5B6CFF;--primary-soft:#EEF0FF;--primary-hover:#4858E8;--bg:#FFFFFF;--text:#1F2330;--text-2:#5A6172;--text-3:#9098AC;--border:#E6E8EF;--success:#2BB673;--warn:#E89B2A;--danger:#E25555;--info:#3D8EE0;
+--tm-meet-full:#2DA878;--tm-meet-full-bg:#E7F4EE;--tm-meet-basic:#4488D0;--tm-meet-basic-bg:#E9F0FA;--tm-meet-none:#D0615C;--tm-meet-none-bg:#FBEAE9;--tm-meet-empty-bg:#F1F2F6;--tm-meet-empty-border:#C5CAD7;
+--tm-status-dev:#0D9488;--tm-status-sched:#D97706;--tm-status-wait:#94A3B8;--tm-status-nores:#BE185D;
+--tm-bg:#FFFFFF;--tm-bg-subtle:#FAFBFD;--tm-bg-muted:#F7F8FC;--tm-bg-inset:#F3F4F8;--tm-text:#1F2330;--tm-text-2:#5A6172;--tm-text-3:#9098AC;--tm-border:#E6E8EF;--tm-border-light:#EEF0F4;
+--tm-radius-md:6px;--tm-radius-lg:8px;--tm-radius-xl:10px;--tm-radius-2xl:12px;
+--tm-shadow-xs:0 1px 2px rgba(31,35,48,0.04);--tm-shadow-md:0 4px 14px rgba(31,35,48,0.08);--tm-shadow-tip:0 8px 28px rgba(31,35,48,0.14);
+--tm-tf:0.12s ease;--tm-tb:0.18s ease}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--tm-bg);color:var(--tm-text);font-size:14px;line-height:1.6}
+.header{border-bottom:1px solid var(--tm-border);padding:18px 32px;background:var(--tm-bg);position:sticky;top:0;z-index:100}
+.header .top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header .title{font-size:22px;font-weight:600}
+.header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--tm-radius-md);border:1px solid var(--tm-border);background:#fff;color:var(--tm-text);font-size:13px;cursor:pointer;transition:all var(--tm-tf);text-decoration:none}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff}
+.user-badge{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tm-text-2)}
+.user-badge .avatar{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--primary),#8E9BFF)}
+.tabs{display:inline-flex;gap:4px;margin-top:14px;padding:4px;background:var(--tm-bg-inset);border-radius:12px}
+.tab{padding:7px 18px;border:none;background:transparent;color:var(--tm-text-2);font-size:13.5px;cursor:pointer;border-radius:9px;transition:all var(--tm-tb)}
+.tab:hover{color:var(--tm-text);background:rgba(255,255,255,0.7)}
+.tab.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(31,35,48,0.08)}
+.tab.locked{display:none}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px 32px;background:linear-gradient(180deg,#FAFBFF,#FFFFFF)}
+.ov-card{background:#fff;border:1px solid var(--tm-border);border-radius:12px;padding:18px 20px;box-shadow:var(--tm-shadow-xs)}
+.ov-card .label{color:var(--tm-text-2);font-size:12.5px}.ov-card .value{font-size:24px;font-weight:600;margin-top:4px}
+.ov-card .desc{color:var(--tm-text-3);font-size:12px;margin-top:6px}.ov-card .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ov-card .tags .tag{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--primary-soft);color:var(--primary)}
+.page-wrapper{max-width:1180px;margin:0 auto}
+.container{display:flex;padding:8px 32px 60px;gap:28px}
+.content{flex:1;min-width:0}
+.toc{width:180px;flex-shrink:0;position:sticky;top:160px;align-self:flex-start;border:1px solid var(--tm-border);border-radius:var(--tm-radius-xl);padding:16px;background:#fff}
+.toc-title{font-size:13px;font-weight:600;margin-bottom:10px}
+.toc-item{font-size:12.5px;color:var(--tm-text-2);padding:6px 0;cursor:pointer;border-left:2px solid transparent;padding-left:8px}
+.toc-item:hover{color:var(--primary);border-left-color:var(--primary)}
+.toc-item.active{color:var(--primary);border-left-color:var(--primary);font-weight:500}
+.group{margin-bottom:28px}.group-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.group-head .date{font-size:18px;font-weight:600}.group-head .count{color:var(--tm-text-3);font-size:13px;margin-right:auto}
+.group-head .detail-btn{font-size:12px;padding:5px 12px;border:1px solid var(--primary);color:var(--primary);border-radius:var(--tm-radius-md);background:#fff;cursor:pointer}
+.type-section{margin-bottom:18px}.type-section:last-child{margin-bottom:0}
+.type-title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-bottom:8px}
+.type-dot{width:8px;height:8px;border-radius:50%}.type-dot.add{background:var(--success)}.type-dot.opt{background:var(--info)}.type-dot.fix{background:var(--warn)}
+.item-row{display:flex;align-items:flex-start;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--tm-border);gap:16px}
+.item-row:last-child{border-bottom:none}.item-text{font-size:13.5px;color:var(--tm-text);line-height:1.5}.item-text .pl{color:var(--tm-text-2)}
+.item-entry{flex-shrink:0;font-size:12px;color:var(--primary);background:var(--primary-soft);padding:2px 8px;border-radius:4px;margin-top:1px;white-space:nowrap}
+.footer{text-align:center;color:var(--tm-text-3);font-size:12px;padding:40px 32px}
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(31,35,48,0.5);align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-content{background:#fff;border-radius:12px;max-width:760px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(31,35,48,0.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--tm-border)}
+.modal-header .title{font-size:16px;font-weight:600}.modal-close{background:none;border:none;font-size:20px;color:var(--tm-text-3);cursor:pointer}
+.modal-body{padding:20px;overflow-y:auto}
+.image-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.image-grid .img{aspect-ratio:16/10;background:linear-gradient(135deg,#DDE3FF,#C8CFFF);border-radius:8px}.image-grid .img.wide{grid-column:1/-1}
+/* tm overview */
+.tm-overview{display:grid;grid-template-columns:0.85fr 1.5fr 1.15fr 1.3fr;gap:0;background:var(--tm-bg-subtle);border:1px solid var(--tm-border);border-radius:var(--tm-radius-2xl);margin-bottom:24px;overflow:hidden}
+.tm-kpi{padding:18px 20px;border-right:1px solid var(--tm-border-light);display:flex;flex-direction:column}.tm-kpi:last-child{border-right:none}
+.tm-kpi-label{font-size:12px;font-weight:500;color:var(--tm-text-3);margin-bottom:10px}
+.tm-kpi-num{font-size:26px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--tm-text)}
+.tm-kpi-num .pct{font-size:14px;font-weight:600;margin-left:2px}
+.tm-kpi-sub{font-size:12px;color:var(--tm-text-2);margin-top:6px;line-height:1.6}
+.tm-kpi-sub .seg{display:inline-block;margin-right:8px}.tm-kpi-sub .seg b{font-weight:600;font-variant-numeric:tabular-nums}
+.tm-stack{height:10px;border-radius:5px;overflow:hidden;background:var(--tm-border-light);display:flex;margin-top:auto}
+.tm-stack span{height:100%;transition:width var(--tm-tb)}.tm-stack span.full{background:var(--tm-meet-full)}.tm-stack span.basic{background:var(--tm-meet-basic)}.tm-stack span.none{background:var(--tm-meet-none)}
+.tm-legend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--tm-text-2);flex-wrap:wrap}
+.tm-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:0}
+.tm-legend b{font-weight:600;color:var(--tm-text);font-variant-numeric:tabular-nums;margin-left:1px}
+.tm-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:2px}
+.tm-status-item{display:flex;align-items:center;gap:6px}
+.tm-status-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tm-status-item .n{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--tm-text);line-height:1}
+.tm-status-item .t{font-size:11.5px;color:var(--tm-text-2)}
+.tm-biz-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11.5px}
+.tm-biz-row .bn{width:56px;color:var(--tm-text-2);flex-shrink:0}
+.tm-biz-row .bar{flex:1;height:8px;border-radius:4px;overflow:hidden;background:var(--tm-border-light);display:flex}
+.tm-biz-row .br{width:36px;text-align:right;color:var(--tm-text-3);font-variant-numeric:tabular-nums;flex-shrink:0}
+/* tm switch */
+.tm-switch{display:inline-flex;gap:4px;padding:4px;background:var(--tm-bg-inset);border-radius:10px;margin-bottom:16px}
+.tm-switch button{padding:6px 16px;border:none;background:transparent;color:var(--tm-text-2);font-size:13px;cursor:pointer;border-radius:7px;transition:all var(--tm-tb)}
+.tm-switch button:hover{color:var(--tm-text);background:rgba(255,255,255,0.7)}
+.tm-switch button.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(31,35,48,0.08)}
+/* tm filter */
+.tm-filter{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.tm-filter select,.tm-filter input{padding:7px 10px;border:1px solid var(--tm-border);border-radius:var(--tm-radius-md);font-size:13px;background:#fff;color:var(--tm-text)}
+.tm-filter input{width:200px}.tm-count{color:var(--tm-text-3);font-size:12px;margin-left:auto}
+/* tm map */
+.tm-map .tm-scene{margin-bottom:24px}
+.tm-scene-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--tm-border)}
+.tm-scene-head .name{font-size:16px;font-weight:600;color:var(--tm-text)}
+.tm-scene-head .name::before{content:'';display:inline-block;width:4px;height:15px;border-radius:2px;background:var(--primary);margin-right:8px;vertical-align:-2px}
+.tm-scene-head .cnt{color:var(--tm-text-3);font-size:12.5px}
+.tm-link-row{margin-bottom:16px}
+.tm-link-name{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;letter-spacing:0.3px;color:var(--tm-text-3);margin-bottom:9px;padding-left:2px;text-transform:none}
+.tm-link-name::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--tm-text-3);flex-shrink:0}
+.tm-blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:8px}
+.tm-block{position:relative;min-height:54px;padding:8px 10px 8px 11px;border-radius:var(--tm-radius-lg);background:var(--tm-meet-empty-bg);border-left:4px solid var(--tm-meet-empty-border);cursor:pointer;transition:transform var(--tm-tf),box-shadow var(--tm-tf);overflow:hidden}
+.tm-block:hover{transform:translateY(-1px);box-shadow:var(--tm-shadow-md);z-index:2}
+.tm-block.mf{background:var(--tm-meet-full-bg);border-left-color:var(--tm-meet-full)}
+.tm-block.mb{background:var(--tm-meet-basic-bg);border-left-color:var(--tm-meet-basic)}
+.tm-block.mn{background:var(--tm-meet-none-bg);border-left-color:var(--tm-meet-none)}
+.tm-block.lh{border-left-width:4px;opacity:1}.tm-block.lm{border-left-width:3px;opacity:1}.tm-block.ll{border-left-width:2px;opacity:0.88}.tm-block.ln{border-left-width:1px;opacity:0.70}
+.tm-block-title{font-size:12.5px;font-weight:500;line-height:1.4;color:var(--tm-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-right:14px}
+.tm-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%}
+.tm-dot.d-dev{background:var(--tm-status-dev)}.tm-dot.d-sched{background:var(--tm-status-sched)}.tm-dot.d-wait{background:var(--tm-status-wait)}.tm-dot.d-nores{background:var(--tm-status-nores)}
+.tm-empty-scene{padding:12px;color:var(--tm-text-3);font-size:12.5px}
+/* tm tip */
+.tm-tip{display:none;position:fixed;max-width:340px;padding:12px 14px;background:#fff;border:1px solid var(--tm-border);border-radius:var(--tm-radius-xl);box-shadow:var(--tm-shadow-tip);z-index:1000;pointer-events:none;font-size:12.5px;line-height:1.6}
+.tm-tip-title{font-size:13.5px;font-weight:600;margin-bottom:6px;color:var(--tm-text)}
+.tm-tip-row{color:var(--tm-text-2);margin-bottom:2px}.tm-tip-row b{color:var(--tm-text-3);font-weight:500;margin-right:5px}
+.tm-tip-sep{border-top:1px dashed var(--tm-border);margin:8px 0;padding-top:8px}
+.tm-tip-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
+/* tm table */
+.tm-table-wrap{border:1px solid var(--tm-border);border-radius:var(--tm-radius-xl);overflow:hidden;max-height:72vh;overflow-y:auto}
+.tm-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.tm-table th{position:sticky;top:0;background:#FAFBFF;color:var(--tm-text-2);font-weight:600;font-size:12.5px;padding:9px 12px;border-bottom:1px solid var(--tm-border);text-align:left;z-index:5;white-space:nowrap}
+.tm-table td{padding:9px 12px;border-bottom:1px solid var(--tm-border-light);color:var(--tm-text);vertical-align:middle}
+.tm-table td:nth-child(4),.tm-table td:nth-child(5),.tm-table td:nth-child(6),.tm-table td:nth-child(7){white-space:nowrap}
+.tm-table tr.scene-row td{background:var(--tm-bg-muted);font-weight:600;color:var(--tm-text);font-size:13px;border-top:1px solid var(--tm-border);border-bottom:1px solid var(--tm-border);box-shadow:inset 3px 0 0 var(--primary)}
+.tm-table tr.data-row:hover td{background:var(--tm-bg-subtle)}
+.tm-table tr.expand-row td{background:var(--tm-bg-subtle);border-bottom:1px solid var(--tm-border)}
+.tm-table tr.expand-row .exp-content{padding:4px 0;font-size:12.5px;color:var(--tm-text-2);line-height:1.7}
+.tm-table tr.expand-row .exp-content b{color:var(--tm-text-3);font-weight:600;margin-right:5px}
+.tm-table .td-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
+.tm-table .lv-h{font-weight:600;color:var(--tm-text)}.tm-table .lv-m{font-weight:500;color:var(--tm-text)}
+.tm-table .lv-l{font-weight:400;color:var(--tm-text-2);opacity:0.85}.tm-table .lv-n{font-weight:400;color:var(--tm-text-3);opacity:0.65}
+.tm-table .exp-icon{display:inline-block;width:0;height:0;border-left:5px solid var(--tm-text-3);border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform 0.15s ease;vertical-align:1px;margin-right:6px;cursor:pointer}
+.tm-table .exp-icon.open{transform:rotate(90deg)}
+.tm-table .dash{color:var(--tm-text-3)}
+/* responsive */
+@media(max-width:900px){.header{padding:16px 20px}.header .top{flex-wrap:wrap}.overview{grid-template-columns:repeat(2,1fr);padding:16px 20px}.container{flex-direction:column;padding:8px 20px 40px}.toc{width:100%;position:static;display:flex;gap:10px;padding:12px;overflow-x:auto}.toc-title{display:none}.toc-item{border-left:none;border-bottom:2px solid transparent;padding:4px 6px;white-space:nowrap}.toc-item:hover,.toc-item.active{border-left-color:transparent;border-bottom-color:var(--primary)}.tm-overview{grid-template-columns:1fr 1fr}.tm-kpi{border-right:none;border-bottom:1px solid var(--tm-border-light)}.tm-blocks{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.image-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.overview{grid-template-columns:1fr}.tm-overview{grid-template-columns:1fr}.tm-blocks{grid-template-columns:1fr 1fr}.tm-filter{flex-direction:column;align-items:stretch}.tm-filter select,.tm-filter input{width:100%}.tm-table{font-size:11.5px}.tm-table th,.tm-table td{padding:7px 8px}}
 </style>
 </head>
 <body>
-
 <div class="page-wrapper">
-
 <div class="header">
   <div class="top">
-    <div>
-      <div class="title">发版路线图</div>
-    </div>
-    <div class="header-actions" id="header-actions">
-      <button class="btn btn-primary" onclick="openLogin()">登录</button>
-    </div>
+    <div><div class="title">发版路线图</div></div>
+    <div class="header-actions" id="header-actions"><button class="btn btn-primary" onclick="openLogin()">登录</button></div>
   </div>
   <div class="tabs">
     <div class="tab active" id="tab-roadmap" onclick="switchTab('roadmap')">发版路线图</div>
-    <div class="tab locked" id="tab-targetmap" onclick="switchTab('targetmap')">目标地图</div>
-  </div>
-
-  <div class="filter" id="filter-roadmap">
-    <select>
-      <option>全部产品线</option>
-      <option>闻道作业</option>
-      <option>直播教学</option>
-      <option>开放学校</option>
-    </select>
-    <select>
-      <option>全部类型</option>
-      <option>新增</option>
-      <option>优化</option>
-      <option>修复</option>
-    </select>
-    <select>
-      <option>全部日期</option>
-      <option>最近 7 天</option>
-      <option>最近 30 天</option>
-      <option>2026 年 7 月</option>
-    </select>
-    <input type="text" placeholder="搜索功能点 / 功能入口" />
-  </div>
-
-  <div class="filter" id="filter-targetmap" style="display:none">
-    <select id="tmf-biz"><option value="">全部业务</option><option>直播业务</option><option>录播业务</option><option>独立项目</option></select>
-    <select id="tmf-level"><option value="">全部等级</option><option>高</option><option>中</option><option>低</option><option>非必须</option></select>
-    <select id="tmf-meet"><option value="">全部满足度</option><option>完全满足</option><option>基本满足</option><option>完全不满足</option></select>
-    <select id="tmf-state"><option value="">全部状态</option><option>待排期</option><option>已排期</option><option>开发中</option><option>暂不响应</option></select>
-    <input type="text" id="tmf-keyword" placeholder="关键字" />
-    <button class="btn btn-primary" onclick="applyTargetFilter()">确定</button>
-    <button class="btn" onclick="clearTargetFilter()">清空筛选</button>
-    <span class="tm-count" id="tm-count"></span>
+    <div class="tab" id="tab-targetmap" onclick="switchTab('targetmap')">目标地图</div>
   </div>
 </div>
 
 <div class="overview" id="overview-cards">
-  <div class="ov-card">
-    <div class="label">最新发版</div>
-    <div class="value">2026-07-08</div>
-    <div class="desc">闻道作业 · 月度发版</div>
-  </div>
-  <div class="ov-card">
-    <div class="label">近 30 天发版</div>
-    <div class="value">28</div>
-    <div class="desc">+12% 较上月</div>
-  </div>
-  <div class="ov-card">
-    <div class="label">产品线分布</div>
-    <div class="tags">
-      <span class="tag">闻道作业 18</span>
-      <span class="tag">直播教学 7</span>
-      <span class="tag">开放学校 3</span>
-    </div>
-  </div>
-  <div class="ov-card">
-    <div class="label">下次发版预告</div>
-    <div class="value">07-15</div>
-    <div class="desc">闻道作业 · V3.7 暑期升级</div>
-  </div>
+  <div class="ov-card"><div class="label">最新发版</div><div class="value">2026-07-08</div><div class="desc">闻道作业 · 月度发版</div></div>
+  <div class="ov-card"><div class="label">近 30 天发版</div><div class="value">28</div><div class="desc">+12% 较上月</div></div>
+  <div class="ov-card"><div class="label">产品线分布</div><div class="tags"><span class="tag">闻道作业 18</span><span class="tag">直播教学 7</span><span class="tag">开放学校 3</span></div></div>
+  <div class="ov-card"><div class="label">下次发版预告</div><div class="value">07-15</div><div class="desc">闻道作业 · V3.7 暑期升级</div></div>
 </div>
 
 <div class="container">
   <div class="content">
     <div id="view-roadmap">
-
-    <div class="group" id="g-2026-07-08">
-      <div class="group-head">
-        <div class="date">2026-07-08</div>
-        <div class="count">2 项</div>
-        <button class="detail-btn" onclick="openDetail('2026-07-08')">查看详情</button>
+      <div class="group" id="g-2026-07-08"><div class="group-head"><div class="date">2026-07-08</div><div class="count">2 项</div><button class="detail-btn" onclick="openDetail('2026-07-08')">查看详情</button></div>
+        <div class="type-section"><div class="type-title"><span class="type-dot add"></span>新增</div><div class="item-row"><div class="item-text"><span class="pl">闻道作业：</span>运营后台 MVP 上线</div><div class="item-entry">—</div></div></div>
+        <div class="type-section"><div class="type-title"><span class="type-dot fix"></span>修复</div><div class="item-row"><div class="item-text"><span class="pl">闻道作业：</span>章节树偶发空白问题</div><div class="item-entry">课程-章节</div></div></div>
       </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot add"></span>新增</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">闻道作业：</span>运营后台 MVP 上线</div>
-          <div class="item-entry">—</div>
+      <div class="group" id="g-2026-07-05"><div class="group-head"><div class="date">2026-07-05</div><div class="count">1 项</div><button class="detail-btn" onclick="openDetail('2026-07-05')">查看详情</button></div>
+        <div class="type-section"><div class="type-title"><span class="type-dot opt"></span>优化</div><div class="item-row"><div class="item-text"><span class="pl">直播教学：</span>直播连麦稳定性优化</div><div class="item-entry">课堂-连麦</div></div></div>
+      </div>
+      <div class="group" id="g-2026-07-01"><div class="group-head"><div class="date">2026-07-01</div><div class="count">1 项</div><button class="detail-btn" onclick="openDetail('2026-07-01')">查看详情</button></div>
+        <div class="type-section"><div class="type-title"><span class="type-dot add"></span>新增</div><div class="item-row"><div class="item-text"><span class="pl">闻道作业：</span>V3.6 月度迭代</div><div class="item-entry">作业-批改 / 练习-错题本</div></div></div>
+      </div>
+      <div class="group" id="g-2026-06-25"><div class="group-head"><div class="date">2026-06-25</div><div class="count">11 项</div><button class="detail-btn" onclick="openDetail('2026-06-25')">查看详情</button></div>
+        <div class="type-section"><div class="type-title"><span class="type-dot add"></span>新增</div>
+          <div class="item-row"><div class="item-text"><span class="pl">资源应用：</span>支持批量处理"识别异常"数据</div><div class="item-entry">教辅作业-识别异常</div></div>
+          <div class="item-row"><div class="item-text"><span class="pl">资源应用：</span>教辅作业支持进入讲评页面，对单题进行讲解</div><div class="item-entry">教辅作业-讲解</div></div>
+          <div class="item-row"><div class="item-text"><span class="pl">底座：</span>1. 在试题任务-制作时，支持框选综合题小题 2. 在电子书栏目-支持框选综合题小题</div><div class="item-entry">电子书制作</div></div>
+        </div>
+        <div class="type-section"><div class="type-title"><span class="type-dot opt"></span>优化</div>
+          <div class="item-row"><div class="item-text"><span class="pl">直播教学：</span>公告中的附件下载改为浏览器自带的下载</div><div class="item-entry">信息公告</div></div>
+          <div class="item-row"><div class="item-text"><span class="pl">资源应用：</span>英文作文智能批阅的大模型由国外模型更换为国内模型</div><div class="item-entry">测验-英语作文</div></div>
+        </div>
+        <div class="type-section"><div class="type-title"><span class="type-dot fix"></span>修复</div>
+          <div class="item-row"><div class="item-text"><span class="pl">资源应用：</span>教辅提交作答时钉钉通知章节无提交数据的问题</div><div class="item-entry">教辅作业</div></div>
+          <div class="item-row"><div class="item-text"><span class="pl">底座：</span>修复"发知识点任务没有显示信息匹配题"问题</div><div class="item-entry">试题任务-知识点</div></div>
         </div>
       </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot fix"></span>修复</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">闻道作业：</span>章节树偶发空白问题</div>
-          <div class="item-entry">课程-章节</div>
-        </div>
-      </div>
+      <div class="footer">仅展示已发布内容 · 数据更新至 2026-07-08</div>
     </div>
-
-    <div class="group" id="g-2026-07-05">
-      <div class="group-head">
-        <div class="date">2026-07-05</div>
-        <div class="count">1 项</div>
-        <button class="detail-btn" onclick="openDetail('2026-07-05')">查看详情</button>
-      </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot opt"></span>优化</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">直播教学：</span>直播连麦稳定性优化</div>
-          <div class="item-entry">课堂-连麦</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" id="g-2026-07-01">
-      <div class="group-head">
-        <div class="date">2026-07-01</div>
-        <div class="count">1 项</div>
-        <button class="detail-btn" onclick="openDetail('2026-07-01')">查看详情</button>
-      </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot add"></span>新增</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">闻道作业：</span>V3.6 月度迭代</div>
-          <div class="item-entry">作业-批改 / 练习-错题本</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="group" id="g-2026-06-25">
-      <div class="group-head">
-        <div class="date">2026-06-25</div>
-        <div class="count">11 项</div>
-        <button class="detail-btn" onclick="openDetail('2026-06-25')">查看详情</button>
-      </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot add"></span>新增</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>支持批量处理“识别异常”数据</div>
-          <div class="item-entry">教辅作业-识别异常</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>教辅作业支持进入讲评页面，对单题进行讲解</div>
-          <div class="item-entry">教辅作业-讲解</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>支持点击试题题号板块（小程序）或讲解按钮（web端）查看教师讲解</div>
-          <div class="item-entry">教辅作业-试题详情</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">底座：</span>1. 在试题任务-制作时，支持框选综合题小题 2. 在电子书栏目-支持框选综合题小题</div>
-          <div class="item-entry">电子书制作</div>
-        </div>
-      </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot opt"></span>优化</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">直播教学：</span>公告中的附件下载改为浏览器自带的下载</div>
-          <div class="item-entry">信息公告、教学计划等公告栏</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>作业提交通知中隐藏发布者的姓（第一个字）</div>
-          <div class="item-entry">钉钉通知</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>英文作文智能批阅的大模型由国外模型更换为国内模型</div>
-          <div class="item-entry">测验-英语作文智能批阅</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>同步教学栏目中，“课时”包中仅有作业资源时，大标签现状展示为“课时”，优化展示为“作业”</div>
-          <div class="item-entry">同步教学</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">底座：</span>编辑器版本升级 验证：所有编辑器可正常使用</div>
-          <div class="item-entry">试题列表-试题编辑 试题任务-有结构、无结构试题任务-新建编辑 备课包-新建、编辑试题</div>
-        </div>
-      </div>
-      <div class="type-section">
-        <div class="type-title"><span class="type-dot fix"></span>修复</div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">资源应用：</span>教辅提交作答时，钉钉发通知提交了某个章节，但进入教辅作业模块，该章节无提交数据的问题</div>
-          <div class="item-entry">教辅作业</div>
-        </div>
-        <div class="item-row">
-          <div class="item-text"><span class="pl">底座：</span>修复“发知识点任务的时候没有显示出来”信息匹配题”问题</div>
-          <div class="item-entry">试题任务-知识点任务</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer">仅展示已发布内容 · 数据更新至 2026-07-08</div>
-    </div><!-- /view-roadmap -->
 
     <div id="view-targetmap" style="display:none">
-      <div id="tm-list"></div>
-      <p style="color:var(--text-3);font-size:12px;margin-top:14px">数据来源：闻道作业商用目标地图（全量进度管理）。本视图仅登录用户可见，不含单校交付明细。</p>
-    </div><!-- /view-targetmap -->
+      <div id="tm-overview"></div>
+      <div class="tm-switch">
+        <button class="active" id="vbtn-map" onclick="switchView('map')">地图视图</button>
+        <button id="vbtn-table" onclick="switchView('table')">表格视图</button>
+      </div>
+      <div class="tm-filter">
+        <select id="tmf-biz"><option value="">全部业务</option><option>直播业务</option><option>录播业务</option><option>独立项目</option></select>
+        <select id="tmf-level"><option value="">全部等级</option><option>高</option><option>中</option><option>低</option><option>非必须</option></select>
+        <select id="tmf-meet"><option value="">全部满足度</option><option>完全满足</option><option>基本满足</option><option>完全不满足</option></select>
+        <select id="tmf-state"><option value="">全部状态</option><option>开发中</option><option>已排期</option><option>待排期</option><option>暂不响应</option></select>
+        <input type="text" id="tmf-keyword" placeholder="搜索需求 / 现状 / 计划 / 业务线" />
+        <button class="btn btn-primary" onclick="applyFilter()">确定</button>
+        <button class="btn" onclick="clearFilter()">清空筛选</button>
+        <span class="tm-count" id="tm-count"></span>
+      </div>
+      <div id="tm-map-view" class="tm-map"></div>
+      <div id="tm-table-view" style="display:none"></div>
+      <p style="color:var(--tm-text-3);font-size:12px;margin-top:14px">数据来源：闻道作业商用目标地图（全量进度管理）。本视图仅登录用户可见，不含单校交付明细。</p>
+    </div>
   </div>
 
   <div class="toc" id="toc-roadmap">
@@ -459,215 +219,235 @@
   </div>
   <div class="toc" id="toc-targetmap" style="display:none"></div>
 </div>
-
 </div>
 
-<!-- Detail Modal -->
-<div class="modal" id="detail-modal" onclick="closeModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="title" id="detail-title">发版详情</div>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="image-grid" id="detail-images">
-        <div class="img"></div>
-        <div class="img"></div>
-        <div class="img wide"></div>
-      </div>
-      <p class="text-muted" style="color:var(--text-2);font-size:12.5px;margin-top:14px">以上为本次发版的功能截图与长图，可右键保存或滚动查看。</p>
-    </div>
-  </div>
-</div>
-
-<!-- Login Modal -->
-<div class="modal" id="login-modal" onclick="closeLogin(event)">
-  <div class="modal-content" style="max-width:360px" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="title">模拟登录</div>
-      <button class="modal-close" onclick="closeLogin()">×</button>
-    </div>
-    <div class="modal-body">
-      <p style="color:var(--text-2);font-size:13px;margin:0 0 12px">选择角色以演示登录状态：</p>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn btn-outline" onclick="login('guest')">普通用户登录</button>
-        <button class="btn btn-outline" onclick="login('ops')">运营登录</button>
-        <button class="btn btn-outline" onclick="login('admin')">管理员登录</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+<div class="modal" id="detail-modal" onclick="closeModal(event)"><div class="modal-content" onclick="event.stopPropagation()"><div class="modal-header"><div class="title" id="detail-title">发版详情</div><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="image-grid" id="detail-images"><div class="img"></div><div class="img"></div><div class="img wide"></div></div><p style="color:var(--tm-text-2);font-size:12.5px;margin-top:14px">以上为本次发版的功能截图与长图，可右键保存或滚动查看。</p></div></div></div>
+<div class="modal" id="login-modal" onclick="closeLogin(event)"><div class="modal-content" style="max-width:360px" onclick="event.stopPropagation()"><div class="modal-header"><div class="title">模拟登录</div><button class="modal-close" onclick="closeLogin()">×</button></div><div class="modal-body"><p style="color:var(--tm-text-2);font-size:13px;margin:0 0 12px">选择角色以演示登录状态：</p><div style="display:flex;flex-direction:column;gap:8px"><button class="btn btn-outline" onclick="login('guest')">普通用户登录</button><button class="btn btn-outline" onclick="login('ops')">运营登录</button><button class="btn btn-outline" onclick="login('admin')">管理员登录</button></div></div></div></div>
+<div class="tm-tip" id="tm-tip"></div>
 <script>
-  let currentUser = null;
+var TM_DATA = [{"scene": "校本资源建设与管理", "link": "校本资源建设", "func": "校本资源建设与管理闭环", "demand": "题单资源的便捷自主建设", "level": "高", "meet": "基本满足", "status": "开发中", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师自主建设题单；但欠缺一定的便捷性", "plan": "持续优化便捷性和AI识别准确性", "date": "2026-07-31"}, {"scene": "校本资源建设与管理", "link": "校本资源建设", "func": "校本资源建设与管理闭环", "demand": "课件资源的便捷建设", "level": "非必须", "meet": "完全不满足", "status": "暂不响应", "biz": "录播业务,独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "校本资源建设与管理", "link": "校本资源建设", "func": "校本资源建设与管理闭环", "demand": "校本资源数据看板", "level": "低", "meet": "完全不满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "校本资源建设与管理", "link": "校本资源建设", "func": "校本资源建设与管理闭环", "demand": "校本教辅的建设与使用（代为建设）", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "录播业务,独立项目", "cur": "无", "plan": "支持为学校建设校本教辅，且可使用", "date": ""}, {"scene": "日常作业与练习", "link": "组卷", "func": "多来源兼容", "demand": "平台内题单资源使用", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持用户直接使用平台内题单", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "组卷", "func": "多来源兼容", "demand": "丰富的题库，支持题库选题组卷", "level": "高", "meet": "完全满足", "status": "待排期", "biz": "录播业务,独立项目", "cur": "接入学科网，支持用户从我司题库或学科网选题进行组卷", "plan": "学科网刚接入，可能在后续还有一些适配相关优化，但需使用一段时间后才能发现问题", "date": ""}, {"scene": "日常作业与练习", "link": "组卷", "func": "多来源兼容", "demand": "自有试卷的快速使用", "level": "高", "meet": "基本满足", "status": "待排期", "biz": "录播业务,独立项目", "cur": "支持AI切题识别后组卷，但还无法满足“快速”的要求", "plan": "支持现成题单快速添加标记后使用，后续再完善试题内容", "date": ""}, {"scene": "日常作业与练习", "link": "组卷", "func": "多来源兼容", "demand": "基于学情的智能组卷", "level": "低", "meet": "完全不满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "支持教师基于学情进行智能组卷", "date": ""}, {"scene": "日常作业与练习", "link": "生成答题卡", "func": "支持常见纸张", "demand": "支持学校常用纸张", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持A3、A4、B4、8K常用纸张大小", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "生成答题卡", "func": "支持常见纸张", "demand": "支持先制卡后制题", "level": "低", "meet": "完全不满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "考试场景拓展后兼容", "date": ""}, {"scene": "日常作业与练习", "link": "扫描", "func": "多设备兼容", "demand": "支持主流品牌扫描仪的直连", "level": "中", "meet": "基本满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "理论上基本支持，但部分机器可能存在兼容问题，需具体型号具体观察和解决", "plan": "新增新设备使用时，提前调试，及时发现问题解决问题", "date": ""}, {"scene": "日常作业与练习", "link": "扫描", "func": "一键式便捷扫描", "demand": "扫描开始后自动进行，无额外人工动作", "level": "中", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持一键快速扫描", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "异常处理", "func": "异常数据尽量少", "demand": "有规律的异常可以系统自动处理", "level": "非必须", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "部分能总结出规律的异常已加入系统规则，自动处理；但仍需持续观察异常数据，", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "异常处理", "func": "支持手动处理各类异常", "demand": "教师能手动处理各类异常", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师、运营处理每次扫描数据的异常内容", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "异常处理", "func": "支持手动处理各类异常", "demand": "操作便捷", "level": "中", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "交互复杂，存在一定的优化空间", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "异常处理", "func": "支持手动处理各类异常", "demand": "上传异常优化", "level": "中", "meet": "完全不满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "", "plan": "指定给一个已经存在作答的用户时，支持选择是合并还是覆盖", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "识别准确率高", "demand": "AI自动识别客观题和分数准确率>99.5%", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "准确率稳定在99.5%~99.8%，处于行业中上水平", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "识别结果校验", "demand": "支持快速检验采集结果的准确性", "level": "中", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持集中呈现可能识别有误的数据，支持教师手动修正", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "AI自动批阅", "demand": "作文类", "level": "低", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持英语作文批阅，但是语文作文还欠缺", "plan": "支持语文作文", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "AI自动批阅", "demand": "填空题", "level": "中", "meet": "完全不满足", "status": "已排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "优先实现英语填空题的自动批阅", "date": "2026-08-31"}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "AI自动批阅", "demand": "主观题", "level": "中", "meet": "完全不满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "AI自动批阅", "demand": "留痕批阅", "level": "中", "meet": "完全不满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "识别与批改", "func": "在线批阅", "demand": "支持教师在线批阅", "level": "低", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师在线批阅题单", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "教师查看数据", "demand": "教师查看单次测验数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师查看单次测验数据", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "教师查看数据", "demand": "教师查看阶段数据", "level": "高", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师查看阶段数据，但是老版本；与当前业务的融合性不够", "plan": "升级阶段学情", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "教师查看数据", "demand": "不同角色校管查看数据", "level": "高", "meet": "完全满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持不同角色查看年级数据", "plan": "由于三方系统原因，导致权限会有部分放大，但总体不影响使用；后续优化权限", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "教师查看数据", "demand": "教师支持查看全班原卷；可快速切换", "level": "中", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持查看单个学生原卷", "plan": "增设 “原卷区” ，无需逐个点击学生姓名，一键批量展示全班清晰扫描卷面，完整呈现每位学生整份答题情况，方便教师整体掌握学生答题细节。（建议：教师可选择“全卷展示”和“主观题展示”两种模式）", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "教师讲评", "demand": "支持教师基于题单进行讲评", "level": "中", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持讲评、导出讲评材料", "plan": "讲评页面书写流畅度有待优化", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "学生查看数据", "demand": "学生查看单次作业数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持学生查看单次测验数据", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "学生查看数据", "demand": "学生查看阶段学情", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持学生查看阶段学情", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "学生查看数据", "demand": "支持安卓端查看各类学情数据", "level": "低", "meet": "完全不满足", "status": "", "biz": "", "cur": "无", "plan": "支持安卓端查看各类学情数据", "date": ""}, {"scene": "日常作业与练习", "link": "数据查看与应用", "func": "学生基于学情的自习", "demand": "学生自习室：基于学情查看知识讲解、进行巩固练习", "level": "低", "meet": "完全不满足", "status": "已排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "支持学生基于学情进行知识、错题巩固", "date": "2026-08-31"}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "教师查看并应用错题", "demand": "教师查看班级错题", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师查看班级错题", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "教师查看并应用错题", "demand": "基于班级错题的应用", "level": "中", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持教师基于错题进行组卷练习", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "教师查看并应用错题", "demand": "教师查看年级错题", "level": "低", "meet": "完全不满足", "status": "待排期", "biz": "录播业务,独立项目", "cur": "无", "plan": "支持教师查看并应用年级错题", "date": ""}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "教师查看并应用错题", "demand": "错题再练快速生成操作", "level": "中", "meet": "基本满足", "status": "", "biz": "直播业务,独立项目", "cur": "支持手动选择时间生成错题再练", "plan": "高频错题一键生成周周清小卷（可拓展：基于假期等不同场景，生成练习卷）", "date": ""}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "教师查看并应用错题", "demand": "基于错题自动生成学生个性化作业且可回采数据", "level": "中", "meet": "基本满足", "status": "", "biz": "录播业务,独立项目", "cur": "可以生成统一作业，个性化作业暂不支持", "plan": "", "date": ""}, {"scene": "日常作业与练习", "link": "错题的管理与运用", "func": "学生查看并管理错题", "demand": "学生查看并管理个人错题", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务,独立项目", "cur": "支持学生查看并管理个人错题", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "扫描", "func": "支持扫描教辅活页", "demand": "固定教辅全学科支持", "level": "高", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务", "cur": "暂不支持英语学科，其他学科支持", "plan": "拓展英语学科的教辅扫描和识别", "date": ""}, {"scene": "教辅作业数据采集", "link": "异常处理", "func": "支持手动处理各类异常", "demand": "教师能手动处理各类异常", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务", "cur": "支持教师、运营处理每次扫描数据的异常内容", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "识别与批改", "func": "识别结果校验", "demand": "支持快速检验采集结果的准确性", "level": "中", "meet": "完全不满足", "status": "开发中", "biz": "直播业务,录播业务", "cur": "无", "plan": "支持集中呈现可能识别有误的数据，支持教师手动修正", "date": "2026-06-30"}, {"scene": "教辅作业数据采集", "link": "识别与批改", "func": "识别准确率高", "demand": "识别准确率高", "level": "中", "meet": "基本满足", "status": "", "biz": "直播业务,录播业务", "cur": "由于教辅批阅随意，很多规律不好总结给AI，导致部分内容识别可能存在偏差", "plan": "1. 持续优化识别\n2. 规范教师批阅行为", "date": ""}, {"scene": "教辅作业数据采集", "link": "识别与批改", "func": "AI自动批阅", "demand": "填空题", "level": "中", "meet": "完全不满足", "status": "已排期", "biz": "直播业务,录播业务", "cur": "无", "plan": "优先实现英语填空题的自动批阅", "date": "2026-08-31"}, {"scene": "教辅作业数据采集", "link": "识别与批改", "func": "AI自动批阅", "demand": "主观题", "level": "低", "meet": "完全不满足", "status": "", "biz": "直播业务,录播业务", "cur": "无", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "识别与批改", "func": "AI自动批阅", "demand": "留痕批阅", "level": "非必须", "meet": "完全不满足", "status": "", "biz": "直播业务,录播业务", "cur": "无", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "数据查看与应用", "func": "教师查看教辅数据", "demand": "按书查看节点数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务", "cur": "支持按节点查看数据", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "数据查看与应用", "func": "教师查看教辅数据", "demand": "教辅数据纳入阶段学情", "level": "高", "meet": "完全不满足", "status": "已排期", "biz": "直播业务,录播业务", "cur": "无", "plan": "支持查看教辅阶段数据", "date": "2026-08-31"}, {"scene": "教辅作业数据采集", "link": "数据查看与应用", "func": "基于教辅数据讲评", "demand": "支持教师对教辅数据进行讲评", "level": "中", "meet": "完全不满足", "status": "开发中", "biz": "直播业务,录播业务", "cur": "无", "plan": "支持教师基于教辅数据进行讲评", "date": "2026-07-31"}, {"scene": "教辅作业数据采集", "link": "数据查看与应用", "func": "学生查看教辅数据", "demand": "按书查看节点数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务", "cur": "支持按节点查看数据", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "数据查看与应用", "func": "学生查看教辅数据", "demand": "教辅数据纳入阶段学情", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "直播业务,录播业务", "cur": "无", "plan": "学生阶段学情增加教辅数据", "date": ""}, {"scene": "教辅作业数据采集", "link": "错题的管理与运用", "func": "错题数据进入班级错题", "demand": "教师班级错题中包含教辅数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务", "cur": "教师班级错题中包含教辅数据", "plan": "", "date": ""}, {"scene": "教辅作业数据采集", "link": "错题的管理与运用", "func": "错题数据进入班级错题", "demand": "学生个人错题中包含教辅数据", "level": "高", "meet": "完全满足", "status": "", "biz": "直播业务,录播业务", "cur": "学生个人错题中包含教辅数据", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "考试管理", "func": "创建并管理考试", "demand": "新增、管理多学科的考试", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "考试管理", "func": "创建并管理考试", "demand": "校内同考", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "考试管理", "func": "创建并管理考试", "demand": "跨校同考", "level": "低", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "考试管理", "func": "创建并管理考试", "demand": "考试进度监控", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "组卷", "func": "细目表组卷", "demand": "支持细目表组卷", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "组卷", "func": "先制卡后组卷", "demand": "支持先制卡后根据试题完善卷信息", "level": "中", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "扫描", "func": "内容归属明确", "demand": "考试数据需明确，避免与日常作业数据混合", "level": "中", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "异常处理", "func": "便捷进行异常处理", "demand": "支持按上传记录进行异常处理", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "无", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "批阅", "func": "支持网阅", "demand": "支持按班批阅", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "批阅", "func": "支持网阅", "demand": "支持交叉按题、按人批阅", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "批阅", "func": "支持网阅", "demand": "支持双评模式及预警机制", "level": "中", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "数据查看与应用", "func": "教师查看数据", "demand": "教师查看各类报告", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "数据查看与应用", "func": "教师查看数据", "demand": "不同角色校管查看数据", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "数据查看与应用", "func": "学生查看考试数据", "demand": "学生查看考试数据", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "多学科统考", "link": "数据查看与应用", "func": "考试数据进入阶段学情", "demand": "考试数据进入阶段学情", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "独立项目", "cur": "", "plan": "", "date": ""}, {"scene": "校级教学管理与洞察", "link": "教学监管", "func": "校级教学数据监管", "demand": "教学监管仪表盘", "level": "高", "meet": "基本满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "支持校长查看月报", "plan": "内容待完善和丰富", "date": ""}, {"scene": "校级教学管理与洞察", "link": "教学监管", "func": "校级教学数据监管", "demand": "多场景应用数据融合", "level": "高", "meet": "完全不满足", "status": "待排期", "biz": "直播业务,录播业务,独立项目", "cur": "无", "plan": "", "date": ""}];
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function meetCls(m){return m==='完全满足'?'mf':m==='基本满足'?'mb':m==='完全不满足'?'mn':'';}
+function meetColor(m){return m==='完全满足'?'var(--tm-meet-full)':m==='基本满足'?'var(--tm-meet-basic)':m==='完全不满足'?'var(--tm-meet-none)':'var(--tm-meet-empty-border)';}
+function lvCls(l){return l==='高'?'lh':l==='中'?'lm':l==='低'?'ll':'ln';}
+function lvTdCls(l){return l==='高'?'lv-h':l==='中'?'lv-m':l==='低'?'lv-l':'lv-n';}
+function stDotCls(s){return s==='开发中'?'d-dev':s==='已排期'?'d-sched':s==='待排期'?'d-wait':s==='暂不响应'?'d-nores':'';}
+function stColor(s){return s==='开发中'?'var(--tm-status-dev)':s==='已排期'?'var(--tm-status-sched)':s==='待排期'?'var(--tm-status-wait)':s==='暂不响应'?'var(--tm-status-nores)':'transparent';}
 
-  function jumpTo(id) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-  }
+function filterRows(){
+  var biz=document.getElementById('tmf-biz').value;
+  var level=document.getElementById('tmf-level').value;
+  var meet=document.getElementById('tmf-meet').value;
+  var state=document.getElementById('tmf-state').value;
+  var kw=document.getElementById('tmf-keyword').value.trim().toLowerCase();
+  return TM_DATA.filter(function(r){
+    if(biz && (r.biz||'').indexOf(biz)<0) return false;
+    if(level && r.level!==level) return false;
+    if(meet && r.meet!==meet) return false;
+    if(state && r.status!==state) return false;
+    if(kw){var hay=((r.demand||'')+(r.cur||'')+(r.plan||'')+(r.biz||'')).toLowerCase();if(hay.indexOf(kw)<0) return false;}
+    return true;
+  });
+}
 
-  function openDetail(date) {
-    document.getElementById('detail-title').textContent = date + ' · 发版详情';
-    document.getElementById('detail-modal').classList.add('show');
-  }
+function renderOverview(rows){
+  var total=rows.length;
+  var mf=0,mb=0,mn=0;
+  rows.forEach(function(r){if(r.meet==='完全满足')mf++;else if(r.meet==='基本满足')mb++;else if(r.meet==='完全不满足')mn++;});
+  var dev=0,sch=0,wait=0,nor=0;
+  rows.forEach(function(r){if(r.status==='开发中')dev++;else if(r.status==='已排期')sch++;else if(r.status==='待排期')wait++;else if(r.status==='暂不响应')nor++;});
+  var bizList=['直播业务','录播业务','独立项目'];
+  var bizStats=bizList.map(function(b){
+    var sub=rows.filter(function(r){return (r.biz||'').indexOf(b)>=0;});
+    var sf=sub.filter(function(r){return r.meet==='完全满足';}).length;
+    var sb=sub.filter(function(r){return r.meet==='基本满足';}).length;
+    var sn=sub.filter(function(r){return r.meet==='完全不满足';}).length;
+    var rate=sub.length?Math.round((sf+sb)/sub.length*100):0;
+    return{name:b,total:sub.length,sf:sf,sb:sb,sn:sn,rate:rate};
+  });
+  var pct=function(n){return total?Math.round(n/total*100):0;};
+  var sceneCount=new Set(rows.map(function(r){return r.scene;})).size;
+  var satRate=total?Math.round((mf+mb)/total*100):0;
+  var html='<div class="tm-kpi"><div class="tm-kpi-label">总需求数</div><div class="tm-kpi-num">'+total+'</div><div class="tm-kpi-sub">分布于 '+sceneCount+' 个场景</div></div>';
+  html+='<div class="tm-kpi"><div class="tm-kpi-label">满足率（完全 + 基本）</div><div class="tm-kpi-num" style="color:var(--tm-meet-full)">'+satRate+'<span class="pct">%</span></div>';
+  html+='<div class="tm-stack"><span class="full" style="width:'+pct(mf)+'%"></span><span class="basic" style="width:'+pct(mb)+'%"></span><span class="none" style="width:'+pct(mn)+'%"></span></div>';
+  html+='<div class="tm-legend"><span><i style="background:var(--tm-meet-full)"></i>完全满足 <b>'+mf+'</b></span><span><i style="background:var(--tm-meet-basic)"></i>基本满足 <b>'+mb+'</b></span><span><i style="background:var(--tm-meet-none)"></i>完全不满足 <b>'+mn+'</b></span></div></div>';
+  html+='<div class="tm-kpi"><div class="tm-kpi-label">状态分布</div><div class="tm-status-grid">';
+  html+='<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-dev)"></span><span class="n">'+dev+'</span><span class="t">开发中</span></div>';
+  html+='<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-sched)"></span><span class="n">'+sch+'</span><span class="t">已排期</span></div>';
+  html+='<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-wait)"></span><span class="n">'+wait+'</span><span class="t">待排期</span></div>';
+  html+='<div class="tm-status-item"><span class="dot" style="background:var(--tm-status-nores)"></span><span class="n">'+nor+'</span><span class="t">暂不响应</span></div>';
+  html+='</div></div>';
+  html+='<div class="tm-kpi"><div class="tm-kpi-label">业务线覆盖率</div>';
+  bizStats.forEach(function(b){
+    var bw=b.total?(b.sf/b.total*100):0,bbw=b.total?(b.sb/b.total*100):0,bnw=b.total?(b.sn/b.total*100):0;
+    html+='<div class="tm-biz-row"><span class="bn">'+b.name.replace('业务','')+'</span><span class="bar"><span style="width:'+bw+'%;background:var(--tm-meet-full)"></span><span style="width:'+bbw+'%;background:var(--tm-meet-basic)"></span><span style="width:'+bnw+'%;background:var(--tm-meet-none)"></span></span><span class="br">'+b.rate+'%</span></div>';
+  });
+  html+='</div>';
+  document.getElementById('tm-overview').innerHTML=html;
+}
 
-  function closeModal(e) {
-    if (!e || e.target.id === 'detail-modal') {
-      document.getElementById('detail-modal').classList.remove('show');
-    }
-  }
+function renderMapView(rows){
+  var scenes=[],smap={};
+  rows.forEach(function(r){if(!smap[r.scene]){smap[r.scene]=[];scenes.push(r.scene);}smap[r.scene].push(r);});
+  var html=scenes.map(function(s,i){
+    var items=smap[s];
+    var links=[],lmap={};
+    items.forEach(function(r){if(!lmap[r.link]){lmap[r.link]=[];links.push(r.link);}lmap[r.link].push(r);});
+    var linkHtml=links.map(function(l){
+      var bs=lmap[l];
+      return '<div class="tm-link-row"><div class="tm-link-name">'+esc(l)+'</div><div class="tm-blocks">'+bs.map(blockHtml).join('')+'</div></div>';
+    }).join('');
+    return '<div class="tm-scene" id="tm-scene-'+i+'"><div class="tm-scene-head"><span class="name">'+esc(s)+'</span><span class="cnt">'+items.length+' 项</span></div>'+(items.length?linkHtml:'<div class="tm-empty-scene">0 项</div>')+'</div>';
+  }).join('');
+  if(!scenes.length) html='<div class="tm-empty-scene" style="padding:40px;text-align:center">无匹配的功能条目</div>';
+  document.getElementById('tm-map-view').innerHTML=html;
+}
 
-  function openLogin() {
-    document.getElementById('login-modal').classList.add('show');
-  }
+function blockHtml(r){
+  var mc=meetCls(r.meet),lc=lvCls(r.level),dc=stDotCls(r.status);
+  return '<div class="tm-block '+mc+' '+lc+'" data-idx="'+TM_DATA.indexOf(r)+'"><div class="tm-block-title">'+esc(r.demand||'—')+'</div>'+(dc?'<span class="tm-dot '+dc+'"></span>':'')+'</div>';
+}
 
-  function closeLogin(e) {
-    if (!e || e.target.id === 'login-modal') {
-      document.getElementById('login-modal').classList.remove('show');
-    }
-  }
+function showTip(idx,e){
+  var r=TM_DATA[idx];if(!r)return;
+  var tip=document.getElementById('tm-tip');
+  var mc=meetCls(r.meet),dc=stDotCls(r.status);
+  var html='<div class="tm-tip-title">'+esc(r.demand||'—')+'</div>';
+  html+='<div class="tm-tip-row"><b>环节</b>'+esc(r.link||'—')+'</div>';
+  html+='<div class="tm-tip-row"><b>功能</b>'+esc(r.func||'—')+'</div>';
+  html+='<div class="tm-tip-row"><b>等级</b>'+esc(r.level||'—')+'　<b>满足度</b><span class="tm-tip-dot" style="background:'+meetColor(r.meet)+'"></span>'+esc(r.meet||'—')+(dc?'　<b>状态</b><span class="tm-tip-dot" style="background:'+stColor(r.status)+'"></span>'+esc(r.status):'')+'</div>';
+  html+='<div class="tm-tip-row"><b>业务线</b>'+esc(r.biz||'—')+'　<b>计划时间</b>'+esc(r.date||'—')+'</div>';
+  html+='<div class="tm-tip-sep"><div class="tm-tip-row"><b>现状</b>'+(r.cur?esc(r.cur):'<span style="color:var(--tm-text-3)">—</span>')+'</div>';
+  html+='<div class="tm-tip-row"><b>后续计划</b>'+(r.plan?esc(r.plan):'<span style="color:var(--tm-text-3)">—</span>')+'</div></div>';
+  tip.innerHTML=html;tip.style.display='block';
+  var rect=e.currentTarget.getBoundingClientRect();
+  var tw=tip.offsetWidth,th=tip.offsetHeight;
+  var left=rect.left;
+  if(left+tw+20>window.innerWidth) left=window.innerWidth-tw-16;
+  var top=rect.bottom+8;
+  if(top+th>window.innerHeight) top=rect.top-th-8;
+  tip.style.left=Math.max(8,left)+'px';tip.style.top=Math.max(8,top)+'px';
+}
+function hideTip(){document.getElementById('tm-tip').style.display='none';}
 
-  function login(role) {
-    currentUser = { role: role };
-    closeLogin();
-    renderHeader();
-    showTargetTab(true);
-  }
+document.addEventListener('mouseover',function(e){
+  var b=e.target.closest('.tm-block');
+  if(b){showTip(parseInt(b.dataset.idx),e);}
+});
+document.addEventListener('mouseout',function(e){
+  var b=e.target.closest('.tm-block');
+  if(b){hideTip();}
+});
 
-  function showTargetTab(show) {
-    document.getElementById('tab-targetmap').classList.toggle('locked', !show);
-  }
-
-  function logout() {
-    currentUser = null;
-    renderHeader();
-    showTargetTab(false);
-    if (document.getElementById('view-targetmap').style.display !== 'none') {
-      switchTab('roadmap');
-    }
-  }
-
-  function renderHeader() {
-    const box = document.getElementById('header-actions');
-    if (!currentUser) {
-      box.innerHTML = '<button class="btn btn-primary" onclick="openLogin()">登录</button>';
-      return;
-    }
-
-    let html = '<div class="user-badge"><span class="avatar">' + (currentUser.role === 'admin' ? '管' : currentUser.role === 'ops' ? '运' : '游') + '</span><span>' + roleName(currentUser.role) + '</span></div>';
-
-    if (currentUser.role === 'ops' || currentUser.role === 'admin') {
-      html += '<a class="btn btn-primary" href="' + (currentUser.role === 'admin' ? 'admin.html' : 'ops.html') + '">进入后台</a>';
-    }
-
-    html += '<button class="btn" onclick="logout()">退出</button>';
-    box.innerHTML = html;
-  }
-
-  function roleName(role) {
-    return role === 'admin' ? '管理员' : role === 'ops' ? '运营' : '游客';
-  }
-
-  // ---- 商用目标地图 ----
-  const TM_DATA = [{"所属场景": "校本资源建设与管理", "环节": "校本资源建设", "商用目标功能": "校本资源建设与管理闭环", "商用细分需求": "题单资源的便捷自主建设", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师自主建设题单；但欠缺一定的便捷性", "是否满足商用目标": "基本满足", "后续计划": "持续优化便捷性和AI识别准确性", "计划完成时间": "2026-07-31", "状态": "开发中"}, {"所属场景": "校本资源建设与管理", "环节": "校本资源建设", "商用目标功能": "校本资源建设与管理闭环", "商用细分需求": "课件资源的便捷建设", "商用必备等级": "非必须", "适用业务": "录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "暂不响应"}, {"所属场景": "校本资源建设与管理", "环节": "校本资源建设", "商用目标功能": "校本资源建设与管理闭环", "商用细分需求": "校本资源数据看板", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "校本资源建设与管理", "环节": "校本资源建设", "商用目标功能": "校本资源建设与管理闭环", "商用细分需求": "校本教辅的建设与使用（代为建设）", "商用必备等级": "高", "适用业务": "录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持为学校建设校本教辅，且可使用", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "组卷", "商用目标功能": "多来源兼容", "商用细分需求": "平台内题单资源使用", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持用户直接使用平台内题单", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "组卷", "商用目标功能": "多来源兼容", "商用细分需求": "丰富的题库，支持题库选题组卷", "商用必备等级": "高", "适用业务": "录播业务,独立项目", "闻道作业现状": "接入学科网，支持用户从我司题库或学科网选题进行组卷", "是否满足商用目标": "完全满足", "后续计划": "学科网刚接入，可能在后续还有一些适配相关优化，但需使用一段时间后才能发现问题", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "组卷", "商用目标功能": "多来源兼容", "商用细分需求": "自有试卷的快速使用", "商用必备等级": "高", "适用业务": "录播业务,独立项目", "闻道作业现状": "支持AI切题识别后组卷，但还无法满足“快速”的要求", "是否满足商用目标": "基本满足", "后续计划": "支持现成题单快速添加标记后使用，后续再完善试题内容", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "组卷", "商用目标功能": "多来源兼容", "商用细分需求": "基于学情的智能组卷", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持教师基于学情进行智能组卷", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "生成答题卡", "商用目标功能": "支持常见纸张", "商用细分需求": "支持学校常用纸张", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持A3、A4、B4、8K常用纸张大小", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "生成答题卡", "商用目标功能": "支持常见纸张", "商用细分需求": "支持先制卡后制题", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "考试场景拓展后兼容", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "扫描", "商用目标功能": "多设备兼容", "商用细分需求": "支持主流品牌扫描仪的直连", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "理论上基本支持，但部分机器可能存在兼容问题，需具体型号具体观察和解决", "是否满足商用目标": "基本满足", "后续计划": "新增新设备使用时，提前调试，及时发现问题解决问题", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "扫描", "商用目标功能": "一键式便捷扫描", "商用细分需求": "扫描开始后自动进行，无额外人工动作", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持一键快速扫描", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "异常处理", "商用目标功能": "异常数据尽量少", "商用细分需求": "有规律的异常可以系统自动处理", "商用必备等级": "非必须", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "部分能总结出规律的异常已加入系统规则，自动处理；但仍需持续观察异常数据，", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "异常处理", "商用目标功能": "支持手动处理各类异常", "商用细分需求": "教师能手动处理各类异常", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师、运营处理每次扫描数据的异常内容", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "异常处理", "商用目标功能": "支持手动处理各类异常", "商用细分需求": "操作便捷", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "交互复杂，存在一定的优化空间", "是否满足商用目标": "基本满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "异常处理", "商用目标功能": "支持手动处理各类异常", "商用细分需求": "上传异常优化", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "指定给一个已经存在作答的用户时，支持选择是合并还是覆盖", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "识别准确率高", "商用细分需求": "AI自动识别客观题和分数准确率>99.5%", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "准确率稳定在99.5%~99.8%，处于行业中上水平", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "识别结果校验", "商用细分需求": "支持快速检验采集结果的准确性", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持集中呈现可能识别有误的数据，支持教师手动修正", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "作文类", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持英语作文批阅，但是语文作文还欠缺", "是否满足商用目标": "基本满足", "后续计划": "支持语文作文", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "填空题", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "优先实现英语填空题的自动批阅", "计划完成时间": "2026-08-31", "状态": "已排期"}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "主观题", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "留痕批阅", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "识别与批改", "商用目标功能": "在线批阅", "商用细分需求": "支持教师在线批阅", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师在线批阅题单", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "教师查看单次测验数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师查看单次测验数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "教师查看阶段数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师查看阶段数据，但是老版本；与当前业务的融合性不够", "是否满足商用目标": "基本满足", "后续计划": "升级阶段学情", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "不同角色校管查看数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持不同角色查看年级数据", "是否满足商用目标": "完全满足", "后续计划": "由于三方系统原因，导致权限会有部分放大，但总体不影响使用；后续优化权限", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "教师支持查看全班原卷；可快速切换", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持查看单个学生原卷", "是否满足商用目标": "基本满足", "后续计划": "增设 “原卷区” ，无需逐个点击学生姓名，一键批量展示全班清晰扫描卷面，完整呈现每位学生整份答题情况，方便教师整体掌握学生答题细节。（建议：教师可选择“全卷展示”和“主观题展示”两种模式）", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "教师讲评", "商用细分需求": "支持教师基于题单进行讲评", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持讲评、导出讲评材料", "是否满足商用目标": "基本满足", "后续计划": "讲评页面书写流畅度有待优化", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "学生查看数据", "商用细分需求": "学生查看单次作业数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持学生查看单次测验数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "学生查看数据", "商用细分需求": "学生查看阶段学情", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持学生查看阶段学情", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "学生查看数据", "商用细分需求": "支持安卓端查看各类学情数据", "商用必备等级": "低", "适用业务": "", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持安卓端查看各类学情数据", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "数据查看与应用", "商用目标功能": "学生基于学情的自习", "商用细分需求": "学生自习室：基于学情查看知识讲解、进行巩固练习", "商用必备等级": "低", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持学生基于学情进行知识、错题巩固", "计划完成时间": "2026-08-31", "状态": "已排期"}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "教师查看并应用错题", "商用细分需求": "教师查看班级错题", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师查看班级错题", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "教师查看并应用错题", "商用细分需求": "基于班级错题的应用", "商用必备等级": "中", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持教师基于错题进行组卷练习", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "教师查看并应用错题", "商用细分需求": "教师查看年级错题", "商用必备等级": "低", "适用业务": "录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持教师查看并应用年级错题", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "教师查看并应用错题", "商用细分需求": "错题再练快速生成操作", "商用必备等级": "中", "适用业务": "直播业务,独立项目", "闻道作业现状": "支持手动选择时间生成错题再练", "是否满足商用目标": "基本满足", "后续计划": "高频错题一键生成周周清小卷（可拓展：基于假期等不同场景，生成练习卷）", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "教师查看并应用错题", "商用细分需求": "基于错题自动生成学生个性化作业且可回采数据", "商用必备等级": "中", "适用业务": "录播业务,独立项目", "闻道作业现状": "可以生成统一作业，个性化作业暂不支持", "是否满足商用目标": "基本满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "日常作业与练习", "环节": "错题的管理与运用", "商用目标功能": "学生查看并管理错题", "商用细分需求": "学生查看并管理个人错题", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持学生查看并管理个人错题", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "扫描", "商用目标功能": "支持扫描教辅活页", "商用细分需求": "固定教辅全学科支持", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "暂不支持英语学科，其他学科支持", "是否满足商用目标": "基本满足", "后续计划": "拓展英语学科的教辅扫描和识别", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "教辅作业数据采集", "环节": "异常处理", "商用目标功能": "支持手动处理各类异常", "商用细分需求": "教师能手动处理各类异常", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "支持教师、运营处理每次扫描数据的异常内容", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "识别与批改", "商用目标功能": "识别结果校验", "商用细分需求": "支持快速检验采集结果的准确性", "商用必备等级": "中", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持集中呈现可能识别有误的数据，支持教师手动修正", "计划完成时间": "2026-06-30", "状态": "开发中"}, {"所属场景": "教辅作业数据采集", "环节": "识别与批改", "商用目标功能": "识别准确率高", "商用细分需求": "识别准确率高", "商用必备等级": "中", "适用业务": "直播业务,录播业务", "闻道作业现状": "由于教辅批阅随意，很多规律不好总结给AI，导致部分内容识别可能存在偏差", "是否满足商用目标": "基本满足", "后续计划": "1. 持续优化识别\n2. 规范教师批阅行为", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "填空题", "商用必备等级": "中", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "优先实现英语填空题的自动批阅", "计划完成时间": "2026-08-31", "状态": "已排期"}, {"所属场景": "教辅作业数据采集", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "主观题", "商用必备等级": "低", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "识别与批改", "商用目标功能": "AI自动批阅", "商用细分需求": "留痕批阅", "商用必备等级": "非必须", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "数据查看与应用", "商用目标功能": "教师查看教辅数据", "商用细分需求": "按书查看节点数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "支持按节点查看数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "数据查看与应用", "商用目标功能": "教师查看教辅数据", "商用细分需求": "教辅数据纳入阶段学情", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持查看教辅阶段数据", "计划完成时间": "2026-08-31", "状态": "已排期"}, {"所属场景": "教辅作业数据采集", "环节": "数据查看与应用", "商用目标功能": "基于教辅数据讲评", "商用细分需求": "支持教师对教辅数据进行讲评", "商用必备等级": "中", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "支持教师基于教辅数据进行讲评", "计划完成时间": "2026-07-31", "状态": "开发中"}, {"所属场景": "教辅作业数据采集", "环节": "数据查看与应用", "商用目标功能": "学生查看教辅数据", "商用细分需求": "按书查看节点数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "支持按节点查看数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "数据查看与应用", "商用目标功能": "学生查看教辅数据", "商用细分需求": "教辅数据纳入阶段学情", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "学生阶段学情增加教辅数据", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "教辅作业数据采集", "环节": "错题的管理与运用", "商用目标功能": "错题数据进入班级错题", "商用细分需求": "教师班级错题中包含教辅数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "教师班级错题中包含教辅数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "教辅作业数据采集", "环节": "错题的管理与运用", "商用目标功能": "错题数据进入班级错题", "商用细分需求": "学生个人错题中包含教辅数据", "商用必备等级": "高", "适用业务": "直播业务,录播业务", "闻道作业现状": "学生个人错题中包含教辅数据", "是否满足商用目标": "完全满足", "后续计划": "", "计划完成时间": "", "状态": ""}, {"所属场景": "多学科统考", "环节": "考试管理", "商用目标功能": "创建并管理考试", "商用细分需求": "新增、管理多学科的考试", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "考试管理", "商用目标功能": "创建并管理考试", "商用细分需求": "校内同考", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "考试管理", "商用目标功能": "创建并管理考试", "商用细分需求": "跨校同考", "商用必备等级": "低", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "考试管理", "商用目标功能": "创建并管理考试", "商用细分需求": "考试进度监控", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "组卷", "商用目标功能": "细目表组卷", "商用细分需求": "支持细目表组卷", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "组卷", "商用目标功能": "先制卡后组卷", "商用细分需求": "支持先制卡后根据试题完善卷信息", "商用必备等级": "中", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "扫描", "商用目标功能": "内容归属明确", "商用细分需求": "考试数据需明确，避免与日常作业数据混合", "商用必备等级": "中", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "异常处理", "商用目标功能": "便捷进行异常处理", "商用细分需求": "支持按上传记录进行异常处理", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "批阅", "商用目标功能": "支持网阅", "商用细分需求": "支持按班批阅", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "批阅", "商用目标功能": "支持网阅", "商用细分需求": "支持交叉按题、按人批阅", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "批阅", "商用目标功能": "支持网阅", "商用细分需求": "支持双评模式及预警机制", "商用必备等级": "中", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "教师查看各类报告", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "数据查看与应用", "商用目标功能": "教师查看数据", "商用细分需求": "不同角色校管查看数据", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "数据查看与应用", "商用目标功能": "学生查看考试数据", "商用细分需求": "学生查看考试数据", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "多学科统考", "环节": "数据查看与应用", "商用目标功能": "考试数据进入阶段学情", "商用细分需求": "考试数据进入阶段学情", "商用必备等级": "高", "适用业务": "独立项目", "闻道作业现状": "", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "校级教学管理与洞察", "环节": "教学监管", "商用目标功能": "校级教学数据监管", "商用细分需求": "教学监管仪表盘", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "支持校长查看月报", "是否满足商用目标": "基本满足", "后续计划": "内容待完善和丰富", "计划完成时间": "", "状态": "待排期"}, {"所属场景": "校级教学管理与洞察", "环节": "教学监管", "商用目标功能": "校级教学数据监管", "商用细分需求": "多场景应用数据融合", "商用必备等级": "高", "适用业务": "直播业务,录播业务,独立项目", "闻道作业现状": "无", "是否满足商用目标": "完全不满足", "后续计划": "", "计划完成时间": "", "状态": "待排期"}];
-
-  function escapeHtml(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  function switchTab(which) {
-    const road = which === 'roadmap';
-    document.getElementById('view-roadmap').style.display = road ? '' : 'none';
-    document.getElementById('view-targetmap').style.display = road ? 'none' : '';
-    document.getElementById('toc-roadmap').style.display = road ? '' : 'none';
-    document.getElementById('toc-targetmap').style.display = road ? 'none' : '';
-    document.getElementById('filter-roadmap').style.display = road ? '' : 'none';
-    document.getElementById('filter-targetmap').style.display = road ? 'none' : '';
-    document.getElementById('overview-cards').style.display = road ? '' : 'none';
-    document.getElementById('tab-roadmap').classList.toggle('active', road);
-    document.getElementById('tab-targetmap').classList.toggle('active', !road);
-    if (!road) { applyTargetFilter(); }
-  }
-
-  function meetBadge(m){
-    if(m==='完全满足') return '<span class="badge meet-full">完全满足</span>';
-    if(m==='基本满足') return '<span class="badge meet-basic">基本满足</span>';
-    if(m==='完全不满足') return '<span class="badge meet-none">完全不满足</span>';
-    return '<span class="badge meet-none">' + escapeHtml(m || '—') + '</span>';
-  }
-  function stateBadge(s){
-    const map={'开发中':'st-dev','已排期':'st-sched','待排期':'st-wait','暂不响应':'st-nores'};
-    return '<span class="badge ' + (map[s] || 'st-wait') + '">' + (s || '—') + '</span>';
-  }
-  function lvClass(l){ return ({'高':'lv-high','中':'lv-mid','低':'lv-low','非必须':'lv-na'}[l]) || ''; }
-
-  function applyTargetFilter(){ renderTargetMap(); }
-  function clearTargetFilter(){
-    ['tmf-biz','tmf-level','tmf-meet','tmf-state'].forEach(function(id){ document.getElementById(id).value=''; });
-    document.getElementById('tmf-keyword').value='';
-    renderTargetMap();
-  }
-
-  function renderTargetMap(){
-    const biz=document.getElementById('tmf-biz').value;
-    const level=document.getElementById('tmf-level').value;
-    const meet=document.getElementById('tmf-meet').value;
-    const state=document.getElementById('tmf-state').value;
-    const kw=document.getElementById('tmf-keyword').value.trim().toLowerCase();
-    const rows=TM_DATA.filter(function(r){
-      if(biz && (r['适用业务']||'').indexOf(biz) < 0) return false;
-      if(level && r['商用必备等级']!==level) return false;
-      if(meet && r['是否满足商用目标']!==meet) return false;
-      if(state && r['状态']!==state) return false;
-      if(kw){ const hay=((r['商用目标功能']||'')+(r['商用细分需求']||'')+(r['适用业务']||'')).toLowerCase(); if(hay.indexOf(kw)<0) return false; }
-      return true;
+function renderTableView(rows){
+  var scenes=[],smap={};
+  rows.forEach(function(r){if(!smap[r.scene]){smap[r.scene]=[];scenes.push(r.scene);}smap[r.scene].push(r);});
+  var html='<div class="tm-table-wrap"><table class="tm-table"><thead><tr><th style="width:110px">环节</th><th style="width:130px">功能</th><th>需求</th><th style="width:54px">等级</th><th style="width:84px">满足度</th><th style="width:72px">状态</th><th style="width:92px">计划时间</th><th style="width:150px">业务线</th></tr></thead><tbody>';
+  scenes.forEach(function(s,si){
+    var items=smap[s];
+    var links=[],lmap={};
+    items.forEach(function(r){if(!lmap[r.link]){lmap[r.link]=[];links.push(r.link);}lmap[r.link].push(r);});
+    html+='<tr class="scene-row"><td colspan="8">'+esc(s)+'（'+items.length+' 项）</td></tr>';
+    links.forEach(function(l){
+      var bs=lmap[l];
+      bs.forEach(function(r,ri){
+        var mc=meetCls(r.meet),dc=stDotCls(r.status),ltc=lvTdCls(r.level);
+        var showLink=ri===0;
+        html+='<tr class="data-row" onclick="toggleRow(this)">';
+        html+='<td>'+(showLink?esc(l):'')+'</td>';
+        html+='<td>'+esc(r.func||'—')+'</td>';
+        html+='<td><span class="exp-icon"></span>'+esc(r.demand||'—')+'</td>';
+        html+='<td><span class="'+ltc+'">'+esc(r.level||'—')+'</span></td>';
+        html+='<td>'+(r.meet?'<span class="td-dot" style="background:'+meetColor(r.meet)+'"></span>'+esc(r.meet):'<span class="dash">—</span>')+'</td>';
+        html+='<td>'+(r.status?'<span class="td-dot" style="background:'+stColor(r.status)+'"></span>'+esc(r.status):'<span class="dash">—</span>')+'</td>';
+        html+='<td>'+(r.date?esc(r.date):'<span class="dash">—</span>')+'</td>';
+        html+='<td style="font-size:11.5px;color:var(--tm-text-2)">'+esc(r.biz||'—')+'</td>';
+        html+='</tr>';
+        html+='<tr class="expand-row" style="display:none"><td colspan="8"><div class="exp-content"><b>现状：</b>'+(r.cur?esc(r.cur):'—')+'<br><b>后续计划：</b>'+(r.plan?esc(r.plan):'—')+'</div></td></tr>';
+      });
     });
-    const groups=[]; const map=new Map();
-    rows.forEach(function(r){ const s=r['所属场景']||'未分类'; if(!map.has(s)){ map.set(s,[]); groups.push(s); } map.get(s).push(r); });
-    const list=document.getElementById('tm-list');
-    if(!groups.length){
-      list.innerHTML='<div class="tm-empty">无匹配的功能条目</div>';
-    } else {
-      list.innerHTML=groups.map(function(s,i){
-        const items=map.get(s);
-        return '<div class="tm-scene" id="scene-'+i+'">'
-          + '<div class="tm-scene-head"><span class="name">'+escapeHtml(s)+'</span><span class="cnt">'+items.length+' 项</span></div>'
-          + '<div class="tm-cards">'+items.map(cardHtml).join('')+'</div>'
-        + '</div>';
-      }).join('');
-    }
-    document.getElementById('tm-count').textContent='共 '+rows.length+' 条';
-    renderSceneToc(groups);
-  }
+  });
+  if(!scenes.length) html+='<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--tm-text-3)">无匹配的功能条目</td></tr>';
+  html+='</tbody></table></div>';
+  document.getElementById('tm-table-view').innerHTML=html;
+}
 
-  function cardHtml(r){
-    return '<div class="tm-card">'
-      + '<div class="tm-card-title">'+escapeHtml(r['商用细分需求']||'—')+'</div>'
-      + '<div class="tm-card-meta">'
-        + '<span><b>环节</b>'+escapeHtml(r['环节']||'—')+'</span>'
-        + '<span><b>功能</b>'+escapeHtml(r['商用目标功能']||'—')+'</span>'
-        + '<span><b>必备</b><span class="'+lvClass(r['商用必备等级'])+'">'+escapeHtml(r['商用必备等级']||'—')+'</span></span>'
-        + '<span><b>业务</b>'+escapeHtml(r['适用业务']||'—')+'</span>'
-        + '<span><b>满足度</b>'+meetBadge(r['是否满足商用目标'])+'</span>'
-        + '<span><b>状态</b>'+stateBadge(r['状态'])+'</span>'
-        + '<span><b>计划完成</b>'+escapeHtml(r['计划完成时间']||'—')+'</span>'
-      + '</div>'
-      + '<div class="tm-card-plan"><b>后续计划：</b>'+escapeHtml(r['后续计划']||'—')+'</div>'
-    + '</div>';
+function toggleRow(tr){
+  var next=tr.nextElementSibling;
+  if(next&&next.classList.contains('expand-row')){
+    var icon=tr.querySelector('.exp-icon');
+    if(next.style.display==='none'){next.style.display='';icon.classList.add('open');}
+    else{next.style.display='none';icon.classList.remove('open');}
   }
+}
 
-  function renderSceneToc(groups){
-    const box=document.getElementById('toc-targetmap');
-    box.innerHTML='<div class="toc-title">场景目录</div>'+groups.map(function(s,i){ return '<div class="toc-item" onclick="scrollToScene('+i+')">'+escapeHtml(s)+'</div>'; }).join('');
-  }
-  function scrollToScene(i){
-    const el=document.getElementById('scene-'+i);
-    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-  }
+function renderTargetMap(){
+  var rows=filterRows();
+  renderOverview(rows);
+  renderMapView(rows);
+  renderTableView(rows);
+  document.getElementById('tm-count').textContent='共 '+rows.length+' 条';
+  renderToc(rows);
+}
 
+function renderToc(rows){
+  var scenes=[],seen={};
+  rows.forEach(function(r){if(!seen[r.scene]){seen[r.scene]=1;scenes.push(r.scene);}});
+  var box=document.getElementById('toc-targetmap');
+  box.innerHTML='<div class="toc-title">场景目录</div>'+scenes.map(function(s,i){return '<div class="toc-item" onclick="scrollToScene('+i+')">'+esc(s)+'</div>';}).join('');
+}
+function scrollToScene(i){
+  var el=document.getElementById('tm-scene-'+i);
+  if(el){var h=document.querySelector('.header').offsetHeight+20;window.scrollTo({top:el.offsetTop-h,behavior:'smooth'});}
+}
+
+function applyFilter(){renderTargetMap();}
+function clearFilter(){
+  ['tmf-biz','tmf-level','tmf-meet','tmf-state'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('tmf-keyword').value='';
+  renderTargetMap();
+}
+
+var currentView='map';
+function switchView(v){
+  currentView=v;
+  document.getElementById('tm-map-view').style.display=v==='map'?'':'none';
+  document.getElementById('tm-table-view').style.display=v==='table'?'':'none';
+  document.getElementById('vbtn-map').classList.toggle('active',v==='map');
+  document.getElementById('vbtn-table').classList.toggle('active',v==='table');
+}
+
+function switchTab(which){
+  var road=which==='roadmap';
+  document.getElementById('view-roadmap').style.display=road?'':'none';
+  document.getElementById('view-targetmap').style.display=road?'none':'';
+  document.getElementById('toc-roadmap').style.display=road?'':'none';
+  document.getElementById('toc-targetmap').style.display=road?'none':'';
+  document.getElementById('overview-cards').style.display=road?'':'none';
+  document.getElementById('tm-overview').style.display=road?'none':'';
+  document.getElementById('tab-roadmap').classList.toggle('active',road);
+  document.getElementById('tab-targetmap').classList.toggle('active',!road);
+  if(!road){renderTargetMap();}
+}
+
+function jumpTo(id){var el=document.getElementById(id);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}}
+function openDetail(d){document.getElementById('detail-title').textContent=d+' · 发版详情';document.getElementById('detail-modal').classList.add('show');}
+function closeModal(e){if(!e||e.target.id==='detail-modal'){document.getElementById('detail-modal').classList.remove('show');}}
+function openLogin(){document.getElementById('login-modal').classList.add('show');}
+function closeLogin(e){if(!e||e.target.id==='login-modal'){document.getElementById('login-modal').classList.remove('show');}}
+function login(role){closeLogin();renderHeader(role);}
+function logout(){renderHeader(null);if(document.getElementById('view-targetmap').style.display!=='none'){switchTab('roadmap');}}
+function renderHeader(role){
+  var box=document.getElementById('header-actions');
+  if(!role){box.innerHTML='<button class="btn btn-primary" onclick="openLogin()">登录</button>';return;}
+  var name=role==='admin'?'管理员':role==='ops'?'运营':'游客';
+  var av=role==='admin'?'管':role==='ops'?'运':'游';
+  var html='<div class="user-badge"><span class="avatar">'+av+'</span><span>'+name+'</span></div>';
+  if(role==='ops'||role==='admin'){html+='<a class="btn btn-primary" href="'+(role==='admin'?'admin.html':'ops.html')+'">进入后台</a>';}
+  html+='<button class="btn" onclick="logout()">退出</button>';
+  box.innerHTML=html;
+}
 </script>
-
 </body>
 </html>

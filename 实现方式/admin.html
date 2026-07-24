@@ -370,6 +370,7 @@
   .canvas .footer .line { font-size: 13px; color: #5a6172; line-height: 1.9; text-align: center; }
   .canvas .footer .line.product { color: #1f2330; font-weight: 600; font-size: 14px; text-align: center; }
 </style>
+<link rel="stylesheet" href="shared.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -461,8 +462,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">图片存储配置</div>
-      <div class="card-sub">MVP 阶段使用本地存储，后续可迁移 OSS</div>
+      <div class="card-title">图片存储配置<span class="placeholder-badge">开发中</span></div>
+      <div class="placeholder-note">存储配置为静态示例，后续版本将支持持久化保存。</div>
       <div class="form-row">
         <div class="form-item" style="flex:2"><label>存储类型</label><select><option>本地存储（uploads/）</option><option>阿里云 OSS（未启用）</option><option>腾讯云 COS（未启用）</option></select></div>
         <div class="form-item" style="flex:2"><label>本地路径</label><input value="./uploads" /></div>
@@ -488,8 +489,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">月度发版统计</div>
-      <div class="card-sub">2026 年 7 月 · 按每次发版日期统计各产品线已通知功能数</div>
+      <div class="card-title">月度发版统计<span class="placeholder-badge">开发中</span></div>
+      <div class="placeholder-note">以下为示例数据，后续将接入真实发版统计 API。</div>
       <table>
         <thead><tr><th>发版日期</th><th>闻道作业</th><th>直播教学</th><th>开放学校</th><th>合计</th></tr></thead>
         <tbody>
@@ -540,7 +541,7 @@
     <div class="page-header">
       <div><h1>系统设置</h1><div class="desc">长图模板、导出格式与基础配置</div></div>
     </div>
-
+    <div class="placeholder-note">系统设置模块为静态原型，配置项暂未接入后端保存。</div>
     <div class="card">
       <div class="card-title">长图模板</div>
       <div class="card-sub">运营预览与导出使用的样式模板</div>
@@ -584,6 +585,7 @@
     </div>
 
     <div class="card">
+      <div class="placeholder-note">筛选条件暂未接入，当前展示全部审计日志。</div>
       <div class="form-row">
         <div class="form-item"><label>操作人</label><select><option>全部</option><option>admin</option><option>wangrong</option></select></div>
         <div class="form-item"><label>操作类型</label><select><option>全部</option><option>创建</option><option>编辑</option><option>删除</option><option>登录</option></select></div>
@@ -718,6 +720,7 @@
           <tbody id="release-table-body"></tbody>
         </table>
       </div>
+      <div id="release-pagination" class="pagination-bar"></div>
     </div>
     <div id="release-empty" class="empty" style="margin-top:16px">暂无发版数据</div>
   </div>
@@ -950,7 +953,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeEditModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveItem()">保存</button>
+      <button class="btn btn-primary" id="btn-save-item" onclick="saveItem()">保存</button>
     </div>
   </div>
 </div>
@@ -1000,28 +1003,10 @@
   <div class="counter" id="thumb-counter">1 / 1</div>
 </div>
 
+<script src="shared.js"></script>
 <script>
-  // ==================== 通用 API ====================
-  const API = '';
-  async function apiGet(path) {
-    const r = await fetch(API + path);
-    const j = await r.json();
-    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
-    return j.data;
-  }
-  async function apiSend(method, path, body) {
-    const opt = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body !== undefined) opt.body = JSON.stringify(body);
-    const r = await fetch(API + path, opt);
-    const j = await r.json();
-    if (j.code !== 'OK') throw new Error(j.message || '请求失败');
-    return j.data;
-  }
-  function esc(s) { return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  // ==================== 页面状态（API/工具见 shared.js）====================
   function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-  function todayStr() { return new Date().toISOString().slice(0, 10); }
-  function typeClass(type) { return type === '新增' ? 'add' : type === '优化' ? 'opt' : 'fix'; }
-  function typeOrder(type) { return type === '新增' ? 1 : type === '优化' ? 2 : 3; }
 
   let dataSources = [];
   let users = [];
@@ -1142,7 +1127,7 @@
       window.__currentDsId = null;
     } else {
       const d = dataSources.find(x => x.id === ds_id);
-      if (!d) return alert('数据源不存在');
+      if (!d) { toast.error('数据源不存在'); return; }
       document.getElementById('source-modal-title').textContent = '编辑数据源 · ' + d.name;
       document.getElementById('src-name').value = d.name;
       document.getElementById('src-type').value = d.type;
@@ -1174,26 +1159,28 @@
       }
       await loadDataSources();
       closeModal(null, 'source-modal');
-    } catch (e) { alert('保存失败：' + e.message); }
+      toast.success('保存成功');
+    } catch (e) { toast.error('保存失败：' + e.message); }
   }
   async function adminSync(ds_id) {
-    const d = dataSources.find(x => x.id === ds_id);
+    const d = dataSources.find(function (x) { return x.id === ds_id; });
     if (!d) return;
-    if (!confirm('确认立即同步「' + d.name + '」？\n将从钉钉文档拉取最新发布清单数据。')) return;
+    const ok = await AppConfirm.ask('确认立即同步「' + d.name + '」？\n将从钉钉文档拉取最新发布清单数据。');
+    if (!ok) return;
     try {
       const data = await apiSend('POST', '/api/admin/data-sources/' + ds_id + '/sync', {});
-      alert('同步成功\n模块：' + d.name + '\n导入：' + data.imported + ' 条');
+      toast.success('同步成功：' + d.name + '，导入 ' + (data.imported || 0) + ' 条');
       await loadDataSources();
-    } catch (e) { alert('同步失败：' + e.message); }
+    } catch (e) { toast.error('同步失败：' + e.message); }
   }
   async function viewSyncLog(ds_id) {
-    const d = dataSources.find(x => x.id === ds_id);
+    const d = dataSources.find(function (x) { return x.id === ds_id; });
     if (!d) return;
     try {
       const logs = await apiGet('/api/admin/data-sources/' + ds_id + '/logs');
-      const text = logs.map(l => l.sync_time + '  ' + l.status + '  ' + (l.message || '')).join('\n') || '暂无日志';
-      alert('同步日志 · ' + d.name + '\n\n' + text);
-    } catch (e) { alert('加载失败：' + e.message); }
+      const text = logs.map(function (l) { return l.sync_time + '  ' + l.status + '  ' + (l.message || ''); }).join('\n') || '暂无日志';
+      await AppConfirm.info(text, { title: '同步日志 · ' + d.name });
+    } catch (e) { toast.error('加载失败：' + e.message); }
   }
 
   // ==================== 用户 ====================
@@ -1239,7 +1226,7 @@
       status: (document.querySelector('input[name="user-status"]:checked') || {}).value || '启用',
       role: 'ops',
     };
-    if (!body.username) { alert('请填写用户名'); return; }
+    if (!body.username) { toast.warn('请填写用户名'); return; }
     try {
       if (user_id) {
         await apiSend('PUT', '/api/admin/users/' + user_id, body);
@@ -1249,27 +1236,34 @@
       await loadUsers();
       await loadProductLines();
       closeModal(null, 'user-modal');
-    } catch (e) { alert('保存失败：' + e.message); }
+      toast.success('保存成功');
+    } catch (e) { toast.error('保存失败：' + e.message); }
   }
   async function deleteUser(user_id) {
-    if (!confirm('确认删除该账号？')) return;
-    try { await apiSend('DELETE', '/api/admin/users/' + user_id, {}); await loadUsers(); await loadProductLines(); }
-    catch (e) { alert('删除失败：' + e.message); }
+    const ok = await AppConfirm.ask('确认删除该账号？', { danger: true, confirmText: '删除' });
+    if (!ok) return;
+    try { await apiSend('DELETE', '/api/admin/users/' + user_id, {}); await loadUsers(); await loadProductLines(); toast.success('已删除'); }
+    catch (e) { toast.error('删除失败：' + e.message); }
   }
   async function toggleUserStatus(user_id) {
-    const u = users.find(x => x.id === user_id);
+    const u = users.find(function (x) { return x.id === user_id; });
     if (!u) return;
+    const next = u.status === '启用' ? '禁用' : '启用';
+    const ok = await AppConfirm.ask('确认' + next + '账号「' + u.username + '」？');
+    if (!ok) return;
     try {
-      await apiSend('PUT', '/api/admin/users/' + user_id, { status: u.status === '启用' ? '禁用' : '启用' });
+      await apiSend('PUT', '/api/admin/users/' + user_id, { status: next });
       await loadUsers();
-    } catch (e) { alert('操作失败：' + e.message); }
+      toast.success('已' + next);
+    } catch (e) { toast.error('操作失败：' + e.message); }
   }
   async function resetUserPwd(user_id) {
-    if (!confirm('确认重置该账号密码？重置后密码为 123456。')) return;
+    const ok = await AppConfirm.ask('确认重置该账号密码？重置后密码为 123456。');
+    if (!ok) return;
     try {
       await apiSend('PUT', '/api/admin/users/' + user_id + '/reset-password', {});
-      alert('密码已重置为 123456');
-    } catch (e) { alert('重置失败：' + e.message); }
+      toast.success('密码已重置为 123456');
+    } catch (e) { toast.error('重置失败：' + e.message); }
   }
 
   // ==================== 产品线 ====================
@@ -1302,7 +1296,7 @@
       code: document.getElementById('pl-code').value.trim(),
       status: (document.querySelector('input[name="pl-status"]:checked') || {}).value || '启用',
     };
-    if (!body.name || !body.code) { alert('请填写产品线名称和代码'); return; }
+    if (!body.name || !body.code) { toast.warn('请填写产品线名称和代码'); return; }
     try {
       if (pl_id) {
         await apiSend('PUT', '/api/admin/product-lines/' + pl_id, body);
@@ -1311,12 +1305,14 @@
       }
       await loadProductLines();
       closeModal(null, 'product-line-modal');
-    } catch (e) { alert('保存失败：' + e.message); }
+      toast.success('保存成功');
+    } catch (e) { toast.error('保存失败：' + e.message); }
   }
   async function deleteProductLine(pl_id) {
-    if (!confirm('确认删除该产品线？')) return;
-    try { await apiSend('DELETE', '/api/admin/product-lines/' + pl_id, {}); await loadProductLines(); }
-    catch (e) { alert('删除失败：' + e.message); }
+    const ok = await AppConfirm.ask('确认删除该产品线？删除后关联运营账号需重新分配。', { danger: true, confirmText: '删除' });
+    if (!ok) return;
+    try { await apiSend('DELETE', '/api/admin/product-lines/' + pl_id, {}); await loadProductLines(); toast.success('已删除'); }
+    catch (e) { toast.error('删除失败：' + e.message); }
   }
   // 把产品线字典填入筛选下拉与编辑弹窗
   function fillProductLineOptions() {
@@ -1345,13 +1341,16 @@
     const themeEl = document.querySelectorAll('#view-schedule .form-item input')[1];
     try {
       await apiSend('PUT', '/api/schedule', { nextReleaseDate: dateEl.value, nextReleaseTheme: themeEl.value });
-      alert('已保存');
-    } catch (e) { alert('保存失败：' + e.message); }
+      toast.success('已保存');
+    } catch (e) { toast.error('保存失败：' + e.message); }
   }
 
   // ==================== 兜底视图：筛选 + 列表 ====================
   let releaseItems = [];
   let releaseFilter = {};
+  let releaseListCache = [];
+  let releasePage = 1;
+  const RELEASE_PAGE_SIZE = CONSTANTS.PAGE_SIZE;
 
   // 自定义多选下拉
   const multiSelectState = {
@@ -1582,6 +1581,7 @@
   }
 
   function applyReleaseFilter() {
+    releasePage = 1;
     releaseFilter = {
       productLine: document.getElementById('filter-product-line').value || '',
       notifyStatus: document.getElementById('filter-notify-status').value || '',
@@ -1595,6 +1595,7 @@
     renderReleaseList();
   }
   function clearReleaseFilter() {
+    releasePage = 1;
     document.getElementById('filter-product-line').value = '';
     document.getElementById('filter-notify-status').value = '';
     document.getElementById('filter-release-date').value = '';
@@ -1612,33 +1613,56 @@
     const tbody = document.getElementById('release-table-body');
     const empty = document.getElementById('release-empty');
     const countEl = document.getElementById('release-count');
+    const tableWrap = document.querySelector('#view-releases .list-scroll');
     if (!tbody) return;
 
     const params = new URLSearchParams();
-    Object.entries(releaseFilter).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(releaseFilter).forEach(function (entry) { if (entry[1]) params.set(entry[0], entry[1]); });
     const url = '/api/items' + (params.toString() ? '?' + params.toString() : '');
 
+    if (tableWrap) tableWrap.classList.add('table-loading');
     let list = [];
     try {
       list = await apiGet(url);
     } catch (e) {
+      if (tableWrap) tableWrap.classList.remove('table-loading');
       tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--text-3)">加载失败：' + esc(e.message) + '</td></tr>';
       if (empty) empty.style.display = 'none';
-      if (countEl) countEl.textContent = 0;
+      if (countEl) countEl.textContent = '0';
+      toast.error('加载列表失败：' + e.message);
       return;
     }
+    if (tableWrap) tableWrap.classList.remove('table-loading');
     releaseItems = list.slice();
-    list = list.sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || '') || typeOrder(a.releaseType) - typeOrder(b.releaseType));
+    releaseListCache = list.sort(function (a, b) {
+      return (b.releaseDate || '').localeCompare(a.releaseDate || '') || typeOrder(a.releaseType) - typeOrder(b.releaseType);
+    });
     rebuildAllMultiSelectOptions();
-    if (countEl) countEl.textContent = list.length;
-    if (!list.length) {
+    renderReleasePage();
+  }
+
+  function goReleasePage(p) {
+    releasePage = p;
+    renderReleasePage();
+  }
+
+  function renderReleasePage() {
+    const tbody = document.getElementById('release-table-body');
+    const empty = document.getElementById('release-empty');
+    const countEl = document.getElementById('release-count');
+    const result = paginate(releaseListCache, releasePage, RELEASE_PAGE_SIZE);
+    releasePage = result.page;
+    if (countEl) countEl.textContent = result.total;
+    if (!result.total) {
       tbody.innerHTML = '';
       if (empty) empty.style.display = 'block';
+      renderPaginationBar('release-pagination', result, 'goReleasePage');
       updateReleaseBatchCount();
       return;
     }
     if (empty) empty.style.display = 'none';
-    tbody.innerHTML = list.map(renderReleaseRow).join('');
+    tbody.innerHTML = result.items.map(renderReleaseRow).join('');
+    renderPaginationBar('release-pagination', result, 'goReleasePage');
     updateReleaseBatchCount();
   }
 
@@ -1662,7 +1686,9 @@
       '<td class="c-entry">' + esc(item.featureEntry || '—') + '</td>' +
       '<td class="c-target">' + esc(item.targetUser) + '</td>' +
       '<td class="c-hot">' + (item.isHighlight === '是' ? '<span class="text-warn">✓ 重点</span>' : '—') + '</td>' +
-      '<td class="c-images">' + (item.images || 0) + ' 张</td>' +
+      '<td class="c-images">' + ((item.images || 0) > 0
+        ? '<span class="link" onclick="previewListImages(' + item.id + ')">' + (item.images || 0) + ' 张</span>'
+        : '—') + '</td>' +
       '<td class="c-status">' + statusHtml + '</td>' +
       '<td class="actions"><span class="link" onclick="openEditModal(' + item.id + ')">编辑</span><span class="link danger" onclick="deleteReleaseItem(' + item.id + ')">删除</span></td>' +
     '</tr>';
@@ -1680,28 +1706,43 @@
     const allBox = document.getElementById('release-check-all');
     if (allBox) allBox.checked = (all > 0 && cnt === all);
   }
-  async function batchPublishSelected() {
-    const ids = Array.from(document.querySelectorAll('.list-table .row-check:checked')).map(cb => Number(cb.dataset.id));
-    if (!ids.length) return;
-    if (!confirm('确定将选中的 ' + ids.length + ' 条发版记录发布通知吗？\n(已通知的会跳过)')) return;
+  async function previewListImages(id) {
     try {
-      const data = await apiSend('POST', '/api/items/batch-publish', { ids });
-      const pubN = (data.published || []).length;
-      const skipN = (data.skipped || []).length;
-      alert('已发布 ' + pubN + ' 条，跳过 ' + skipN + ' 条已通知。');
-      const allBox = document.getElementById('release-check-all');
-      if (allBox) allBox.checked = false;
-      await renderReleaseList();
-    } catch (e) {
-      alert('发布失败：' + e.message);
-    }
+      const item = await apiGet('/api/items/' + id);
+      const urls = (item.imageList || []).map(function (im) { return im.url; });
+      if (!urls.length) { toast.warn('暂无截图'); return; }
+      openThumbModalFromList(urls, 0);
+    } catch (e) { toast.error('加载截图失败：' + e.message); }
+  }
+
+  async function batchPublishSelected() {
+    const ids = Array.from(document.querySelectorAll('.list-table .row-check:checked')).map(function (cb) { return Number(cb.dataset.id); });
+    if (!ids.length) return;
+    const ok = await AppConfirm.ask('确定将选中的 ' + ids.length + ' 条发版记录发布通知吗？\n(已通知的会跳过)');
+    if (!ok) return;
+    const btn = document.getElementById('btn-batch-publish');
+    await withLoading(btn, async function () {
+      try {
+        const data = await apiSend('POST', '/api/items/batch-publish', { ids: ids });
+        const pubN = (data.published || []).length;
+        const skipN = (data.skipped || []).length;
+        toast.success('已发布 ' + pubN + ' 条，跳过 ' + skipN + ' 条已通知。');
+        const allBox = document.getElementById('release-check-all');
+        if (allBox) allBox.checked = false;
+        await renderReleaseList();
+      } catch (e) {
+        toast.error('发布失败：' + e.message);
+      }
+    });
   }
   async function deleteReleaseItem(id) {
-    if (!confirm('确认删除该发版记录？此操作将同时从「发版列表」和「公开页」移除。')) return;
+    const ok = await AppConfirm.ask('确认删除该发版记录？此操作将同时从「发版列表」和「公开页」移除。', { danger: true, confirmText: '删除' });
+    if (!ok) return;
     try {
       await apiSend('DELETE', '/api/items/' + id, {});
       await renderReleaseList();
-    } catch (e) { alert('删除失败：' + e.message); }
+      toast.success('已删除');
+    } catch (e) { toast.error('删除失败：' + e.message); }
   }
 
   // ==================== 编辑弹窗 ====================
@@ -1759,7 +1800,7 @@
   }
   async function openEditModal(id) {
     let item = releaseItems.find(i => i.id === id);
-    if (!item) { alert('记录不存在'); return; }
+    if (!item) { toast.error('记录不存在'); return; }
     try { item = await apiGet('/api/items/' + id); } catch (e) { /* fallback 到本地缓存 */ }
     editingId = id;
     fillModal(item);
@@ -1792,22 +1833,26 @@
 
   async function saveItem() {
     const data = collectForm();
-    if (!data.featurePoint || !data.appPlatform) { alert('请完整填写：涉及应用/平台、功能点描述'); return; }
+    if (!data.featurePoint || !data.appPlatform) { toast.warn('请完整填写：涉及应用/平台、功能点描述'); return; }
     data.operator = 'admin';
     data.imageList = _editImages
-      .filter(im => im.uploaded && im.serverPath)
-      .map((im, idx) => ({ path: im.serverPath, url: im.serverUrl, sort_order: idx }));
-    try {
-      if (editingId) {
-        await apiSend('PUT', '/api/items/' + editingId, data);
-      } else {
-        await apiSend('POST', '/api/items', data);
+      .filter(function (im) { return im.uploaded && im.serverPath; })
+      .map(function (im, idx) { return { path: im.serverPath, url: im.serverUrl, sort_order: idx }; });
+    const btn = document.getElementById('btn-save-item');
+    await withLoading(btn, async function () {
+      try {
+        if (editingId) {
+          await apiSend('PUT', '/api/items/' + editingId, data);
+        } else {
+          await apiSend('POST', '/api/items', data);
+        }
+        await renderReleaseList();
+        closeEditModal();
+        toast.success('保存成功');
+      } catch (e) {
+        toast.error('保存失败：' + e.message);
       }
-      await renderReleaseList();
-      closeEditModal();
-    } catch (e) {
-      alert('保存失败：' + e.message);
-    }
+    });
   }
 
   // ==================== 截图上传（粘贴/拖拽/选/URL）====================
@@ -1822,7 +1867,7 @@
     document.getElementById('edit-thumbs').innerHTML = html;
   }
   async function uploadImageFile(file) {
-    if (!file || !file.type || !file.type.startsWith('image/')) { alert('仅支持图片文件'); return; }
+    if (!file || !file.type || !file.type.startsWith('image/')) { toast.warn('仅支持图片文件'); return; }
     const localUrl = URL.createObjectURL(file);
     _editImages.push({ localUrl, serverUrl: null, serverPath: null, uploaded: false });
     renderEditThumbs();
@@ -1838,14 +1883,16 @@
         last.uploaded = true;
         renderEditThumbs();
       } else {
-        alert('上传失败：' + ((data && data.message) || ('HTTP ' + resp.status)));
+        toast.error('上传失败：' + ((data && data.message) || ('HTTP ' + resp.status)));
       }
     } catch (e) {
       console.error('上传失败', e);
-      alert('上传失败：' + e.message);
+      toast.error('上传失败：' + e.message);
     }
   }
-  function removeEditThumb(i) {
+  async function removeEditThumb(i) {
+    const ok = await AppConfirm.ask('确认删除该截图？');
+    if (!ok) return;
     const img = _editImages[i];
     if (img && img.localUrl && img.localUrl.startsWith('blob:')) {
       try { URL.revokeObjectURL(img.localUrl); } catch (e) {}
@@ -1916,7 +1963,7 @@
         e.preventDefault();
         const url = prompt('请输入图片 URL（需可匿名访问）');
         if (url && /^https?:\/\//i.test(url)) addImageByUrl(url);
-        else if (url) alert('URL 必须以 http:// 或 https:// 开头');
+        else if (url) toast.warn('URL 必须以 http:// 或 https:// 开头');
       };
     }
     document.addEventListener('keydown', e => {
@@ -1943,6 +1990,12 @@
     _thumbList = _editImages.map(im => im.serverUrl || im.localUrl).filter(Boolean);
     if (!_thumbList.length) return;
     _thumbIdx = i;
+    showThumbModal();
+  }
+  function openThumbModalFromList(images, i) {
+    _thumbList = (images || []).slice();
+    if (!_thumbList.length) return;
+    _thumbIdx = i || 0;
     showThumbModal();
   }
   function showThumbModal() {
@@ -2199,9 +2252,9 @@
 
   async function downloadCurrentImage() {
     const stage = renderedLongImages[currentPreviewVersion];
-    if (!stage) return alert('尚未生成长图');
+    if (!stage) return toast.warn('尚未生成长图');
     if (typeof html2canvas === 'undefined') {
-      return alert('下载组件未加载，请检查网络或刷新页面后重试');
+      return toast.error('下载组件未加载，请检查网络或刷新页面后重试');
     }
     await waitForImages(stage);
     const canvas = await html2canvas(stage, {
@@ -2239,8 +2292,8 @@
       const r = await fetch(API + '/api/admin/import/excel', { method: 'POST', body: fd });
       const j = await r.json();
       if (j.code !== 'OK') throw new Error(j.message);
-      alert('已上传：' + j.data.filename);
-    } catch (e) { alert('上传失败：' + e.message); }
+      toast.success('已上传：' + j.data.filename);
+    } catch (e) { toast.error('上传失败：' + e.message); }
     input.value = '';
   }
 
@@ -2262,8 +2315,9 @@
   rebuildAllMultiSelectOptions();
   initMultiSelect();
   initUpload();
+  initMobileNav();
   // 预拉取一次兜底列表，用于多选下拉选项聚合
-  renderReleaseList().catch(e => console.error(e));
+  renderReleaseList().catch(function (e) { toast.error('初始化加载发版列表失败：' + e.message); });
 </script>
 
 </body>

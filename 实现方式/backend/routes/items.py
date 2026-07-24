@@ -374,12 +374,6 @@ def batch_publish_items():
         "skipped": skipped,
         "notFound": not_found,
     }, message=f"已发布 {len(published)} 条,跳过 {len(skipped)} 条已通知")
-    execute("UPDATE items SET status='published', notify_time=?, updated_at=datetime('now','localtime') WHERE id=?",
-            (notify_time, item_id))
-    execute("INSERT INTO audit_logs(operator,action,target,message) VALUES (?,?,?,?)",
-            ("ops", "publish", f"item:{item_id}", f"发布发版 {row['feature_point'][:30]}"))
-    new_row = query("SELECT * FROM items WHERE id=?", (item_id,), one=True)
-    return ok(_row_to_dict(new_row), message="发布成功")
 
 
 @bp.route("/items/<int:item_id>", methods=["DELETE"])
